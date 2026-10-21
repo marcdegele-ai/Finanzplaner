@@ -394,6 +394,36 @@
             background: rgba(56, 189, 248, 0.08);
             cursor: pointer;
         }
+
+        .cash-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .cash-box {
+            background: var(--card-sub);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .cash-box label {
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 4px;
+            color: #facc15;
+            font-weight: bold;
+        }
+
+        .cash-box input {
+            width: 100%;
+            text-align: center;
+            padding: 6px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -506,6 +536,55 @@
 
     <!-- TAB 2: PROGNOSE & STAND -->
     <div id="uebersicht-view" class="view-section">
+        <!-- DIGITALE GELD-KASSETTE WIDGET -->
+        <div class="card" style="border: 1px solid #facc15;">
+            <div class="card-title">
+                <span>🪙 Digitale Bargeld-Kassette (Stückelung)</span>
+                <span id="cashTotalBadge" style="color:#facc15; font-size:1.1rem;">0,00 €</span>
+            </div>
+            <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:8px;">Trage ein, wie viele Scheine und Münzen du in deiner Kiste hast:</div>
+            
+            <div class="cash-grid">
+                <div class="cash-box">
+                    <label>💶 50 € Schein</label>
+                    <input type="number" id="c50" min="0" value="0" oninput="calcCashBox()">
+                </div>
+                <div class="cash-box">
+                    <label>💶 20 € Schein</label>
+                    <input type="number" id="c20" min="0" value="0" oninput="calcCashBox()">
+                </div>
+                <div class="cash-box">
+                    <label>💶 10 € Schein</label>
+                    <input type="number" id="c10" min="0" value="0" oninput="calcCashBox()">
+                </div>
+                <div class="cash-box">
+                    <label>💶 5 € Schein</label>
+                    <input type="number" id="c5" min="0" value="0" oninput="calcCashBox()">
+                </div>
+                <div class="cash-box">
+                    <label>🪙 2 € Münze</label>
+                    <input type="number" id="c2" min="0" value="0" oninput="calcCashBox()">
+                </div>
+                <div class="cash-box">
+                    <label>🪙 1 € Münze</label>
+                    <input type="number" id="c1" min="0" value="0" oninput="calcCashBox()">
+                </div>
+                <div class="cash-box">
+                    <label>🪙 50 Cent</label>
+                    <input type="number" id="c050" min="0" value="0" oninput="calcCashBox()">
+                </div>
+                <div class="cash-box">
+                    <label>🪙 20 Cent</label>
+                    <input type="number" id="c020" min="0" value="0" oninput="calcCashBox()">
+                </div>
+                <div class="cash-box">
+                    <label>🪙 10+ Cent</label>
+                    <input type="number" id="c010" min="0" value="0" oninput="calcCashBox()">
+                </div>
+            </div>
+            <button class="btn-secondary" style="width:100%; margin-top:10px; background:#facc15; color:#0f172a; font-weight:bold;" onclick="saveCashBoxToCloud()">💾 Stückelung speichern</button>
+        </div>
+
         <div class="card">
             <div class="card-title">🏦 Kontostand (Aktuell gebuchte Ersparnisse)</div>
             <div class="stat-row">
@@ -553,7 +632,7 @@
         </div>
     </div>
 
-    <!-- TAB 3: URLAUBSBUDGET MIT DYNAMISCHER BASIS-ANPASSUNG -->
+    <!-- TAB 3: URLAUBSBUDGET -->
     <div id="urlaub-view" class="view-section">
         <div class="card">
             <div class="card-title">
@@ -801,6 +880,8 @@
             dayExpenses: [50, 20, null, null, null]
         };
 
+        let cashBreakdown = { c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0, c010: 0 };
+
         let currentModalGoalId = null;
         let currentMonthItems = [];
         let currentMonthPausedItems = [];
@@ -817,6 +898,7 @@
                     if(cloudData.entries) entries = cloudData.entries;
                     if(cloudData.goals) goals = cloudData.goals;
                     if(cloudData.urlaubData) urlaubData = cloudData.urlaubData;
+                    if(cloudData.cashBreakdown) cashBreakdown = cloudData.cashBreakdown;
                 } else {
                     entries = {
                         "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
@@ -825,6 +907,7 @@
                 }
 
                 document.getElementById('cloudStatus').innerText = "☁️ Mit Cloud synchronisiert ✅";
+                loadCashBreakdownToUI();
                 loadMonthData();
                 renderHistory();
                 renderGoals();
@@ -832,9 +915,10 @@
             } catch (err) {
                 console.error("Cloud-Fehler:", err);
                 document.getElementById('cloudStatus').innerText = "⚠️ Cloud-Fehler (Lokal aktiv)";
-                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v300')) || {
+                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v350')) || {
                     "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
                 };
+                loadCashBreakdownToUI();
                 loadMonthData();
                 renderHistory();
                 renderGoals();
@@ -847,13 +931,68 @@
                 await window.FirestoreSdk.setDoc(window.FirestoreSdk.doc(window.db, "finanzdaten", "main_data"), {
                     entries: entries,
                     goals: goals,
-                    urlaubData: urlaubData
+                    urlaubData: urlaubData,
+                    cashBreakdown: cashBreakdown
                 });
                 document.getElementById('cloudStatus').innerText = "☁️ Gespeichert & synchronisiert ✅";
             } catch (err) {
                 console.error("Speicher-Fehler:", err);
                 document.getElementById('cloudStatus').innerText = "❌ Fehler beim Speichern in Cloud";
             }
+        }
+
+        function loadCashBreakdownToUI() {
+            document.getElementById('c50').value = cashBreakdown.c50 || 0;
+            document.getElementById('c20').value = cashBreakdown.c20 || 0;
+            document.getElementById('c10').value = cashBreakdown.c10 || 0;
+            document.getElementById('c5').value = cashBreakdown.c5 || 0;
+            document.getElementById('c2').value = cashBreakdown.c2 || 0;
+            document.getElementById('c1').value = cashBreakdown.c1 || 0;
+            document.getElementById('c050').value = cashBreakdown.c050 || 0;
+            document.getElementById('c020').value = cashBreakdown.c020 || 0;
+            document.getElementById('c010').value = cashBreakdown.c010 || 0;
+            calcCashBox(false);
+        }
+
+        function calcCashBox(shouldSave = true) {
+            cashBreakdown.c50 = parseInt(document.getElementById('c50').value) || 0;
+            cashBreakdown.c20 = parseInt(document.getElementById('c20').value) || 0;
+            cashBreakdown.c10 = parseInt(document.getElementById('c10').value) || 0;
+            cashBreakdown.c5 = parseInt(document.getElementById('c5').value) || 0;
+            cashBreakdown.c2 = parseInt(document.getElementById('c2').value) || 0;
+            cashBreakdown.c1 = parseInt(document.getElementById('c1').value) || 0;
+            cashBreakdown.c050 = parseInt(document.getElementById('c050').value) || 0;
+            cashBreakdown.c020 = parseInt(document.getElementById('c020').value) || 0;
+            cashBreakdown.c010 = parseInt(document.getElementById('c010').value) || 0;
+
+            const total = (cashBreakdown.c50 * 50) +
+                          (cashBreakdown.c20 * 20) +
+                          (cashBreakdown.c10 * 10) +
+                          (cashBreakdown.c5 * 5) +
+                          (cashBreakdown.c2 * 2) +
+                          (cashBreakdown.c1 * 1) +
+                          (cashBreakdown.c050 * 0.5) +
+                          (cashBreakdown.c020 * 0.2) +
+                          (cashBreakdown.c010 * 0.1);
+
+            document.getElementById('cashTotalBadge').innerText = total.toFixed(2) + ' €';
+
+            // Automatisch auch in das Kassette-Sparziel übernehmen
+            let kassetteGoal = goals.find(g => g.id === 'kassette');
+            if(kassetteGoal) {
+                kassetteGoal.manualCurrent = total;
+            }
+
+            if(shouldSave) {
+                renderHistory();
+            }
+        }
+
+        async function saveCashBoxToCloud() {
+            calcCashBox(false);
+            await saveToCloud();
+            alert('Bargeld-Stückelung erfolgreich in der Cloud gespeichert! 🪙');
+            renderHistory();
         }
 
         function switchTab(viewId, btnEl) {
@@ -1190,6 +1329,8 @@
 
             let runningNotfall = notfallGoalObj && notfallGoalObj.manualOffset ? parseFloat(notfallGoalObj.manualOffset) : 0;
             let runningFreizeit = freizeitGoalObj && freizeitGoalObj.manualOffset ? parseFloat(freizeitGoalObj.manualOffset) : 0;
+            
+            // Bargeld-Kassette nimmt jetzt den echten Wert aus dem Stückelung-Zähler oder dem manuellen Stand
             let runningKassette = kassetteGoalObj ? parseFloat(kassetteGoalObj.manualCurrent || 0) : 0;
 
             const tableBody = document.getElementById('monthSavingsTableBody');
@@ -1266,7 +1407,7 @@
             renderGoals();
         }
 
-        // --- DYNAMISCHE BASIS-ANPASSUNG BEI BUDGET-ÄNDERUNG ---
+        // --- URLAUBSBUDGET ---
         const dayNames = [
             "Mittwoch, 25.08. (Anreise)",
             "Donnerstag, 26.08.",
@@ -1290,9 +1431,6 @@
             document.getElementById('uFixTotalDisplay').innerText = fixSum.toFixed(2) + ' €';
             document.getElementById('uNettoTagesBudgetDisplay').innerText = netTagesBudget.toFixed(2) + ' €';
 
-            // DYNAMISCHE BASIS-BERECHNUNG:
-            // Wir verteilen das Netto-Budget anteilig auf die 4 Partytage, der Sonntag bleibt fix beim Abreise-Puffer.
-            // Ursprüngliches Verhältnis bei 506.3€ Netto war: Tag1 ~95, Tag2 ~115, Tag3 ~120, Tag4 ~126.3
             const origNet = 506.3;
             const origBases = [95, 115, 120, 126.3];
             let baseBudgets = [];
@@ -1300,7 +1438,7 @@
             for(let i = 0; i < 4; i++) {
                 baseBudgets.push(netTagesBudget * (origBases[i] / origNet));
             }
-            baseBudgets.push(parseFloat(urlaubData.fixAbreisePuffer) || 50); // Sonntag FIX
+            baseBudgets.push(parseFloat(urlaubData.fixAbreisePuffer) || 50);
 
             const numDays = 5;
             let dayExpenses = urlaubData.dayExpenses || [50, 20, null, null, null];
@@ -1316,7 +1454,7 @@
                 if (i === 0) {
                     bonus[0] = 0;
                 } else if (i === 4) {
-                    bonus[4] = 0; // Sonntag FIX
+                    bonus[4] = 0;
                 } else {
                     let accumulatedBonusShare = 0;
                     for (let prev = 0; prev < i; prev++) {
@@ -1348,7 +1486,6 @@
             let progress = target > 0 ? (totalSpent / target) * 100 : 0;
             document.getElementById('uProgressFill').style.width = Math.min(100, progress).toFixed(1) + '%';
 
-            // Select-Dropdown für Tag
             const selectEl = document.getElementById('uDaySelectForExpense');
             const selectedIdx = parseInt(selectEl.value || 0, 10);
             selectEl.innerHTML = '';
@@ -1363,7 +1500,6 @@
             const currentDayExpense = dayExpenses[selectedIdx];
             document.getElementById('uDayExpenseInput').value = (currentDayExpense !== null && currentDayExpense !== undefined) ? currentDayExpense : '';
 
-            // Tabelle rendern
             const tbody = document.getElementById('urlaubTableBody');
             tbody.innerHTML = '';
 
@@ -1591,7 +1727,7 @@
             const targetDate = document.getElementById('zielDatum').value;
             const goalType = document.getElementById('zielTypeSelect').value;
 
-            if(!name || target <= 0) return alert('Bitte Name und Zielbetrag angeben!');
+            if(!name || target <= 0) return alert('Name und Zielbetrag angeben!');
 
             let newId = 'custom_' + Date.now();
             if(['notfall', 'freizeit', 'kassette'].includes(goalType)) {
