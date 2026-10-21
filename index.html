@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+       <!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
@@ -553,55 +553,77 @@
         </div>
     </div>
 
-    <!-- TAB 3: URLAUBSBUDGET MIT KORREKTER GLEICHMÄSSIGER REST-VERTEILUNG -->
+    <!-- TAB 3: URLAUBSBUDGET MIT EXAKTER EXCEL-LOGIK -->
     <div id="urlaub-view" class="view-section">
         <div class="card">
             <div class="card-title">
-                <span>✈️ Urlaubsbudget & Tagesplaner 🏖️</span>
+                <span>✈️ Urlaubsbudget (Excel Smarte Rest-Verteilung) 🏖️</span>
             </div>
-            <div style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">Restgeld wird exakt und gleichmäßig auf alle verbleibenden Tage aufgeteilt.</div>
+            <div style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">Ersparnisse verteilen sich gleichmäßig als Bonus auf die folgend verbleibenden Tage!</div>
             
             <div class="grid">
                 <div class="input-group full">
                     <label>Reise-Ziel / Urlaub Name</label>
-                    <input type="text" id="urlaubNameInput" value="Mallorca 2027" onchange="saveUrlaubConfig()">
+                    <input type="text" id="urlaubNameInput" value="Mallorca August 2027 – Hotel Obelisco" onchange="saveUrlaubConfig()">
                 </div>
                 <div class="input-group full">
-                    <label>Gesamtbudget für den Urlaub (€)</label>
-                    <input type="number" id="urlaubTargetInput" value="2000" onchange="saveUrlaubConfig()">
+                    <label>🎯 Geplantes Gesamtbudget (€)</label>
+                    <input type="number" id="urlaubTargetInput" value="600" onchange="saveUrlaubConfig()">
                 </div>
                 <div class="input-group">
                     <label>Anreise-Datum</label>
-                    <input type="date" id="urlaubStartDate" value="2027-04-21" onchange="saveUrlaubConfig()">
+                    <input type="date" id="urlaubStartDate" value="2027-08-25" onchange="saveUrlaubConfig()">
                 </div>
                 <div class="input-group">
                     <label>Abreise-Datum</label>
-                    <input type="date" id="urlaubEndDate" value="2027-04-25" onchange="saveUrlaubConfig()">
+                    <input type="date" id="urlaubEndDate" value="2027-08-29" onchange="saveUrlaubConfig()">
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-title">📊 Budget-Übersicht & Tagesrate</div>
+            <div class="card-title">📌 Fixkosten & Abreise-Puffer</div>
+            <div class="grid">
+                <div class="input-group">
+                    <label>Kurtaxe (€)</label>
+                    <input type="number" id="fixKurtaxe" value="13.2" oninput="saveUrlaubConfig()">
+                </div>
+                <div class="input-group">
+                    <label>Supermarkt (€)</label>
+                    <input type="number" id="fixSupermarkt" value="25" oninput="saveUrlaubConfig()">
+                </div>
+                <div class="input-group">
+                    <label>Bus Hin-Fahrt (€)</label>
+                    <input type="number" id="fixBusHin" value="5.5" oninput="saveUrlaubConfig()">
+                </div>
+                <div class="input-group">
+                    <label>Abreise-Puffer (Sonntag FIX) (€)</label>
+                    <input type="number" id="fixAbreisePuffer" value="50" oninput="saveUrlaubConfig()">
+                </div>
+            </div>
+            <div class="stat-row" style="margin-top:10px;">
+                <span>Summe Fixkosten & Puffer:</span>
+                <span id="uFixTotalDisplay" class="val-red">0,00 €</span>
+            </div>
+            <div class="stat-row">
+                <span>Verbleibendes Tages-Budget:</span>
+                <span id="uNettoTagesBudgetDisplay" class="val-highlight">0,00 €</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📊 Budget-Übersicht</div>
             <div class="stat-row">
                 <span>Gesamtdauer:</span>
-                <span id="uDaysDisplay" style="font-weight:bold;">0 Tage</span>
+                <span id="uDaysDisplay" style="font-weight:bold;">5 Tage</span>
             </div>
             <div class="stat-row">
-                <span>Gesamtbudget:</span>
-                <span id="uTargetDisplay" style="font-weight:bold;">0,00 €</span>
-            </div>
-            <div class="stat-row">
-                <span>Bisherige Gesamtausgaben:</span>
+                <span>Bisherige Echte Ausgaben:</span>
                 <span id="uSpentDisplay" class="val-red">0,00 €</span>
             </div>
             <div class="stat-row">
-                <span>Verbleibendes Gesamtbudget:</span>
-                <span id="uLeftDisplay" class="val-highlight">0,00 €</span>
-            </div>
-            <div class="stat-row" style="font-weight:bold; background:var(--card-sub); padding:10px; border-radius:8px; margin-top:6px;">
-                <span>💡 Basis-Tagesbudget (Start):</span>
-                <span id="uDailyRateDisplay" style="color:var(--accent); font-size:1.05rem;">0,00 € / Tag</span>
+                <span>Gesamte Tages-Überschüsse (Gespart):</span>
+                <span id="uSavingsDisplay" class="val-highlight">0,00 €</span>
             </div>
             <div class="progress-bar-container">
                 <div class="progress-bar-fill" id="uProgressFill" style="width: 0%;"></div>
@@ -609,36 +631,37 @@
         </div>
 
         <div class="card">
-            <div class="card-title">➕ Urlaubs-Ausgabe eintragen</div>
+            <div class="card-title">✏️ Echte Tages-Ausgabe erfassen (GELB)</div>
             <div class="grid">
                 <div class="input-group full">
-                    <label>Beschreibung / Posten</label>
-                    <input type="text" id="uItemName" placeholder="z.B. Bierkönig, Mietwagen, Hotel...">
-                </div>
-                <div class="input-group">
-                    <label>Betrag (€)</label>
-                    <input type="number" id="uItemAmount" placeholder="z.B. 80">
-                </div>
-                <div class="input-group">
-                    <label>Kategorie</label>
-                    <select id="uItemCat">
-                        <option value="🍺 Tagesgeld / Party">🍺 Tagesgeld / Party</option>
-                        <option value="🏨 Hotel / Unterkunft">🏨 Hotel / Unterkunft</option>
-                        <option value="✈️ Flug & Transfer">✈️ Flug & Transfer</option>
-                        <option value="🎒 Sonstiges">🎒 Sonstiges</option>
-                    </select>
+                    <label>Tag auswählen</label>
+                    <select id="uDaySelectForExpense" onchange="renderUrlaubView()"></select>
                 </div>
                 <div class="input-group full">
-                    <label>Welcher Urlaubstag?</label>
-                    <select id="uItemDaySelect"></select>
+                    <label>Echte Ausgaben heute (€)</label>
+                    <input type="number" id="uDayExpenseInput" placeholder="0" oninput="updateDayExpenseFromInput()">
                 </div>
             </div>
-            <button class="btn-add" onclick="addUrlaubItem()">Ausgabe Buchen</button>
         </div>
 
         <div class="card">
-            <div class="card-title">📅 Verfügbares Budget pro Tag (Dynamisch)</div>
-            <div class="history-list" id="uDaysList"></div>
+            <div class="card-title">📊 Deine Tages-Umschläge (Excel-Logik)</div>
+            <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Basis (BLAU) + Bonus aus Ersparnissen (GRÜN) = Verfügbar heute</div>
+            <div class="table-wrapper">
+                <table class="month-table">
+                    <thead>
+                        <tr>
+                            <th>Tag</th>
+                            <th>Basis (€)</th>
+                            <th>+ Bonus (€)</th>
+                            <th>Verfügbar (€)</th>
+                            <th>Ausgegeben (€)</th>
+                            <th>Überschuss (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="urlaubTableBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -767,15 +790,16 @@
         ];
 
         let urlaubData = {
-            name: "Mallorca 2027",
-            target: 2000,
-            startDate: "2027-04-21",
-            endDate: "2027-04-25",
-            items: [
-                { name: "Hotel Obelisco", category: "🏨 Hotel / Unterkunft", amount: 600, dayIndex: 0 },
-                { name: "Flug & Transfer", category: "✈️ Flug & Transfer", amount: 250, dayIndex: 0 },
-                { name: "Bierkönig Tag 1", category: "🍺 Tagesgeld / Party", amount: 80, dayIndex: 0 }
-            ]
+            name: "Mallorca August 2027 – Hotel Obelisco",
+            target: 600,
+            startDate: "2027-08-25",
+            endDate: "2027-08-29",
+            fixKurtaxe: 13.2,
+            fixSupermarkt: 25,
+            fixBusHin: 5.5,
+            fixAbreisePuffer: 50,
+            baseBudgets: [95, 115, 120, 126.3, 50],
+            dayExpenses: [50, 20, null, null, null]
         };
 
         let currentModalGoalId = null;
@@ -809,7 +833,7 @@
             } catch (err) {
                 console.error("Cloud-Fehler:", err);
                 document.getElementById('cloudStatus').innerText = "⚠️ Cloud-Fehler (Lokal aktiv)";
-                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v159')) || {
+                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v300')) || {
                     "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
                 };
                 loadMonthData();
@@ -1243,149 +1267,138 @@
             renderGoals();
         }
 
-        function calculateUrlaubDays() {
-            const start = new Date(urlaubData.startDate);
-            const end = new Date(urlaubData.endDate);
-            if(isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
-                return 1;
-            }
-            const diffTime = Math.abs(end - start);
-            return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        }
+        // --- EXAKTE EXCEL URLAUBSBUDGET BERECHNUNG ---
+        const dayNames = [
+            "Mittwoch, 25.08. (Anreise)",
+            "Donnerstag, 26.08.",
+            "Freitag, 27.08. (Party)",
+            "Samstag, 28.08. (Party)",
+            "Sonntag, 29.08. (Abreise - FIX)"
+        ];
 
         function renderUrlaubView() {
-            document.getElementById('urlaubNameInput').value = urlaubData.name || "Mallorca 2027";
-            document.getElementById('urlaubTargetInput').value = urlaubData.target || 2000;
-            document.getElementById('urlaubStartDate').value = urlaubData.startDate || "2027-04-21";
-            document.getElementById('urlaubEndDate').value = urlaubData.endDate || "2027-04-25";
+            document.getElementById('urlaubNameInput').value = urlaubData.name;
+            document.getElementById('urlaubTargetInput').value = urlaubData.target;
+            document.getElementById('fixKurtaxe').value = urlaubData.fixKurtaxe;
+            document.getElementById('fixSupermarkt').value = urlaubData.fixSupermarkt;
+            document.getElementById('fixBusHin').value = urlaubData.fixBusHin;
+            document.getElementById('fixAbreisePuffer').value = urlaubData.fixAbreisePuffer;
 
-            const numDays = calculateUrlaubDays();
-            const totalTarget = parseFloat(urlaubData.target) || 0;
-            const baseDailyBudget = numDays > 0 ? (totalTarget / numDays) : 0;
+            const target = parseFloat(urlaubData.target) || 0;
+            const fixSum = (parseFloat(urlaubData.fixKurtaxe)||0) + (parseFloat(urlaubData.fixSupermarkt)||0) + (parseFloat(urlaubData.fixBusHin)||0) + (parseFloat(urlaubData.fixAbreisePuffer)||0);
+            const netTagesBudget = target - fixSum;
 
+            document.getElementById('uFixTotalDisplay').innerText = fixSum.toFixed(2) + ' €';
+            document.getElementById('uNettoTagesBudgetDisplay').innerText = netTagesBudget.toFixed(2) + ' €';
+
+            const numDays = 5;
+            let baseBudgets = [95, 115, 120, 126.3, parseFloat(urlaubData.fixAbreisePuffer)||50];
+            let dayExpenses = urlaubData.dayExpenses || [50, 20, null, null, null];
+
+            let bonus = [0, 0, 0, 0, 0];
+            let available = [0, 0, 0, 0, 0];
+            let surplus = [0, 0, 0, 0, 0];
+
+            let cumulativeBonusFromPrevDays = 0;
             let totalSpent = 0;
-            let dayExpenses = Array(numDays).fill(0);
+            let totalSavings = 0;
 
-            (urlaubData.items || []).forEach(item => {
-                const amt = parseFloat(item.amount) || 0;
-                totalSpent += amt;
-                let dIdx = item.dayIndex !== undefined ? item.dayIndex : 0;
-                if(dIdx >= numDays) dIdx = numDays - 1;
-                dayExpenses[dIdx] += amt;
-            });
+            for(let i = 0; i < numDays; i++) {
+                if (i === 0) {
+                    bonus[0] = 0;
+                } else if (i === 4) {
+                    bonus[4] = 0; // Sonntag FIX
+                } else {
+                    let accumulatedBonusShare = 0;
+                    for (let prev = 0; prev < i; prev++) {
+                        const prevSurplus = surplus[prev];
+                        const remainingRegularDaysFromPrev = (4 - prev);
+                        if (remainingRegularDaysFromPrev > 0) {
+                            accumulatedBonusShare += (prevSurplus / remainingRegularDaysFromPrev);
+                        }
+                    }
+                    bonus[i] = accumulatedBonusShare;
+                }
 
-            const leftBudget = totalTarget - totalSpent;
+                available[i] = baseBudgets[i] + bonus[i];
 
-            document.getElementById('uDaysDisplay').innerText = `${numDays} Tage`;
-            document.getElementById('uTargetDisplay').innerText = totalTarget.toFixed(2) + ' €';
+                const exp = dayExpenses[i];
+                if (exp !== null && exp !== undefined && exp !== '') {
+                    const actualExp = parseFloat(exp) || 0;
+                    surplus[i] = available[i] - actualExp;
+                    totalSpent += actualExp;
+                    totalSavings += surplus[i];
+                } else {
+                    surplus[i] = 0;
+                }
+            }
+
             document.getElementById('uSpentDisplay').innerText = totalSpent.toFixed(2) + ' €';
-            document.getElementById('uLeftDisplay').innerText = leftBudget.toFixed(2) + ' €';
+            document.getElementById('uSavingsDisplay').innerText = totalSavings.toFixed(2) + ' €';
 
-            let progressPercent = totalTarget > 0 ? (totalSpent / totalTarget) * 100 : 0;
-            if(progressPercent > 100) progressPercent = 100;
-            document.getElementById('uProgressFill').style.width = progressPercent.toFixed(1) + '%';
+            let progress = target > 0 ? (totalSpent / target) * 100 : 0;
+            document.getElementById('uProgressFill').style.width = Math.min(100, progress).toFixed(1) + '%';
 
-            const selectEl = document.getElementById('uItemDaySelect');
+            // Select-Dropdown für Tag
+            const selectEl = document.getElementById('uDaySelectForExpense');
+            const selectedIdx = parseInt(selectEl.value || 0, 10);
             selectEl.innerHTML = '';
             for(let i = 0; i < numDays; i++) {
                 const opt = document.createElement('option');
                 opt.value = i;
-                opt.innerText = `Tag ${i + 1} (${dayExpenses[i].toFixed(2)} € ausgegeben)`;
+                opt.innerText = dayNames[i];
+                if(i === selectedIdx) opt.selected = true;
                 selectEl.appendChild(opt);
             }
 
-            // EXAKTE RESTGELD-SCHLEIFE OHNE MULTIPLIKATION
-            let dayBudgets = Array(numDays).fill(0);
-            let runningSpent = 0;
+            const currentDayExpense = dayExpenses[selectedIdx];
+            document.getElementById('uDayExpenseInput').value = (currentDayExpense !== null && currentDayExpense !== undefined) ? currentDayExpense : '';
 
-            for (let i = 0; i < numDays; i++) {
-                const daysRemainingFromHere = numDays - i;
-                const poolLeftForRemainingDays = totalTarget - runningSpent;
-                
-                dayBudgets[i] = daysRemainingFromHere > 0 ? (poolLeftForRemainingDays / daysRemainingFromHere) : 0;
-                
-                runningSpent += dayExpenses[i];
-            }
-
-            const daysList = document.getElementById('uDaysList');
-            daysList.innerHTML = '';
+            // Tabelle rendern
+            const tbody = document.getElementById('urlaubTableBody');
+            tbody.innerHTML = '';
 
             for(let i = 0; i < numDays; i++) {
-                const daySpent = dayExpenses[i];
-                const assignedBudget = dayBudgets[i];
-
-                const dayItems = (urlaubData.items || []).filter(item => (item.dayIndex || 0) === i);
-
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.style.flexDirection = 'column';
-                div.style.alignItems = 'stretch';
-                div.style.gap = '8px';
-
-                let itemsHtml = dayItems.map(item => `
-                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; border-top:1px dashed var(--border); padding-top:4px; margin-top:4px;">
-                        <span>${item.name} <small style="color:var(--text-sub);">(${item.category})</small></span>
-                        <div>
-                            <strong style="color:var(--accent-orange);">${parseFloat(item.amount).toFixed(2)} €</strong>
-                            <span style="color:#ef4444; font-size:0.75rem; cursor:pointer; margin-left:6px;" onclick="deleteUrlaubItem('${item.name}', ${item.amount})">❌</span>
-                        </div>
-                    </div>
-                `).join('');
-
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <div class="history-date">Tag ${i + 1}</div>
-                            <div class="history-sub">Ausgegeben: <strong class="val-red">${daySpent.toFixed(2)} €</strong></div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-size:1.1rem; font-weight:bold; color:var(--accent);">
-                                ${assignedBudget.toFixed(2)} €
-                            </div>
-                            <div class="history-sub">Verfügbares Tagesbudget</div>
-                        </div>
-                    </div>
-                    ${itemsHtml || ''}
+                const tr = document.createElement('tr');
+                const isHasExp = dayExpenses[i] !== null && dayExpenses[i] !== undefined && dayExpenses[i] !== '';
+                tr.innerHTML = `
+                    <td><strong>${dayNames[i]}</strong></td>
+                    <td style="color:var(--accent);">${baseBudgets[i].toFixed(2)} €</td>
+                    <td style="color:var(--accent-green); font-weight:bold;">+${bonus[i].toFixed(2)} €</td>
+                    <td style="font-weight:bold; color:var(--text-main);">${available[i].toFixed(2)} €</td>
+                    <td class="val-red">${isHasExp ? parseFloat(dayExpenses[i]).toFixed(2) + ' €' : '-'}</td>
+                    <td class="val-highlight">${isHasExp ? surplus[i].toFixed(2) + ' €' : '0,00 €'}</td>
                 `;
-                daysList.appendChild(div);
+                tbody.appendChild(tr);
             }
-
-            document.getElementById('uDailyRateDisplay').innerText = `${baseDailyBudget.toFixed(2)} € / Tag (Basis-Schnitt)`;
         }
 
         async function saveUrlaubConfig() {
             urlaubData.name = document.getElementById('urlaubNameInput').value;
             urlaubData.target = parseFloat(document.getElementById('urlaubTargetInput').value) || 0;
-            urlaubData.startDate = document.getElementById('urlaubStartDate').value;
-            urlaubData.endDate = document.getElementById('urlaubEndDate').value;
+            urlaubData.fixKurtaxe = parseFloat(document.getElementById('fixKurtaxe').value) || 0;
+            urlaubData.fixSupermarkt = parseFloat(document.getElementById('fixSupermarkt').value) || 0;
+            urlaubData.fixBusHin = parseFloat(document.getElementById('fixBusHin').value) || 0;
+            urlaubData.fixAbreisePuffer = parseFloat(document.getElementById('fixAbreisePuffer').value) || 0;
+            
             await saveToCloud();
             renderUrlaubView();
         }
 
-        async function addUrlaubItem() {
-            const name = document.getElementById('uItemName').value.trim();
-            const cat = document.getElementById('uItemCat').value;
-            const amount = parseFloat(document.getElementById('uItemAmount').value);
-            const dayIndex = parseInt(document.getElementById('uItemDaySelect').value, 10);
+        async function updateDayExpenseFromInput() {
+            const dayIdx = parseInt(document.getElementById('uDaySelectForExpense').value, 10);
+            const val = document.getElementById('uDayExpenseInput').value;
 
-            if(!name || isNaN(amount) || amount <= 0) return alert('Bitte gültigen Namen und Betrag eingeben!');
-
-            if(!urlaubData.items) urlaubData.items = [];
-            urlaubData.items.push({ name, category: cat, amount, dayIndex });
-
-            document.getElementById('uItemName').value = '';
-            document.getElementById('uItemAmount').value = '';
-
-            await saveToCloud();
-            renderUrlaubView();
-        }
-
-        async function deleteUrlaubItem(name, amount) {
-            if(confirm(`Ausgabe "${name}" wirklich löschen?`)) {
-                urlaubData.items = urlaubData.items.filter(i => !(i.name === name && i.amount === amount));
-                await saveToCloud();
-                renderUrlaubView();
+            if(!urlaubData.dayExpenses) urlaubData.dayExpenses = [null, null, null, null, null];
+            
+            if(val === '' || val === null) {
+                urlaubData.dayExpenses[dayIdx] = null;
+            } else {
+                urlaubData.dayExpenses[dayIdx] = parseFloat(val) || 0;
             }
+
+            await saveToCloud();
+            renderUrlaubView();
         }
 
         function renderGoals() {
@@ -1608,4 +1621,4 @@
         }
     </script>
 </body>
-</html>
+</html>     
