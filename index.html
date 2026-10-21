@@ -410,8 +410,30 @@
             text-align: center;
         }
 
+        .cash-badge-img {
+            width: 38px;
+            height: 24px;
+            object-fit: contain;
+            border-radius: 4px;
+            margin: 0 auto 3px auto;
+            display: block;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: #475569;
+        }
+
+        .coin-badge-img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            border-radius: 50%;
+            margin: 0 auto 3px auto;
+            display: block;
+            border: 1px solid #facc15;
+            background: #d97706;
+        }
+
         .cash-box label {
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             display: block;
             margin-bottom: 4px;
             color: #facc15;
@@ -536,50 +558,68 @@
 
     <!-- TAB 2: PROGNOSE & STAND -->
     <div id="uebersicht-view" class="view-section">
-        <!-- DIGITALE GELD-KASSETTE WIDGET -->
+        <!-- DIGITALE GELD-KASSETTE WIDGET MIT BILDERN -->
         <div class="card" style="border: 1px solid #facc15;">
             <div class="card-title">
                 <span>🪙 Digitale Bargeld-Kassette (Stückelung)</span>
                 <span id="cashTotalBadge" style="color:#facc15; font-size:1.1rem;">0,00 €</span>
             </div>
-            <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:8px;">Trage ein, wie viele Scheine und Münzen du in deiner Kiste hast:</div>
+            <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:8px;">Trage ein, wie viele Scheine und Münzen in deiner Kiste sind:</div>
             
             <div class="cash-grid">
+                <!-- 100€ Schein (Grün) -->
                 <div class="cash-box">
-                    <label>💶 50 € Schein</label>
+                    <div class="cash-badge-img" style="background:#84cc16; color:#0f172a; font-weight:bold; font-size:0.65rem; display:flex; align-items:center; justify-content:center;">100€</div>
+                    <label>100 € Schein</label>
+                    <input type="number" id="c100" min="0" value="0" oninput="calcCashBox()">
+                </div>
+                <!-- 50€ Schein (Orange) -->
+                <div class="cash-box">
+                    <div class="cash-badge-img" style="background:#f97316; color:#fff; font-weight:bold; font-size:0.65rem; display:flex; align-items:center; justify-content:center;">50€</div>
+                    <label>50 € Schein</label>
                     <input type="number" id="c50" min="0" value="0" oninput="calcCashBox()">
                 </div>
+                <!-- 20€ Schein (Blau) -->
                 <div class="cash-box">
-                    <label>💶 20 € Schein</label>
+                    <div class="cash-badge-img" style="background:#0284c7; color:#fff; font-weight:bold; font-size:0.65rem; display:flex; align-items:center; justify-content:center;">20€</div>
+                    <label>20 € Schein</label>
                     <input type="number" id="c20" min="0" value="0" oninput="calcCashBox()">
                 </div>
+                <!-- 10€ Schein (Rot) -->
                 <div class="cash-box">
-                    <label>💶 10 € Schein</label>
+                    <div class="cash-badge-img" style="background:#dc2626; color:#fff; font-weight:bold; font-size:0.65rem; display:flex; align-items:center; justify-content:center;">10€</div>
+                    <label>10 € Schein</label>
                     <input type="number" id="c10" min="0" value="0" oninput="calcCashBox()">
                 </div>
+                <!-- 5€ Schein (Grau) -->
                 <div class="cash-box">
-                    <label>💶 5 € Schein</label>
+                    <div class="cash-badge-img" style="background:#64748b; color:#fff; font-weight:bold; font-size:0.65rem; display:flex; align-items:center; justify-content:center;">5€</div>
+                    <label>5 € Schein</label>
                     <input type="number" id="c5" min="0" value="0" oninput="calcCashBox()">
                 </div>
+                <!-- 2€ Münze -->
                 <div class="cash-box">
-                    <label>🪙 2 € Münze</label>
+                    <div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">2€</div>
+                    <label>2 € Münze</label>
                     <input type="number" id="c2" min="0" value="0" oninput="calcCashBox()">
                 </div>
+                <!-- 1€ Münze -->
                 <div class="cash-box">
-                    <label>🪙 1 € Münze</label>
+                    <div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">1€</div>
+                    <label>1 € Münze</label>
                     <input type="number" id="c1" min="0" value="0" oninput="calcCashBox()">
                 </div>
+                <!-- 50 Cent -->
                 <div class="cash-box">
-                    <label>🪙 50 Cent</label>
+                    <div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;">50c</div>
+                    <label>50 Cent</label>
                     <input type="number" id="c050" min="0" value="0" oninput="calcCashBox()">
                 </div>
+                <!-- 20 Cent -->
                 <div class="cash-box">
-                    <label>🪙 20 Cent</label>
+                    <div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;">20c</div>
+                    <label>20 Cent</label>
                     <input type="number" id="c020" min="0" value="0" oninput="calcCashBox()">
-                </div>
-                <div class="cash-box">
-                    <label>🪙 10+ Cent</label>
-                    <input type="number" id="c010" min="0" value="0" oninput="calcCashBox()">
                 </div>
             </div>
             <button class="btn-secondary" style="width:100%; margin-top:10px; background:#facc15; color:#0f172a; font-weight:bold;" onclick="saveCashBoxToCloud()">💾 Stückelung speichern</button>
@@ -880,7 +920,7 @@
             dayExpenses: [50, 20, null, null, null]
         };
 
-        let cashBreakdown = { c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0, c010: 0 };
+        let cashBreakdown = { c100: 0, c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0 };
 
         let currentModalGoalId = null;
         let currentMonthItems = [];
@@ -915,7 +955,7 @@
             } catch (err) {
                 console.error("Cloud-Fehler:", err);
                 document.getElementById('cloudStatus').innerText = "⚠️ Cloud-Fehler (Lokal aktiv)";
-                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v350')) || {
+                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v360')) || {
                     "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
                 };
                 loadCashBreakdownToUI();
@@ -942,6 +982,7 @@
         }
 
         function loadCashBreakdownToUI() {
+            document.getElementById('c100').value = cashBreakdown.c100 || 0;
             document.getElementById('c50').value = cashBreakdown.c50 || 0;
             document.getElementById('c20').value = cashBreakdown.c20 || 0;
             document.getElementById('c10').value = cashBreakdown.c10 || 0;
@@ -950,11 +991,11 @@
             document.getElementById('c1').value = cashBreakdown.c1 || 0;
             document.getElementById('c050').value = cashBreakdown.c050 || 0;
             document.getElementById('c020').value = cashBreakdown.c020 || 0;
-            document.getElementById('c010').value = cashBreakdown.c010 || 0;
             calcCashBox(false);
         }
 
         function calcCashBox(shouldSave = true) {
+            cashBreakdown.c100 = parseInt(document.getElementById('c100').value) || 0;
             cashBreakdown.c50 = parseInt(document.getElementById('c50').value) || 0;
             cashBreakdown.c20 = parseInt(document.getElementById('c20').value) || 0;
             cashBreakdown.c10 = parseInt(document.getElementById('c10').value) || 0;
@@ -963,21 +1004,19 @@
             cashBreakdown.c1 = parseInt(document.getElementById('c1').value) || 0;
             cashBreakdown.c050 = parseInt(document.getElementById('c050').value) || 0;
             cashBreakdown.c020 = parseInt(document.getElementById('c020').value) || 0;
-            cashBreakdown.c010 = parseInt(document.getElementById('c010').value) || 0;
 
-            const total = (cashBreakdown.c50 * 50) +
+            const total = (cashBreakdown.c100 * 100) +
+                          (cashBreakdown.c50 * 50) +
                           (cashBreakdown.c20 * 20) +
                           (cashBreakdown.c10 * 10) +
                           (cashBreakdown.c5 * 5) +
                           (cashBreakdown.c2 * 2) +
                           (cashBreakdown.c1 * 1) +
                           (cashBreakdown.c050 * 0.5) +
-                          (cashBreakdown.c020 * 0.2) +
-                          (cashBreakdown.c010 * 0.1);
+                          (cashBreakdown.c020 * 0.2);
 
             document.getElementById('cashTotalBadge').innerText = total.toFixed(2) + ' €';
 
-            // Automatisch auch in das Kassette-Sparziel übernehmen
             let kassetteGoal = goals.find(g => g.id === 'kassette');
             if(kassetteGoal) {
                 kassetteGoal.manualCurrent = total;
@@ -1329,8 +1368,6 @@
 
             let runningNotfall = notfallGoalObj && notfallGoalObj.manualOffset ? parseFloat(notfallGoalObj.manualOffset) : 0;
             let runningFreizeit = freizeitGoalObj && freizeitGoalObj.manualOffset ? parseFloat(freizeitGoalObj.manualOffset) : 0;
-            
-            // Bargeld-Kassette nimmt jetzt den echten Wert aus dem Stückelung-Zähler oder dem manuellen Stand
             let runningKassette = kassetteGoalObj ? parseFloat(kassetteGoalObj.manualCurrent || 0) : 0;
 
             const tableBody = document.getElementById('monthSavingsTableBody');
