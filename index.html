@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mein Dynamischer Finanzplan</title>
     
+    <!-- PWA App-Modus Meta-Tags -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -939,7 +946,7 @@
             } catch (err) {
                 console.error("Cloud-Fehler:", err);
                 document.getElementById('cloudStatus').innerText = "⚠️ Lokal aktiv";
-                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v370')) || {
+                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v380')) || {
                     "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
                 };
                 loadCashBreakdownToUI();
@@ -1710,13 +1717,11 @@
             if(!currentModalGoalId) return;
             const newTarget = parseFloat(document.getElementById('modalTargetInput').value);
             const newCurrent = parseFloat(document.getElementById('modalCurrentInput').value);
-            const newDate = document.getElementById('modalDateInput').value;
-
-            if(isNaN(newTarget) || newTarget < 0) return alert('Bitte Zielbetrag eingeben!');
+            const newDate = document.getElementById('modalDateInput'.value);
 
             const goal = goals.find(g => g.id === currentModalGoalId);
             if(goal) {
-                goal.target = newTarget;
+                goal.target = !isNaN(newTarget) ? newTarget : goal.target;
                 goal.targetDate = newDate;
                 if(['notfall', 'freizeit'].includes(goal.id)) {
                     goal.manualOffset = !isNaN(newCurrent) ? newCurrent : 0;
@@ -1769,7 +1774,7 @@
             await saveToCloud();
 
             document.getElementById('zielName').value = '';
-            document.getElementById('zielBetYard').value = '';
+            document.getElementById('zielBetrag').value = '';
             document.getElementById('zielStart').value = '0';
             document.getElementById('zielDatum').value = '';
 
