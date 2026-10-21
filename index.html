@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mein Dynamischer Finanzplan</title>
+    
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDhZD6qWOqC2uYcgRLKUGPlkbbC86g6RZI",
+            authDomain: "finanzplaner-c1a5a.firebaseapp.com",
+            projectId: "finanzplaner-c1a5a",
+            storageBucket: "finanzplaner-c1a5a.firebasestorage.app",
+            messagingSenderId: "226391773798",
+            appId: "1:226391773798:web:9be9e6fc8e58a1361493a7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.db = db;
+        window.FirestoreSdk = { doc, getDoc, setDoc };
+
+        window.initCloudSync();
+    </script>
+
+    <style>
+        :root {
+            --bg-color: #1e293b;
+            --card-bg: #334155;
+            --card-sub: #1e293b;
+            --accent: #38bdf8;
+            --accent-green: #4ade80;
+            --accent-orange: #fb923c;
+            --accent-red: #f87171;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 80px;
+        }
+
+        header {
+            text-align: center;
+            padding: 12px 0 16px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            color: var(--accent);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .cloud-status {
+            font-size: 0.78rem;
+            color: var(--accent-green);
+            font-weight: 500;
+        }
+
+        .tab-bar {
+            display: flex;
+            background: #1e293b;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 4px;
+            gap: 4px;
+            overflow-x: auto;
+            margin-top: 12px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px 8px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-sub);
+            font-weight: 600;
+            font-size: 0.82rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn.active {
+            background: var(--card-bg);
+            color: var(--accent);
+            border: 1px solid var(--border);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-main);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group.full {
+            grid-column: span 2;
+        }
+
+        label {
+            font-size: 0.82rem;
+            color: var(--text-sub);
+            font-weight: 600;
+        }
+
+        input, select {
+            background: var(--card-sub);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 11px 12px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--card-sub);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent-green);
+            cursor: pointer;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 11px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.92rem;
+            color: var(--text-main);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .val-highlight {
+            font-weight: bold;
+            color: var(--accent-green);
+        }
+
+        .val-orange {
+            font-weight: bold;
+            color: var(--accent-orange);
+        }
+
+        .val-red {
+            font-weight: bold;
+            color: var(--accent-red);
+        }
+
+        .btn-add {
+            background: var(--accent);
+            color: #0f172a;
+            font-weight: 700;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            width: 100%;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: opacity 0.2s;
+        }
+
+        .btn-add:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: var(--border);
+            color: var(--text-main);
+            font-weight: 600;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .history-item {
+            background: var(--card-sub);
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        .badge {
+            font-size: 0.68rem;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-weight: 700;
+            display: inline-block;
+            margin-left: 4px;
+        }
+
+        .badge-dauer { background: #0284c7; color: #e0f2fe; }
+        .badge-paused { background: #991b1b; color: #fef2f2; }
+        .badge-once { background: #475569; color: #f8fafc; }
+        .badge-booked { background: #16a34a; color: #f0fdf4; }
+
+        .goal-card-box {
+            background: var(--card-sub);
+            padding: 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .goal-card-box:hover {
+            border-color: var(--accent);
+        }
+
+        .history-date {
+            font-weight: bold;
+            font-size: 0.92rem;
+            color: var(--accent);
+        }
+
+        .history-sub {
+            font-size: 0.78rem;
+            color: var(--text-sub);
+            margin-top: 3px;
+        }
+
+        .progress-bar-container {
+            background: var(--card-bg);
+            border-radius: 6px;
+            height: 9px;
+            width: 100%;
+            margin-top: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .progress-bar-fill {
+            background: var(--accent-green);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 16px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .action-link {
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: var(--border);
+            color: var(--text-main);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .month-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 480px;
+        }
+
+        .month-table th {
+            text-align: left;
+            padding: 10px 12px;
+            background: var(--card-sub);
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .month-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-main);
+            white-space: nowrap;
+        }
+
+        .month-table tr:hover {
+            background: rgba(56, 189, 248, 0.08);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>📊 Mein Dynamischer Finanzplan</h1>
+        <div class="cloud-status" id="cloudStatus">☁️ Verbinde mit Cloud...</div>
+        <div class="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
+            <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose & Stand</button>
+            <button class="tab-btn" onclick="switchTab('urlaub-view', this)">✈️ Urlaubsbudget</button>
+            <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Sparziele</button>
+        </div>
+    </header>
+
+    <!-- TAB 1: AKTUELL -->
+    <div id="aktuel-view" class="view-section active">
+        <div class="card">
+            <div class="card-title">
+                <span>Monat auswählen & erfassen</span>
+            </div>
+            <div class="grid">
+                <div class="input-group full">
+                    <label>Monat wählen</label>
+                    <input type="month" id="monthInput" min="2026-11" onchange="loadMonthData()">
+                </div>
+
+                <div class="input-group full">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="gehaltBookedInput" onchange="liveCalc()">
+                        <div>
+                            <strong style="color:var(--accent-green); font-size:0.9rem;">Gehalt für diesen Monat gebucht / erhalten ✅</strong>
+                            <div style="font-size:0.75rem; color:var(--text-sub);">Haken setzen, sobald das Geld da ist. Erst ab dann rechnet der Sparplan damit!</div>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="input-group">
+                    <label>Einnahmen Gehalt (€)</label>
+                    <input type="number" id="gehaltInput" placeholder="0" oninput="liveCalc()">
+                </div>
+                <div class="input-group">
+                    <label>Sarah / Zusatz (€)</label>
+                    <input type="number" id="sarahInput" placeholder="0" oninput="liveCalc()">
+                </div>
+                
+                <div class="input-group full">
+                    <div style="background: var(--card-sub); border: 1px solid var(--border); padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <label style="color: var(--accent); font-weight: bold;">Ausgaben / Fixkosten Details</label>
+                            <div style="font-size: 0.9rem; margin-top: 2px;">Summe: <strong id="sumFixDisplay" class="val-red">0,00 €</strong></div>
+                        </div>
+                        <button class="btn-secondary" onclick="openExpenseModal()">Ausgaben bearbeiten ✍️</button>
+                    </div>
+                    <input type="hidden" id="fixkostenInput" value="0">
+                </div>
+
+                <div class="input-group">
+                    <label>Taschengeld & Einkaufen / Lebensmittel (€) 🛒</label>
+                    <input type="number" id="taschengeldInput" placeholder="0" oninput="liveCalc()">
+                </div>
+                <div class="input-group">
+                    <label>Bargeld (€) 🪙</label>
+                    <input type="number" id="bargeldInput" placeholder="0" oninput="liveCalc()">
+                </div>
+                <div class="input-group full">
+                    <label>Notfall Split % (vom Überschuss)</label>
+                    <input type="number" id="splitNotfallInput" min="0" max="100" oninput="liveCalc()">
+                </div>
+
+                <div class="input-group full" style="margin-top: 8px;">
+                    <button class="btn-add" style="background: var(--accent-green); color: #0f172a;" onclick="saveCurrentMonthManual()">☁️ Monat in Cloud speichern</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">Ergebnis für <span id="displayMonth" style="color:var(--accent);">-</span></div>
+            <div class="stat-row">
+                <span>Netto nach Ausgaben:</span>
+                <span id="resNetto" class="val-highlight">0,00 €</span>
+            </div>
+            <div class="stat-row">
+                <span>Verfügbarer Überschuss:</span>
+                <span id="resUeberschuss">0,00 €</span>
+            </div>
+            <div class="stat-row">
+                <span>Notfallkonto Sparen:</span>
+                <span id="resNotfall" class="val-highlight">0,00 €</span>
+            </div>
+            <div class="stat-row">
+                <span>FreizeitKonto Sparen (Digital):</span>
+                <span id="resFreizeit" class="val-orange">0,00 €</span>
+            </div>
+            <div class="stat-row">
+                <span>Direkt in Bargeld-Kassette 🪙:</span>
+                <span id="resBargeld" style="color:#facc15; font-weight:bold;">0,00 €</span>
+            </div>
+            <div class="stat-row" style="font-weight: bold; font-size: 0.95rem;">
+                <span>Gesamt Sparen im Monat:</span>
+                <span id="resGesamtSparen">0,00 €</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">🔮 Vorschau: Nächste 3 Monate</div>
+            <div class="history-list" id="nextThreeList"></div>
+        </div>
+    </div>
+
+    <!-- TAB 2: PROGNOSE & STAND -->
+    <div id="uebersicht-view" class="view-section">
+        <div class="card">
+            <div class="card-title">🏦 Kontostand (Aktuell gebuchte Ersparnisse)</div>
+            <div class="stat-row">
+                <span>Notfallkonto Stand:</span>
+                <span id="totalNotfall" class="val-highlight">0,00 €</span>
+            </div>
+            <div class="stat-row">
+                <span>FreizeitKonto Stand (Digital):</span>
+                <span id="totalFreizeit" class="val-orange">0,00 €</span>
+            </div>
+            <div class="stat-row">
+                <span>Bargeld-Kassette (Tresor):</span>
+                <span id="totalKassette" style="color:#facc15; font-weight:bold;">0,00 €</span>
+            </div>
+            <div class="stat-row" style="font-weight: bold; font-size: 0.95rem;">
+                <span>Gesamte Ersparnisse:</span>
+                <span id="totalErsparnisse">0,00 €</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📈 Monatsübersicht & Kontostand-Entwicklung</div>
+            <div style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 10px;">Voraussichtliche Entwicklung deiner Konten pro Monat:</div>
+            
+            <div class="table-wrapper">
+                <table class="month-table">
+                    <thead>
+                        <tr>
+                            <th>Monat</th>
+                            <th>Status</th>
+                            <th>Sparrate</th>
+                            <th>Notfall</th>
+                            <th>Freizeit</th>
+                            <th>Gesamt Stand</th>
+                        </tr>
+                    </thead>
+                    <tbody id="monthSavingsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📅 Die nächsten 3 Monate im Detail</div>
+            <div class="history-list" id="historyList"></div>
+        </div>
+    </div>
+
+    <!-- TAB 3: URLAUBSBUDGET MIT KORREKTER GLEICHMÄSSIGER REST-VERTEILUNG -->
+    <div id="urlaub-view" class="view-section">
+        <div class="card">
+            <div class="card-title">
+                <span>✈️ Urlaubsbudget & Tagesplaner 🏖️</span>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">Restgeld wird exakt und gleichmäßig auf alle verbleibenden Tage aufgeteilt.</div>
+            
+            <div class="grid">
+                <div class="input-group full">
+                    <label>Reise-Ziel / Urlaub Name</label>
+                    <input type="text" id="urlaubNameInput" value="Mallorca 2027" onchange="saveUrlaubConfig()">
+                </div>
+                <div class="input-group full">
+                    <label>Gesamtbudget für den Urlaub (€)</label>
+                    <input type="number" id="urlaubTargetInput" value="2000" onchange="saveUrlaubConfig()">
+                </div>
+                <div class="input-group">
+                    <label>Anreise-Datum</label>
+                    <input type="date" id="urlaubStartDate" value="2027-04-21" onchange="saveUrlaubConfig()">
+                </div>
+                <div class="input-group">
+                    <label>Abreise-Datum</label>
+                    <input type="date" id="urlaubEndDate" value="2027-04-25" onchange="saveUrlaubConfig()">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📊 Budget-Übersicht & Tagesrate</div>
+            <div class="stat-row">
+                <span>Gesamtdauer:</span>
+                <span id="uDaysDisplay" style="font-weight:bold;">0 Tage</span>
+            </div>
+            <div class="stat-row">
+                <span>Gesamtbudget:</span>
+                <span id="uTargetDisplay" style="font-weight:bold;">0,00 €</span>
+            </div>
+            <div class="stat-row">
+                <span>Bisherige Gesamtausgaben:</span>
+                <span id="uSpentDisplay" class="val-red">0,00 €</span>
+            </div>
+            <div class="stat-row">
+                <span>Verbleibendes Gesamtbudget:</span>
+                <span id="uLeftDisplay" class="val-highlight">0,00 €</span>
+            </div>
+            <div class="stat-row" style="font-weight:bold; background:var(--card-sub); padding:10px; border-radius:8px; margin-top:6px;">
+                <span>💡 Basis-Tagesbudget (Start):</span>
+                <span id="uDailyRateDisplay" style="color:var(--accent); font-size:1.05rem;">0,00 € / Tag</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="uProgressFill" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">➕ Urlaubs-Ausgabe eintragen</div>
+            <div class="grid">
+                <div class="input-group full">
+                    <label>Beschreibung / Posten</label>
+                    <input type="text" id="uItemName" placeholder="z.B. Bierkönig, Mietwagen, Hotel...">
+                </div>
+                <div class="input-group">
+                    <label>Betrag (€)</label>
+                    <input type="number" id="uItemAmount" placeholder="z.B. 80">
+                </div>
+                <div class="input-group">
+                    <label>Kategorie</label>
+                    <select id="uItemCat">
+                        <option value="🍺 Tagesgeld / Party">🍺 Tagesgeld / Party</option>
+                        <option value="🏨 Hotel / Unterkunft">🏨 Hotel / Unterkunft</option>
+                        <option value="✈️ Flug & Transfer">✈️ Flug & Transfer</option>
+                        <option value="🎒 Sonstiges">🎒 Sonstiges</option>
+                    </select>
+                </div>
+                <div class="input-group full">
+                    <label>Welcher Urlaubstag?</label>
+                    <select id="uItemDaySelect"></select>
+                </div>
+            </div>
+            <button class="btn-add" onclick="addUrlaubItem()">Ausgabe Buchen</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📅 Verfügbares Budget pro Tag (Dynamisch)</div>
+            <div class="history-list" id="uDaysList"></div>
+        </div>
+    </div>
+
+    <!-- TAB 4: SPARZIELE -->
+    <div id="ziele-view" class="view-section">
+        <div class="card">
+            <div class="card-title">🎯 Neues Sparziel anlegen</div>
+            <div class="grid">
+                <div class="input-group full">
+                    <label>Bezeichnung des Ziels</label>
+                    <input type="text" id="zielName" placeholder="z.B. Urlaub, Neues Bike...">
+                </div>
+                <div class="input-group">
+                    <label>Zielbetrag (€)</label>
+                    <input type="number" id="zielBetrag" placeholder="z.B. 2000">
+                </div>
+                <div class="input-group">
+                    <label>Start-Guthaben (€)</label>
+                    <input type="number" id="zielStart" value="0">
+                </div>
+                <div class="input-group full">
+                    <label>Konto-Verknüpfung / Ziel-Typ</label>
+                    <select id="zielTypeSelect">
+                        <option value="custom">⚙️ Manuelles Sparziel</option>
+                        <option value="notfall">🛡️ Verknüpft mit Notfallkonto (Automatisch)</option>
+                        <option value="freizeit">🎉 Verknüpft mit Freizeitkonto (Automatisch)</option>
+                        <option value="kassette">🪙 Verknüpft mit Bargeld-Kassette (Automatisch)</option>
+                    </select>
+                </div>
+                <div class="input-group full">
+                    <label>Ziel-Datum (Bis wann brauchst du das Geld?)</label>
+                    <input type="month" id="zielDatum">
+                </div>
+            </div>
+            <button class="btn-add" onclick="saveGoal()">Sparziel Hinzufügen</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📋 Meine Sparziele & Fortschritt</div>
+            <div id="goalsList"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: AUSGABEN -->
+    <div id="expenseModal" class="modal">
+        <div class="modal-content">
+            <div class="card-title">Ausgaben für <span id="modalExpMonth" style="color:var(--accent);">-</span></div>
+            <div class="grid" style="gap: 8px; margin-bottom: 14px;">
+                <div class="input-group full">
+                    <label>Bezeichnung</label>
+                    <input type="text" id="expName" placeholder="Name der Ausgabe...">
+                </div>
+                <div class="input-group">
+                    <label>Betrag (€)</label>
+                    <input type="number" id="expAmount" placeholder="z.B. 750">
+                </div>
+                <div class="input-group">
+                    <label>Art der Ausgabe</label>
+                    <select id="expType">
+                        <option value="dauer">🔄 Dauerauftrag</option>
+                        <option value="einmalig">⚡ Einmalig</option>
+                    </select>
+                </div>
+                <div class="input-group full">
+                    <button class="btn-add" onclick="addExpenseItem()">Ausgabe hinzufügen</button>
+                </div>
+            </div>
+
+            <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.85rem; color: var(--accent);">Aktuelle Ausgabenliste:</div>
+            <div class="history-list" id="expenseItemsList" style="margin-bottom: 16px;"></div>
+
+            <div class="stat-row" style="font-weight: bold; margin-bottom: 16px;">
+                <span>Gesamtsumme Ausgaben:</span>
+                <span id="modalExpTotal" class="val-red">0,00 €</span>
+            </div>
+
+            <button class="btn-add" onclick="closeExpenseModal()">Übernehmen & Schließen</button>
+        </div>
+    </div>
+
+    <!-- MODAL: ZIEL-DETAILS -->
+    <div id="goalModal" class="modal">
+        <div class="modal-content">
+            <div class="card-title" id="modalTitle">Ziel-Details</div>
+            
+            <div class="input-group" style="margin-bottom: 10px;">
+                <label>Zielbetrag anpassen (€):</label>
+                <input type="number" id="modalTargetInput">
+            </div>
+
+            <div class="input-group" style="margin-bottom: 10px;">
+                <label>Aktueller Stand / Manuelle Anpassung (€):</label>
+                <input type="number" id="modalCurrentInput">
+            </div>
+
+            <div id="cashTransferBox" style="display:none; background:var(--card-sub); border:1px solid var(--accent-orange); padding:12px; border-radius:8px; margin-bottom:14px;">
+                <label style="color:var(--accent-orange); font-weight:bold;">💵 Umbuchung in Bargeld-Kassette</label>
+                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">Übertrage Geld vom Freizeitkonto direkt in deine physische Kasse daheim.</div>
+                <div style="display:flex; gap:8px;">
+                    <input type="number" id="transferCashAmount" placeholder="Betrag (€)" style="flex:1;">
+                    <button class="btn-secondary" style="background:var(--accent-orange); color:#0f172a; font-weight:bold;" onclick="transferFreizeitToKassette()">In Kasse legen 🪙</button>
+                </div>
+            </div>
+
+            <div class="input-group" style="margin-bottom: 14px;" id="modalDateGroup">
+                <label>Ziel-Datum anpassen:</label>
+                <input type="month" id="modalDateInput">
+            </div>
+
+            <button class="btn-add" onclick="saveModalChanges()" style="margin-bottom: 12px;">Änderungen speichern</button>
+            <button class="btn-add" onclick="deleteCurrentModalGoal()" style="background:#ef4444; color:#ffffff; margin-bottom: 16px;">🗑️ Sparziel komplett löschen</button>
+            
+            <div style="font-weight: 600; margin-bottom: 8px; font-size: 0.85rem; color: var(--accent);">Monatliche Einzahlungen bis jetzt:</div>
+            <div class="history-list" id="modalHistoryList"></div>
+            
+            <button class="btn-add" onclick="closeModal()" style="background: var(--border); color: var(--text-main); margin-top: 16px;">Schließen</button>
+        </div>
+    </div>
+
+    <script>
+        let entries = {};
+        let goals = [
+            { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-11" },
+            { id: "freizeit", name: "Urlaub & Freizeit", target: 2000, manualOffset: 0, targetDate: "2027-08" },
+            { id: "kassette", name: "Bargeld-Kassette (Tresor)", target: 1000, manualCurrent: 0, targetDate: "" }
+        ];
+
+        let urlaubData = {
+            name: "Mallorca 2027",
+            target: 2000,
+            startDate: "2027-04-21",
+            endDate: "2027-04-25",
+            items: [
+                { name: "Hotel Obelisco", category: "🏨 Hotel / Unterkunft", amount: 600, dayIndex: 0 },
+                { name: "Flug & Transfer", category: "✈️ Flug & Transfer", amount: 250, dayIndex: 0 },
+                { name: "Bierkönig Tag 1", category: "🍺 Tagesgeld / Party", amount: 80, dayIndex: 0 }
+            ]
+        };
+
+        let currentModalGoalId = null;
+        let currentMonthItems = [];
+        let currentMonthPausedItems = [];
+
+        document.getElementById('monthInput').value = "2026-11";
+
+        window.initCloudSync = async function() {
+            try {
+                const docRef = window.FirestoreSdk.doc(window.db, "finanzdaten", "main_data");
+                const docSnap = await window.FirestoreSdk.getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const cloudData = docSnap.data();
+                    if(cloudData.entries) entries = cloudData.entries;
+                    if(cloudData.goals) goals = cloudData.goals;
+                    if(cloudData.urlaubData) urlaubData = cloudData.urlaubData;
+                } else {
+                    entries = {
+                        "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
+                    };
+                    await saveToCloud();
+                }
+
+                document.getElementById('cloudStatus').innerText = "☁️ Mit Cloud synchronisiert ✅";
+                loadMonthData();
+                renderHistory();
+                renderGoals();
+                renderUrlaubView();
+            } catch (err) {
+                console.error("Cloud-Fehler:", err);
+                document.getElementById('cloudStatus').innerText = "⚠️ Cloud-Fehler (Lokal aktiv)";
+                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v159')) || {
+                    "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
+                };
+                loadMonthData();
+                renderHistory();
+                renderGoals();
+                renderUrlaubView();
+            }
+        };
+
+        async function saveToCloud() {
+            try {
+                await window.FirestoreSdk.setDoc(window.FirestoreSdk.doc(window.db, "finanzdaten", "main_data"), {
+                    entries: entries,
+                    goals: goals,
+                    urlaubData: urlaubData
+                });
+                document.getElementById('cloudStatus').innerText = "☁️ Gespeichert & synchronisiert ✅";
+            } catch (err) {
+                console.error("Speicher-Fehler:", err);
+                document.getElementById('cloudStatus').innerText = "❌ Fehler beim Speichern in Cloud";
+            }
+        }
+
+        function switchTab(viewId, btnEl) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(viewId).classList.add('active');
+            btnEl.classList.add('active');
+        }
+
+        function getSelectedMonthKey() {
+            return document.getElementById('monthInput').value;
+        }
+
+        function getMonthDataOrFallback(m) {
+            if (entries[m]) {
+                return entries[m];
+            }
+            
+            const sortedKeys = Object.keys(entries).sort();
+            const prevKey = sortedKeys.reverse().find(k => k < m);
+            
+            let inheritedItems = [];
+            if (prevKey && entries[prevKey] && entries[prevKey].items) {
+                inheritedItems = entries[prevKey].items.filter(i => i.type === 'dauer');
+            }
+
+            return {
+                gehalt: 0,
+                sarah: 0,
+                items: inheritedItems,
+                pausedItems: [],
+                bargeld: 0,
+                taschengeld: 0,
+                splitNotfall: 15,
+                booked: false
+            };
+        }
+
+        function loadMonthData() {
+            const m = getSelectedMonthKey();
+            const item = getMonthDataOrFallback(m);
+
+            document.getElementById('gehaltBookedInput').checked = !!item.booked;
+            document.getElementById('gehaltInput').value = item.gehalt || '';
+            document.getElementById('sarahInput').value = item.sarah || 0;
+            document.getElementById('bargeldInput').value = item.bargeld || 0;
+            document.getElementById('taschengeldInput').value = item.taschengeld || 0;
+            document.getElementById('splitNotfallInput').value = item.splitNotfall || 15;
+            
+            currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
+            currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
+
+            updateTotalFixFromItems();
+            liveCalc();
+            renderNextThree(m);
+            renderHistory();
+        }
+
+        function getTotalFixForMonthData(itemData) {
+            if(!itemData || !itemData.items) return 0;
+            const paused = itemData.pausedItems || [];
+            return itemData.items.reduce((sum, i) => {
+                if(paused.includes(i.name)) return sum;
+                return sum + parseFloat(i.amount || 0);
+            }, 0);
+        }
+
+        function updateTotalFixFromItems() {
+            const total = currentMonthItems.reduce((sum, i) => {
+                if(currentMonthPausedItems.includes(i.name)) return sum;
+                return sum + parseFloat(i.amount || 0);
+            }, 0);
+
+            document.getElementById('sumFixDisplay').innerText = total.toFixed(2) + ' €';
+            document.getElementById('fixkostenInput').value = total;
+        }
+
+        function openExpenseModal() {
+            const m = getSelectedMonthKey();
+            document.getElementById('modalExpMonth').innerText = m;
+            renderExpenseItemsModal();
+            document.getElementById('expenseModal').classList.add('active');
+        }
+
+        function closeExpenseModal() {
+            updateTotalFixFromItems();
+            document.getElementById('expenseModal').classList.remove('active');
+            liveCalc();
+        }
+
+        function renderExpenseItemsModal() {
+            const list = document.getElementById('expenseItemsList');
+            list.innerHTML = '';
+            let total = 0;
+
+            currentMonthItems.forEach((item, index) => {
+                const isPaused = currentMonthPausedItems.includes(item.name);
+                if(!isPaused) {
+                    total += parseFloat(item.amount || 0);
+                }
+
+                const div = document.createElement('div');
+                div.className = `history-item ${isPaused ? 'paused' : ''}`;
+                
+                let badgeHtml = item.type === 'dauer' 
+                    ? `<span class="badge badge-dauer">Dauerauftrag</span>` 
+                    : `<span class="badge badge-once">Einmalig</span>`;
+                
+                if (isPaused) {
+                    badgeHtml += ` <span class="badge badge-paused">Pausiert in ${getSelectedMonthKey()}</span>`;
+                }
+
+                div.innerHTML = `
+                    <div>
+                        <div class="history-date">${item.name} ${badgeHtml}</div>
+                    </div>
+                    <div style="text-align:right; display:flex; align-items:center; gap:8px;">
+                        <span class="${isPaused ? '' : 'val-red'}" style="${isPaused ? 'text-decoration:line-through; color:var(--text-sub);' : ''}">
+                            -${parseFloat(item.amount).toFixed(2)} €
+                        </span>
+                        
+                        ${item.type === 'dauer' ? `
+                            <span class="action-link" onclick="togglePauseExpense('${item.name}')">
+                                ${isPaused ? '▶️ Reaktivieren' : '⏸️ Pausieren'}
+                            </span>
+                        ` : ''}
+
+                        <span style="color:#ef4444; font-size:0.75rem; cursor:pointer; margin-left:4px;" onclick="deleteExpenseItem(${index})">Löschen</span>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+
+            if(currentMonthItems.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-sub); text-align:center; font-size:0.85rem;">Noch keine Ausgaben eingetragen.</div>';
+            }
+
+            document.getElementById('modalExpTotal').innerText = total.toFixed(2) + ' €';
+        }
+
+        function togglePauseExpense(itemName) {
+            if(currentMonthPausedItems.includes(itemName)) {
+                currentMonthPausedItems = currentMonthPausedItems.filter(n => n !== itemName);
+            } else {
+                currentMonthPausedItems.push(itemName);
+            }
+            renderExpenseItemsModal();
+        }
+
+        function addExpenseItem() {
+            const name = document.getElementById('expName').value.trim();
+            const amount = parseFloat(document.getElementById('expAmount').value);
+            const type = document.getElementById('expType').value;
+
+            if(!name || isNaN(amount) || amount <= 0) {
+                return alert('Bitte gültigen Namen und Betrag eingeben!');
+            }
+
+            currentMonthItems.push({ name, amount, type });
+
+            if(type === 'dauer') {
+                const currentM = getSelectedMonthKey();
+                Object.keys(entries).forEach(k => {
+                    if(k > currentM) {
+                        if(!entries[k].items) entries[k].items = [];
+                        if(!entries[k].items.some(i => i.name === name)) {
+                            entries[k].items.push({ name, amount, type: 'dauer' });
+                        }
+                    }
+                });
+            }
+
+            document.getElementById('expName').value = '';
+            document.getElementById('expAmount').value = '';
+            renderExpenseItemsModal();
+        }
+
+        function deleteExpenseItem(index) {
+            const deletedItem = currentMonthItems[index];
+            currentMonthItems.splice(index, 1);
+            if(deletedItem) {
+                currentMonthPausedItems = currentMonthPausedItems.filter(n => n !== deletedItem.name);
+            }
+            renderExpenseItemsModal();
+        }
+
+        function calculateValuesFor(item) {
+            if(!item) return { netto: 0, ueberschuss: 0, notfallSparen: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
+            const fix = getTotalFixForMonthData(item);
+            const g = parseFloat(item.gehalt) || 0;
+            const netto = g - fix;
+            const ueberschuss = netto - (parseFloat(item.taschengeld) || 0);
+            const notfallSparen = ueberschuss * ((parseFloat(item.splitNotfall) || 0) / 100);
+            
+            const bargeldSparen = parseFloat(item.bargeld) || 0;
+            const freizeitSparen = (ueberschuss * (1 - ((parseFloat(item.splitNotfall) || 0) / 100))) + (parseFloat(item.sarah) || 0);
+            const gesamtSparen = notfallSparen + freizeitSparen + bargeldSparen;
+            
+            return { netto, ueberschuss, notfallSparen, freizeitSparen, bargeldSparen, gesamtSparen };
+        }
+
+        function liveCalc() {
+            const fix = parseFloat(document.getElementById('fixkostenInput').value) || 0;
+            const item = {
+                gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
+                sarah: parseFloat(document.getElementById('sarahInput').value) || 0,
+                items: currentMonthItems,
+                pausedItems: currentMonthPausedItems,
+                bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
+                taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
+                splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
+                booked: document.getElementById('gehaltBookedInput').checked
+            };
+            const calc = calculateValuesFor(item);
+            document.getElementById('displayMonth').innerText = getSelectedMonthKey();
+            document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
+            document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
+            document.getElementById('resNotfall').innerText = calc.notfallSparen.toFixed(2) + ' €';
+            document.getElementById('resFreizeit').innerText = calc.freizeitSparen.toFixed(2) + ' €';
+            document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
+            document.getElementById('resGesamtSparen').innerText = calc.gesamtSparen.toFixed(2) + ' €';
+        }
+
+        async function saveCurrentMonthManual() {
+            const m = getSelectedMonthKey();
+            if(!m) return;
+
+            entries[m] = {
+                gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
+                sarah: parseFloat(document.getElementById('sarahInput').value) || 0,
+                items: JSON.parse(JSON.stringify(currentMonthItems)),
+                pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
+                bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
+                taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
+                splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
+                booked: document.getElementById('gehaltBookedInput').checked
+            };
+
+            await saveToCloud();
+            renderHistory();
+            renderNextThree(m);
+        }
+
+        function selectMonthAndEdit(key) {
+            document.getElementById('monthInput').value = key;
+            loadMonthData();
+            switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);
+        }
+
+        function getNextMonthKey(currentKey) {
+            const parts = currentKey.split('-');
+            let y = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10) + 1;
+            if (m > 12) {
+                m = 1;
+                y += 1;
+            }
+            return `${y}-${String(m).padStart(2, '0')}`;
+        }
+
+        function renderNextThree(currentMonthKey) {
+            const list = document.getElementById('nextThreeList');
+            list.innerHTML = '';
+
+            let tempKey = currentMonthKey;
+            for(let i = 0; i < 3; i++) {
+                tempKey = getNextMonthKey(tempKey);
+                const item = getMonthDataOrFallback(tempKey);
+                const calc = calculateValuesFor(item);
+                const fix = getTotalFixForMonthData(item);
+
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                const closureKey = tempKey;
+                div.onclick = () => selectMonthAndEdit(closureKey);
+                div.innerHTML = `
+                    <div>
+                        <div class="history-date">${tempKey} ${item.booked ? '<span class="badge badge-booked">Gebucht</span>' : ''}</div>
+                        <div class="history-sub">Gehalt: ${item.gehalt || 0}€ | Fix: ${fix.toFixed(2)}€</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</div>
+                        <div class="history-sub">N:${calc.notfallSparen.toFixed(0)}€ | F:${calc.freizeitSparen.toFixed(0)}€ | 🪙:${calc.bargeldSparen.toFixed(0)}€</div>
+                    </div>
+                `;
+                list.appendChild(div);
+            }
+        }
+
+        function getGoalData(goalId) {
+            const sortedKeys = Object.keys(entries).sort();
+            const goal = goals.find(g => g.id === goalId);
+            
+            let runningSum = 0;
+            if (goalId === 'kassette') {
+                runningSum = goal ? parseFloat(goal.manualCurrent || 0) : 0;
+            } else {
+                runningSum = goal && goal.manualOffset ? parseFloat(goal.manualOffset) : 0;
+            }
+
+            let breakdown = [];
+
+            for(let i = 0; i < sortedKeys.length; i++) {
+                const key = sortedKeys[i];
+                const itemData = entries[key];
+                
+                if (itemData && itemData.booked) {
+                    const calc = calculateValuesFor(itemData);
+                    let val = 0;
+
+                    if (goalId === 'notfall') val = calc.notfallSparen;
+                    else if (goalId === 'freizeit') val = calc.freizeitSparen;
+                    else if (goalId === 'kassette') val = calc.bargeldSparen;
+
+                    if (val > 0) {
+                        runningSum += val;
+                        breakdown.push({ month: key, amount: val, totalSoFar: runningSum });
+                    }
+                }
+            }
+
+            return { total: runningSum, breakdown };
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            const currentSelectedMonth = getSelectedMonthKey();
+
+            let notfallGoalObj = goals.find(g => g.id === 'notfall');
+            let freizeitGoalObj = goals.find(g => g.id === 'freizeit');
+            let kassetteGoalObj = goals.find(g => g.id === 'kassette');
+
+            let runningNotfall = notfallGoalObj && notfallGoalObj.manualOffset ? parseFloat(notfallGoalObj.manualOffset) : 0;
+            let runningFreizeit = freizeitGoalObj && freizeitGoalObj.manualOffset ? parseFloat(freizeitGoalObj.manualOffset) : 0;
+            let runningKassette = kassetteGoalObj ? parseFloat(kassetteGoalObj.manualCurrent || 0) : 0;
+
+            const tableBody = document.getElementById('monthSavingsTableBody');
+            tableBody.innerHTML = '';
+
+            const sortedKeys = Object.keys(entries).sort();
+            if (sortedKeys.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">Noch keine gespeicherten Monate vorhanden.</td></tr>';
+            }
+
+            for(let i = 0; i < sortedKeys.length; i++) {
+                const key = sortedKeys[i];
+                const itemData = entries[key];
+                const calc = calculateValuesFor(itemData);
+                
+                const isBooked = !!itemData.booked;
+                if (isBooked) {
+                    runningNotfall += calc.notfallSparen;
+                    runningFreizeit += calc.freizeitSparen;
+                    runningKassette += calc.bargeldSparen;
+                }
+                const totalMonthStand = runningNotfall + runningFreizeit + runningKassette;
+
+                const tr = document.createElement('tr');
+                const closureKey = key;
+                tr.onclick = () => selectMonthAndEdit(closureKey);
+                tr.innerHTML = `
+                    <td><strong style="color:var(--accent);">${key}</strong></td>
+                    <td>${isBooked ? '<span class="badge badge-booked">Gebucht ✅</span>' : '<span class="badge badge-once">Offen ⏳</span>'}</td>
+                    <td style="font-weight:bold; color:var(--accent-green);">+${calc.gesamtSparen.toFixed(2)} €</td>
+                    <td class="val-highlight">${runningNotfall.toFixed(2)} €</td>
+                    <td class="val-orange">${runningFreizeit.toFixed(2)} €</td>
+                    <td style="font-weight:bold; color:var(--text-main);">${totalMonthStand.toFixed(2)} €</td>
+                `;
+                tableBody.appendChild(tr);
+            }
+
+            document.getElementById('totalNotfall').innerText = runningNotfall.toFixed(2) + ' €';
+            document.getElementById('totalFreizeit').innerText = runningFreizeit.toFixed(2) + ' €';
+            document.getElementById('totalKassette').innerText = runningKassette.toFixed(2) + ' €';
+            document.getElementById('totalErsparnisse').innerText = (runningNotfall + runningFreizeit + runningKassette).toFixed(2) + ' €';
+
+            let forecastN = runningNotfall;
+            let forecastF = runningFreizeit;
+            let forecastK = runningKassette;
+            let tempKey = currentSelectedMonth;
+
+            for(let i = 0; i < 3; i++) {
+                tempKey = getNextMonthKey(tempKey);
+                const item = getMonthDataOrFallback(tempKey);
+                const calc = calculateValuesFor(item);
+                
+                forecastN += calc.notfallSparen;
+                forecastF += calc.freizeitSparen;
+                forecastK += calc.bargeldSparen;
+
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                const closureKey = tempKey;
+                div.onclick = () => selectMonthAndEdit(closureKey);
+                div.innerHTML = `
+                    <div>
+                        <div class="history-date">${tempKey} ✏️</div>
+                        <div class="history-sub">Notfall: <strong style="color:var(--accent-green);">${forecastN.toFixed(0)}€</strong> | Freizeit: <strong style="color:var(--accent-orange);">${forecastF.toFixed(0)}€</strong></div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</div>
+                        <div class="history-sub">Sparen: N:${calc.notfallSparen.toFixed(0)}€ | F:${calc.freizeitSparen.toFixed(0)}€ | K:${calc.bargeldSparen.toFixed(0)}€</div>
+                    </div>
+                `;
+                list.appendChild(div);
+            }
+
+            renderGoals();
+        }
+
+        function calculateUrlaubDays() {
+            const start = new Date(urlaubData.startDate);
+            const end = new Date(urlaubData.endDate);
+            if(isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) {
+                return 1;
+            }
+            const diffTime = Math.abs(end - start);
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        }
+
+        function renderUrlaubView() {
+            document.getElementById('urlaubNameInput').value = urlaubData.name || "Mallorca 2027";
+            document.getElementById('urlaubTargetInput').value = urlaubData.target || 2000;
+            document.getElementById('urlaubStartDate').value = urlaubData.startDate || "2027-04-21";
+            document.getElementById('urlaubEndDate').value = urlaubData.endDate || "2027-04-25";
+
+            const numDays = calculateUrlaubDays();
+            const totalTarget = parseFloat(urlaubData.target) || 0;
+            const baseDailyBudget = numDays > 0 ? (totalTarget / numDays) : 0;
+
+            let totalSpent = 0;
+            let dayExpenses = Array(numDays).fill(0);
+
+            (urlaubData.items || []).forEach(item => {
+                const amt = parseFloat(item.amount) || 0;
+                totalSpent += amt;
+                let dIdx = item.dayIndex !== undefined ? item.dayIndex : 0;
+                if(dIdx >= numDays) dIdx = numDays - 1;
+                dayExpenses[dIdx] += amt;
+            });
+
+            const leftBudget = totalTarget - totalSpent;
+
+            document.getElementById('uDaysDisplay').innerText = `${numDays} Tage`;
+            document.getElementById('uTargetDisplay').innerText = totalTarget.toFixed(2) + ' €';
+            document.getElementById('uSpentDisplay').innerText = totalSpent.toFixed(2) + ' €';
+            document.getElementById('uLeftDisplay').innerText = leftBudget.toFixed(2) + ' €';
+
+            let progressPercent = totalTarget > 0 ? (totalSpent / totalTarget) * 100 : 0;
+            if(progressPercent > 100) progressPercent = 100;
+            document.getElementById('uProgressFill').style.width = progressPercent.toFixed(1) + '%';
+
+            const selectEl = document.getElementById('uItemDaySelect');
+            selectEl.innerHTML = '';
+            for(let i = 0; i < numDays; i++) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.innerText = `Tag ${i + 1} (${dayExpenses[i].toFixed(2)} € ausgegeben)`;
+                selectEl.appendChild(opt);
+            }
+
+            // EXAKTE RESTGELD-SCHLEIFE OHNE MULTIPLIKATION
+            let dayBudgets = Array(numDays).fill(0);
+            let runningSpent = 0;
+
+            for (let i = 0; i < numDays; i++) {
+                const daysRemainingFromHere = numDays - i;
+                const poolLeftForRemainingDays = totalTarget - runningSpent;
+                
+                dayBudgets[i] = daysRemainingFromHere > 0 ? (poolLeftForRemainingDays / daysRemainingFromHere) : 0;
+                
+                runningSpent += dayExpenses[i];
+            }
+
+            const daysList = document.getElementById('uDaysList');
+            daysList.innerHTML = '';
+
+            for(let i = 0; i < numDays; i++) {
+                const daySpent = dayExpenses[i];
+                const assignedBudget = dayBudgets[i];
+
+                const dayItems = (urlaubData.items || []).filter(item => (item.dayIndex || 0) === i);
+
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.style.flexDirection = 'column';
+                div.style.alignItems = 'stretch';
+                div.style.gap = '8px';
+
+                let itemsHtml = dayItems.map(item => `
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; border-top:1px dashed var(--border); padding-top:4px; margin-top:4px;">
+                        <span>${item.name} <small style="color:var(--text-sub);">(${item.category})</small></span>
+                        <div>
+                            <strong style="color:var(--accent-orange);">${parseFloat(item.amount).toFixed(2)} €</strong>
+                            <span style="color:#ef4444; font-size:0.75rem; cursor:pointer; margin-left:6px;" onclick="deleteUrlaubItem('${item.name}', ${item.amount})">❌</span>
+                        </div>
+                    </div>
+                `).join('');
+
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div class="history-date">Tag ${i + 1}</div>
+                            <div class="history-sub">Ausgegeben: <strong class="val-red">${daySpent.toFixed(2)} €</strong></div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:1.1rem; font-weight:bold; color:var(--accent);">
+                                ${assignedBudget.toFixed(2)} €
+                            </div>
+                            <div class="history-sub">Verfügbares Tagesbudget</div>
+                        </div>
+                    </div>
+                    ${itemsHtml || ''}
+                `;
+                daysList.appendChild(div);
+            }
+
+            document.getElementById('uDailyRateDisplay').innerText = `${baseDailyBudget.toFixed(2)} € / Tag (Basis-Schnitt)`;
+        }
+
+        async function saveUrlaubConfig() {
+            urlaubData.name = document.getElementById('urlaubNameInput').value;
+            urlaubData.target = parseFloat(document.getElementById('urlaubTargetInput').value) || 0;
+            urlaubData.startDate = document.getElementById('urlaubStartDate').value;
+            urlaubData.endDate = document.getElementById('urlaubEndDate').value;
+            await saveToCloud();
+            renderUrlaubView();
+        }
+
+        async function addUrlaubItem() {
+            const name = document.getElementById('uItemName').value.trim();
+            const cat = document.getElementById('uItemCat').value;
+            const amount = parseFloat(document.getElementById('uItemAmount').value);
+            const dayIndex = parseInt(document.getElementById('uItemDaySelect').value, 10);
+
+            if(!name || isNaN(amount) || amount <= 0) return alert('Bitte gültigen Namen und Betrag eingeben!');
+
+            if(!urlaubData.items) urlaubData.items = [];
+            urlaubData.items.push({ name, category: cat, amount, dayIndex });
+
+            document.getElementById('uItemName').value = '';
+            document.getElementById('uItemAmount').value = '';
+
+            await saveToCloud();
+            renderUrlaubView();
+        }
+
+        async function deleteUrlaubItem(name, amount) {
+            if(confirm(`Ausgabe "${name}" wirklich löschen?`)) {
+                urlaubData.items = urlaubData.items.filter(i => !(i.name === name && i.amount === amount));
+                await saveToCloud();
+                renderUrlaubView();
+            }
+        }
+
+        function renderGoals() {
+            const list = document.getElementById('goalsList');
+            list.innerHTML = '';
+
+            goals.forEach((goal, index) => {
+                let currentVal = 0;
+
+                if(['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
+                    const data = getGoalData(goal.id);
+                    currentVal = data.total;
+                } else {
+                    currentVal = goal.manualCurrent || 0;
+                }
+
+                let percent = goal.target > 0 ? (currentVal / goal.target) * 100 : 0;
+                if(percent > 100) percent = 100;
+                const remaining = goal.target - currentVal;
+
+                let monthlyNeededText = "";
+                if (goal.targetDate && remaining > 0) {
+                    const [tY, tM] = goal.targetDate.split('-').map(Number);
+                    const nowObj = new Date();
+                    const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1));
+                    if (diffMonths > 0) {
+                        const neededPerMonth = remaining / diffMonths;
+                        monthlyNeededText = ` | Ø ${neededPerMonth.toFixed(0)} €/Monat bis ${goal.targetDate}`;
+                    } else {
+                        monthlyNeededText = ` | ⚠️ Ziel-Datum erreicht/überschritten`;
+                    }
+                }
+
+                const div = document.createElement('div');
+                div.className = 'goal-card-box';
+                div.onclick = () => openModal(goal.id);
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div class="history-date">${goal.name} ${['notfall', 'freizeit', 'kassette'].includes(goal.id) ? '<span class="badge badge-dauer">Automatisch</span>' : ''}</div>
+                            <div class="history-sub">Stand: <strong>${currentVal.toFixed(2)} €</strong> ${goal.target > 0 ? '/ ' + goal.target.toFixed(2) + ' €' : ''}${goal.targetDate ? ' (Frist: ' + goal.targetDate + ')' : ''}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            ${goal.target > 0 ? `<div class="val-highlight">${percent.toFixed(1)}%</div>` : ''}
+                            <span class="history-sub" style="color:#ef4444;" onclick="event.stopPropagation(); deleteGoalDirect(${index})">Löschen</span>
+                        </div>
+                    </div>
+                    ${goal.target > 0 ? `
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: ${percent}%;"></div>
+                    </div>
+                    ` : ''}
+                    <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-sub); margin-top:4px;">
+                        <span>${goal.target > 0 ? (remaining > 0 ? 'Verbleibend: ' + remaining.toFixed(2) + ' €' : 'Erreicht! 🎉') : ''}</span>
+                        <span style="color:var(--accent);">${monthlyNeededText}</span>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+
+            if (goals.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:20px;">Keine Sparziele angelegt. Erstelle oben ein neues Sparziel!</div>';
+            }
+        }
+
+        function openModal(goalId) {
+            currentModalGoalId = goalId;
+            const goal = goals.find(g => g.id === goalId);
+            if(!goal) return;
+
+            document.getElementById('modalTitle').innerText = `Ziel-Details: ${goal.name}`;
+            document.getElementById('modalTargetInput').value = goal.target;
+            document.getElementById('modalDateInput').value = goal.targetDate || '';
+
+            document.getElementById('cashTransferBox').style.display = (goal.id === 'freizeit') ? 'block' : 'none';
+
+            if(['notfall', 'freizeit'].includes(goal.id)) {
+                document.getElementById('modalCurrentInput').value = goal.manualOffset || 0;
+            } else {
+                document.getElementById('modalCurrentInput').value = goal.manualCurrent || 0;
+            }
+
+            const histList = document.getElementById('modalHistoryList');
+            histList.innerHTML = '';
+
+            if(['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
+                const data = getGoalData(goal.id);
+                if (data.breakdown.length === 0) {
+                    histList.innerHTML = '<div style="color:var(--text-sub); text-align:center;">Noch keine gebuchten Einzahlungen vorhanden.</div>';
+                } else {
+                    data.breakdown.forEach(item => {
+                        const row = document.createElement('div');
+                        row.className = 'history-item';
+                        row.innerHTML = `
+                            <div>
+                                <div class="history-date">${item.month} <span class="badge badge-booked">Gebucht</span></div>
+                                <div class="history-sub">Stand bis hierhin: ${item.totalSoFar.toFixed(2)} €</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div class="val-highlight">+${item.amount.toFixed(2)} €</div>
+                            </div>
+                        `;
+                        histList.appendChild(row);
+                    });
+                }
+            } else {
+                histList.innerHTML = '<div style="color:var(--text-sub); text-align:center;">Manuelles Sparziel.</div>';
+            }
+
+            document.getElementById('goalModal').classList.add('active');
+        }
+
+        async function transferFreizeitToKassette() {
+            const amount = parseFloat(document.getElementById('transferCashAmount').value);
+            if(isNaN(amount) || amount <= 0) return alert('Bitte gültigen Betrag eingeben!');
+
+            let freizeitGoal = goals.find(g => g.id === 'freizeit');
+            let kassetteGoal = goals.find(g => g.id === 'kassette');
+
+            if(!kassetteGoal) {
+                kassetteGoal = { id: "kassette", name: "Bargeld-Kassette (Tresor)", target: 1000, manualCurrent: 0, targetDate: "" };
+                goals.push(kassetteGoal);
+            }
+
+            if(freizeitGoal) {
+                freizeitGoal.manualOffset = (parseFloat(freizeitGoal.manualOffset) || 0) - amount;
+            }
+            kassetteGoal.manualCurrent = (parseFloat(kassetteGoal.manualCurrent) || 0) + amount;
+
+            await saveToCloud();
+            document.getElementById('transferCashAmount').value = '';
+            alert(`${amount.toFixed(2)} € erfolgreich in die Bargeld-Kassette gelegt! 🪙`);
+            renderHistory();
+            openModal('freizeit');
+        }
+
+        function closeModal() {
+            document.getElementById('goalModal').classList.remove('active');
+            currentModalGoalId = null;
+        }
+
+        async function saveModalChanges() {
+            if(!currentModalGoalId) return;
+            const newTarget = parseFloat(document.getElementById('modalTargetInput').value);
+            const newCurrent = parseFloat(document.getElementById('modalCurrentInput').value);
+            const newDate = document.getElementById('modalDateInput').value;
+
+            if(isNaN(newTarget) || newTarget < 0) return alert('Bitte gültigen Zielbetrag eingeben!');
+
+            const goal = goals.find(g => g.id === currentModalGoalId);
+            if(goal) {
+                goal.target = newTarget;
+                goal.targetDate = newDate;
+                if(['notfall', 'freizeit'].includes(goal.id)) {
+                    goal.manualOffset = !isNaN(newCurrent) ? newCurrent : 0;
+                } else {
+                    goal.manualCurrent = !isNaN(newCurrent) ? newCurrent : 0;
+                }
+                await saveToCloud();
+                renderGoals();
+                renderHistory();
+                closeModal();
+            }
+        }
+
+        async function deleteCurrentModalGoal() {
+            if(!currentModalGoalId) return;
+            if(confirm('Möchtest du dieses Sparziel wirklich dauerhaft löschen?')) {
+                goals = goals.filter(g => g.id !== currentModalGoalId);
+                await saveToCloud();
+                renderGoals();
+                renderHistory();
+                closeModal();
+            }
+        }
+
+        async function saveGoal() {
+            const name = document.getElementById('zielName').value.trim();
+            const target = parseFloat(document.getElementById('zielBetrag').value) || 0;
+            const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
+            const targetDate = document.getElementById('zielDatum').value;
+            const goalType = document.getElementById('zielTypeSelect').value;
+
+            if(!name || target <= 0) return alert('Bitte Name und Zielbetrag angeben!');
+
+            let newId = 'custom_' + Date.now();
+            if(['notfall', 'freizeit', 'kassette'].includes(goalType)) {
+                newId = goalType;
+            }
+
+            goals = goals.filter(g => g.id !== newId);
+
+            goals.push({ 
+                id: newId, 
+                name, 
+                target, 
+                manualCurrent: (newId === 'notfall' || newId === 'freizeit') ? 0 : startVal,
+                manualOffset: (newId === 'notfall' || newId === 'freizeit') ? startVal : 0,
+                targetDate 
+            });
+
+            await saveToCloud();
+
+            document.getElementById('zielName').value = '';
+            document.getElementById('zielBetrag').value = '';
+            document.getElementById('zielStart').value = '0';
+            document.getElementById('zielDatum').value = '';
+
+            renderGoals();
+            renderHistory();
+        }
+
+        async function deleteGoalDirect(index) {
+            if(confirm('Sparziel wirklich löschen?')) {
+                goals.splice(index, 1);
+                await saveToCloud();
+                renderGoals();
+                renderHistory();
+            }
+        }
+    </script>
+</body>
+</html>
