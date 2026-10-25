@@ -91,20 +91,20 @@
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 4px;
-            gap: 4px;
+            gap: 3px;
             overflow-x: auto;
             margin-top: 10px;
         }
 
         .tab-btn {
             flex: 1;
-            padding: 9px 6px;
+            padding: 8px 4px;
             border: none;
             border-radius: 8px;
             background: transparent;
             color: var(--text-sub);
             font-weight: 600;
-            font-size: 0.78rem;
+            font-size: 0.72rem;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s ease;
@@ -284,6 +284,7 @@
         .badge-paused { background: #991b1b; color: #fef2f2; }
         .badge-once { background: #475569; color: #f8fafc; }
         .badge-booked { background: #16a34a; color: #f0fdf4; }
+        .badge-kategorie { background: #7c3aed; color: #ede9fe; }
 
         .goal-card-box {
             background: var(--card-sub);
@@ -460,9 +461,10 @@
         <div class="cloud-status" id="cloudStatus">☁️ Verbinde mit Cloud...</div>
         <div class="tab-bar">
             <button class="tab-btn active" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
+            <button class="tab-btn" onclick="switchTab('haushalt-view', this)">🏠 Haushalt</button>
             <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
             <button class="tab-btn" onclick="switchTab('urlaub-view', this)">✈️ Urlaub</button>
-            <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Sparziele</button>
+            <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
         </div>
     </header>
 
@@ -509,7 +511,7 @@
                 </div>
 
                 <div class="input-group">
-                    <label>Taschengeld / Essen 🛒</label>
+                    <label>Taschengeld / Einkaufen 🛒</label>
                     <input type="number" id="taschengeldInput" placeholder="0" oninput="liveCalc()">
                 </div>
                 <div class="input-group">
@@ -561,7 +563,60 @@
         </div>
     </div>
 
-    <!-- TAB 2: PROGNOSE & STAND -->
+    <!-- TAB 2: HAUSHALTSBUCH -->
+    <div id="haushalt-view" class="view-section">
+        <div class="card">
+            <div class="card-title">🏠 Haushaltsbuch – Ausgabe erfassen</div>
+            <div class="grid">
+                <div class="input-group full">
+                    <label>Bezeichnung / Wofür?</label>
+                    <input type="text" id="HHName" placeholder="z.B. Supermarkt Einkauf, Tanken...">
+                </div>
+                <div class="input-group">
+                    <label>Betrag (€)</label>
+                    <input type="number" id="HHAmount" placeholder="0.00">
+                </div>
+                <div class="input-group">
+                    <label>Kategorie</label>
+                    <select id="HHKategorie">
+                        <option value="🛒 Lebensmittel">🛒 Lebensmittel</option>
+                        <option value="🚗 Mobilität / Tanken">🚗 Mobilität / Tanken</option>
+                        <option value="🎉 Freizeit & Gastro">🎉 Freizeit & Gastro</option>
+                        <option value="💡 Haushalt & Drogerie">💡 Haushalt & Drogerie</option>
+                        <option value="📦 Sonstiges">📦 Sonstiges</option>
+                    </select>
+                </div>
+                <div class="input-group full">
+                    <label>Datum</label>
+                    <input type="date" id="HHDate">
+                </div>
+            </div>
+            <button class="btn-add" onclick="addHaushaltItem()">Ausgabe hinzufügen ➕</button>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📊 Ausgaben im gewählten Monat (<span id="HHMonthDisplay">-</span>)</div>
+            <div class="stat-row">
+                <span>Gesamtausgaben Haushalt:</span>
+                <span id="HHTotalDisplay" class="val-red">0,00 €</span>
+            </div>
+            <div class="stat-row">
+                <span>Verfügbares Taschengeld-Budget:</span>
+                <span id="HHBudgetDisplay" class="val-highlight">0,00 €</span>
+            </div>
+            <div class="stat-row" style="font-weight:bold;">
+                <span>Rest-Budget:</span>
+                <span id="HHRestDisplay">0,00 €</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📋 Alle Ausgaben diesen Monat</div>
+            <div class="history-list" id="HHList"></div>
+        </div>
+    </div>
+
+    <!-- TAB 3: PROGNOSE & STAND -->
     <div id="uebersicht-view" class="view-section">
         <!-- DIGITALE GELD-KASSETTE WIDGET -->
         <div class="card" style="border: 1px solid #facc15;">
@@ -666,7 +721,7 @@
         </div>
     </div>
 
-    <!-- TAB 3: URLAUBSBUDGET -->
+    <!-- TAB 4: URLAUBSBUDGET -->
     <div id="urlaub-view" class="view-section">
         <div class="card">
             <div class="card-title">
@@ -775,7 +830,7 @@
         </div>
     </div>
 
-    <!-- TAB 4: SPARZIELE -->
+    <!-- TAB 5: SPARZIELE -->
     <div id="ziele-view" class="view-section">
         <div class="card">
             <div class="card-title">🎯 Neues Sparziel anlegen</div>
@@ -912,12 +967,14 @@
         };
 
         let cashBreakdown = { c100: 0, c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0 };
+        let haushaltItems = [];
 
         let currentModalGoalId = null;
         let currentMonthItems = [];
         let currentMonthPausedItems = [];
 
         document.getElementById('monthInput').value = "2026-11";
+        document.getElementById('HHDate').valueAsDate = new Date();
 
         window.initCloudSync = async function() {
             try {
@@ -930,6 +987,7 @@
                     if(cloudData.goals) goals = cloudData.goals;
                     if(cloudData.urlaubData) urlaubData = cloudData.urlaubData;
                     if(cloudData.cashBreakdown) cashBreakdown = cloudData.cashBreakdown;
+                    if(cloudData.haushaltItems) haushaltItems = cloudData.haushaltItems;
                 } else {
                     entries = {
                         "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
@@ -943,10 +1001,11 @@
                 renderHistory();
                 renderGoals();
                 renderUrlaubView();
+                renderHaushaltView();
             } catch (err) {
                 console.error("Cloud-Fehler:", err);
                 document.getElementById('cloudStatus').innerText = "⚠️ Lokal aktiv";
-                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v380')) || {
+                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v400')) || {
                     "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
                 };
                 loadCashBreakdownToUI();
@@ -954,6 +1013,7 @@
                 renderHistory();
                 renderGoals();
                 renderUrlaubView();
+                renderHaushaltView();
             }
         };
 
@@ -963,7 +1023,8 @@
                     entries: entries,
                     goals: goals,
                     urlaubData: urlaubData,
-                    cashBreakdown: cashBreakdown
+                    cashBreakdown: cashBreakdown,
+                    haushaltItems: haushaltItems
                 });
                 document.getElementById('cloudStatus').innerText = "☁️ Synchronisiert ✅";
             } catch (err) {
@@ -1031,6 +1092,9 @@
             
             document.getElementById(viewId).classList.add('active');
             btnEl.classList.add('active');
+            if(viewId === 'haushalt-view') {
+                renderHaushaltView();
+            }
         }
 
         function getSelectedMonthKey() {
@@ -1080,6 +1144,83 @@
             liveCalc();
             renderNextThree(m);
             renderHistory();
+            renderHaushaltView();
+        }
+
+        // --- HAUSHALTSBUCH LOGIK ---
+        async function addHaushaltItem() {
+            const name = document.getElementById('HHName').value.trim();
+            const amount = parseFloat(document.getElementById('HHAmount').value);
+            const category = document.getElementById('HHKategorie').value;
+            const date = document.getElementById('HHDate').value;
+
+            if(!name || isNaN(amount) || amount <= 0 || !date) {
+                return alert('Bitte Bezeichnung, Betrag und Datum angeben!');
+            }
+
+            if(!haushaltItems) haushaltItems = [];
+            haushaltItems.push({ id: Date.now(), name, amount, category, date });
+
+            await saveToCloud();
+
+            document.getElementById('HHName').value = '';
+            document.getElementById('HHAmount').value = '';
+            document.getElementById('HHDate').valueAsDate = new Date();
+
+            renderHaushaltView();
+        }
+
+        async function deleteHaushaltItem(id) {
+            if(confirm('Ausgabe wirklich löschen?')) {
+                haushaltItems = haushaltItems.filter(i => i.id !== id);
+                await saveToCloud();
+                renderHaushaltView();
+            }
+        }
+
+        function renderHaushaltView() {
+            const selectedM = getSelectedMonthKey();
+            document.getElementById('HHMonthDisplay').innerText = selectedM;
+
+            const list = document.getElementById('HHList');
+            list.innerHTML = '';
+
+            let totalSpent = 0;
+            const filtered = (haushaltItems || []).filter(i => i.date && i.date.startsWith(selectedM));
+
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            filtered.forEach(item => {
+                totalSpent += parseFloat(item.amount || 0);
+
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div>
+                        <div class="history-date">${item.name} <span class="badge badge-kategorie">${item.category}</span></div>
+                        <div class="history-sub">Datum: ${item.date}</div>
+                    </div>
+                    <div style="text-align:right; display:flex; align-items:center; gap:8px;">
+                        <span class="val-red">-${parseFloat(item.amount).toFixed(2)} €</span>
+                        <span style="color:#ef4444; font-size:0.75rem; cursor:pointer;" onclick="deleteHaushaltItem(${item.id})">🗑️</span>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+
+            if(filtered.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine Haushalts-Ausgaben für ' + selectedM + ' eingetragen.</div>';
+            }
+
+            document.getElementById('HHTotalDisplay').innerText = totalSpent.toFixed(2) + ' €';
+
+            const taschengeldBudget = parseFloat(document.getElementById('taschengeldInput').value) || 0;
+            document.getElementById('HHBudgetDisplay').innerText = taschengeldBudget.toFixed(2) + ' €';
+
+            const rest = taschengeldBudget - totalSpent;
+            const restEl = document.getElementById('HHRestDisplay');
+            restEl.innerText = rest.toFixed(2) + ' €';
+            restEl.className = rest >= 0 ? 'val-highlight' : 'val-red';
         }
 
         function getTotalFixForMonthData(itemData) {
@@ -1245,6 +1386,7 @@
             document.getElementById('resFreizeit').innerText = calc.freizeitSparen.toFixed(2) + ' €';
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
             document.getElementById('resGesamtSparen').innerText = calc.gesamtSparen.toFixed(2) + ' €';
+            renderHaushaltView();
         }
 
         async function saveCurrentMonthManual() {
@@ -1717,7 +1859,7 @@
             if(!currentModalGoalId) return;
             const newTarget = parseFloat(document.getElementById('modalTargetInput').value);
             const newCurrent = parseFloat(document.getElementById('modalCurrentInput').value);
-            const newDate = document.getElementById('modalDateInput'.value);
+            const newDate = document.getElementById('modalDateInput').value;
 
             const goal = goals.find(g => g.id === currentModalGoalId);
             if(goal) {
@@ -1792,4 +1934,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
