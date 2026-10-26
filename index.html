@@ -334,6 +334,17 @@
                     <span id="resFreizeitRest" class="val-highlight" style="font-size:0.95rem;">0,00 €</span>
                 </div>
 
+                <!-- EXTRA-ÜBERWEISUNG VOM REST-FREIZEITGELD (NEU!) -->
+                <div style="background: var(--card-sub); border: 1px solid var(--accent); padding: 10px; border-radius: 8px; margin: 8px 0;">
+                    <label style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 4px;">⚡ Extra-Überweisung vom Rest-Freizeitgeld</label>
+                    <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 6px;">Übertrage Geld direkt von deinem Freizeitgeld auf ein Sparziel oder die Kasse.</div>
+                    <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                        <select id="extraTransferGoalSelect" style="flex: 1; font-size: 0.8rem; padding: 6px;"></select>
+                        <input type="number" id="extraTransferAmount" placeholder="Betrag (€)" style="width: 100px; font-size: 0.8rem; padding: 6px;">
+                    </div>
+                    <button class="btn-secondary" style="width: 100%; background: var(--accent); color: #fff; border: none; font-weight: bold; padding: 6px;" onclick="executeExtraTransfer()">Extra-Betrag überweisen 🚀</button>
+                </div>
+
                 <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
                 
                 <div class="stat-row" style="background: var(--card-sub); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); margin: 6px 0;">
@@ -626,7 +637,7 @@
                 </div>
             </div>
 
-            <!-- Manuell Abheben / Entnehmen (NEU!) -->
+            <!-- Manuell Abheben / Entnehmen -->
             <div style="background:var(--card-sub); border:1px solid #ef4444; padding:10px; border-radius:8px; margin-bottom:12px;">
                 <label style="color:#ef4444; font-weight:bold;">➖ Geld manuell abheben / entnehmen</label>
                 <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Ziehe Geld ab, wenn du etwas entnommen hast.</div>
@@ -955,11 +966,62 @@
 
             toggleSplitMode();
             updateTotalFixFromItems();
+            populateExtraTransferSelect();
             liveCalc();
             renderNextThree(m);
             renderHistory();
             renderHaushaltView();
             renderJahresView();
+        }
+
+        function populateExtraTransferSelect() {
+            const select = document.getElementById('extraTransferGoalSelect');
+            if(!select) return;
+            select.innerHTML = '';
+            goals.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.innerText = g.name;
+                select.appendChild(opt);
+            });
+        }
+
+        async function executeExtraTransfer() {
+            const amount = parseFloat(document.getElementById('extraTransferAmount').value);
+            const targetId = document.getElementById('extraTransferGoalSelect').value;
+            if(isNaN(amount) || amount <= 0) return alert('Bitte einen gültigen Betrag eingeben!');
+            
+            const restFreizeit = getRestFreizeitGeldCalculated();
+            if(amount > restFreizeit) {
+                if(!confirm('Achtung: Der Betrag ist höher als dein aktuelles Rest-Freizeitgeld! Trotzdem übertragen?')) return;
+            }
+
+            let goal = goals.find(g => g.id === targetId);
+            if(!goal) return;
+
+            if(['notfall', 'freizeit'].includes(goal.id)) {
+                goal.manualOffset = (parseFloat(goal.manualOffset) || 0) + amount;
+            } else if(goal.id === 'kassette') {
+                goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) + amount;
+            } else {
+                goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) + amount;
+            }
+
+            // Wir buchen das Geld, indem wir den Taschengeld-Eintrag erhöhen (so wird der Rest-Freizeitbetrag automatisch verringert)
+            const currentTaschengeld = parseFloat(document.getElementById('taschengeldInput').value) || 0;
+            // Da Rest-Freizeitgeld = Brutto-Freizeitsparen abzüglich Abzüge ist, können wir den "Taschengeld"-Wert oder einen Ausgabenwert anpassen,
+            // oder wir ziehen es über das Freizeitkonto ab. Am saubersten geht es über die manuelle Erhöhung des Abzugs im Monat oder direkt im Freizeitkonto-Offset:
+            let freizeitGoal = goals.find(g => g.id === 'freizeit');
+            if(freizeitGoal) {
+                freizeitGoal.manualOffset = (parseFloat(freizeitGoal.manualOffset) || 0) - amount;
+            }
+
+            await saveToCloud();
+            document.getElementById('extraTransferAmount').value = '';
+            alert(`Erfolgreich ${amount.toFixed(2)} € auf "${goal.name}" übertragen! 🚀`);
+            renderGoals();
+            renderHistory();
+            liveCalc();
         }
 
         function toggleSplitMode() {
@@ -1070,7 +1132,6 @@
             if(filtered.length === 0) list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine Haushalts-Ausgaben für ' + selectedM + ' eingetragen.</div>';
             document.getElementById('HHTotalDisplay').innerText = totalSpent.toFixed(2) + ' €';
             
-            // AUTOMATISCHE KOPPLUNG: Nimmt das berechnete Rest-Freizeitgeld als Taschengeld-Budget
             const restFreizeitBudget = getRestFreizeitGeldCalculated();
             document.getElementById('HHBudgetDisplay').innerText = restFreizeitBudget.toFixed(2) + ' €';
             
@@ -1193,7 +1254,6 @@
             document.getElementById('resNotfall').innerText = calc.notfallSparen.toFixed(2) + ' €';
             document.getElementById('resFreizeit').innerText = calc.freizeitSparen.toFixed(2) + ' €';
             
-            // Dynamische Aufschlüsselung der Sparziel-Monatsbeiträge aus dem Freizeitkonto
             const container = document.getElementById('sparzieleBreakdownContainer');
             container.innerHTML = '';
             let totalSparzielDeductions = 0;
@@ -1731,6 +1791,7 @@
 
         function renderGoals() {
             populateUrlaubLinkOptions('zielUrlaubLinkSelect');
+            populateExtraTransferSelect();
             const list = document.getElementById('goalsList');
             list.innerHTML = '';
             goals.forEach((goal, index) => {
@@ -1913,7 +1974,7 @@
             goals = goals.filter(g => g.id !== newId);
             goals.push({ id: newId, name, target, manualCurrent: ['notfall', 'freizeit'].includes(newId) ? 0 : startVal, manualOffset: ['notfall', 'freizeit'].includes(newId) ? startVal : 0, targetDate, urlaubLinkId });
             await saveToCloud();
-            document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; document.getElementById('zielStart').value = '0'; document.getElementById('zielDatum').value = '';
+            document.getElementById('zielName').value = ''; document.getElementById('zielBetTag').value = ''; document.getElementById('zielStart').value = '0'; document.getElementById('zielDatum').value = '';
             renderGoals(); renderHistory(); renderUrlaubView();
         }
 
