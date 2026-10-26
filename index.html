@@ -201,7 +201,6 @@
         .badge-booked { background: #dcfce7; color: #166534; }
         .badge-kategorie { background: #f3e8ff; color: #7e22ce; }
         .badge-urlaub { background: #fef3c7; color: #b45309; }
-        
         .badge-gamification { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
 
         .goal-card-box { background: var(--card-sub); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; cursor: pointer; }
@@ -415,10 +414,11 @@
                         <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
                     </select>
                 </div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Summen und Balkendiagramme für das gewählte Jahr:</div>
+                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Summen, Sparquote und Balkendiagramme für das gewählte Jahr:</div>
                 <div class="stat-row"><span>Gesamteinnahmen:</span><span id="jahrEinnahmen" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>Gesamte Fixkosten:</span><span id="jahrFix" class="val-red">0,00 €</span></div>
-                <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Gesamt Eingesparte Summe:</span><span id="jahrSparen" style="color:var(--accent);">0,00 €</span></div>
+                <div class="stat-row"><span>Gesamt Eingesparte Summe:</span><span id="jahrSparen" style="color:var(--accent);">0,00 €</span></div>
+                <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Ø Persönliche Sparquote:</span><span id="jahrSparquote" class="val-highlight">0.0%</span></div>
             </div>
             <div class="card">
                 <div class="card-title">📊 Visuelle Monats-Sparraten</div>
@@ -548,6 +548,29 @@
 
             <div class="stat-row" style="font-weight: bold; margin-bottom: 14px;"><span>Gesamtsumme Ausgaben:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div>
             <button class="btn-add" onclick="closeExpenseModal()">Übernehmen & Schließen</button>
+        </div>
+    </div>
+
+    <!-- MODAL: MONATSABSCHLUSS & KASSENSTURZ -->
+    <div id="monthCloseModal" class="modal">
+        <div class="modal-content">
+            <div class="card-title">🏁 Monatsabschluss & Kassensturz</div>
+            <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
+                Möchtest du das restliche Haushalts- / Taschengeld-Budget aus diesem Monat direkt in ein Sparziel oder deine Bargeld-Kassette übertragen?
+            </p>
+            <div class="stat-row" style="margin-bottom:12px;"><span>Verbleibender Restbetrag:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div>
+            
+            <div class="input-group" style="margin-bottom: 12px;">
+                <label>Ziel für den Restbetrag:</label>
+                <select id="closeTargetSelect">
+                    <option value="kassette">🪙 In die Bargeld-Kassette (Tresor)</option>
+                    <option value="notfall">🛡️ Ins Notfallkonto</option>
+                    <option value="freizeit">🎉 Ins Freizeitkonto</option>
+                </select>
+            </div>
+
+            <button class="btn-add" onclick="executeMonthClose()" style="background:var(--accent-green); margin-bottom: 8px;">Restbetrag buchen & abschließen 🚀</button>
+            <button class="btn-secondary" onclick="closeMonthCloseModal()" style="width:100%;">Überspringen</button>
         </div>
     </div>
 
@@ -1089,9 +1112,56 @@
                 booked: document.getElementById('gehaltBookedInput').checked
             };
             await saveToCloud();
+            
+            // Wenn gebucht, prüfen ob es Rest-Taschengeld gibt für den Kassensturz
+            if(entries[m].booked) {
+                checkAndOpenMonthClose(m);
+            }
+
             renderHistory();
             renderNextThree(m);
             renderJahresView();
+        }
+
+        function checkAndOpenMonthClose(monthKey) {
+            const selectedM = monthKey;
+            const tg = parseFloat(document.getElementById('taschengeldInput').value) || 0;
+            let spent = 0;
+            (haushaltItems || []).forEach(i => {
+                if(i.date && i.date.startsWith(selectedM)) spent += parseFloat(i.amount || 0);
+            });
+            const rest = tg - spent;
+            if(rest > 5) { // Nur bei mehr als 5 € Restbetrag fragen
+                document.getElementById('closeRestAmount').innerText = rest.toFixed(2) + ' €';
+                document.getElementById('monthCloseModal').classList.add('active');
+            }
+        }
+
+        async function executeMonthClose() {
+            const restStr = document.getElementById('closeRestAmount').innerText;
+            const restAmount = parseFloat(restStr.replace(' €', '').replace(',', '.')) || 0;
+            const targetChoice = document.getElementById('closeTargetSelect').value;
+
+            if(targetChoice === 'kassette') {
+                let kassetteGoal = goals.find(g => g.id === 'kassette');
+                if(kassetteGoal) kassetteGoal.manualCurrent = (parseFloat(kassetteGoal.manualCurrent) || 0) + restAmount;
+            } else if(targetChoice === 'notfall') {
+                let notfallGoal = goals.find(g => g.id === 'notfall');
+                if(notfallGoal) notfallGoal.manualOffset = (parseFloat(notfallGoal.manualOffset) || 0) + restAmount;
+            } else if(targetChoice === 'freizeit') {
+                let freizeitGoal = goals.find(g => g.id === 'freizeit');
+                if(freizeitGoal) freizeitGoal.manualOffset = (parseFloat(freizeitGoal.manualOffset) || 0) + restAmount;
+            }
+
+            await saveToCloud();
+            document.getElementById('monthCloseModal').classList.remove('active');
+            alert(`Erfolgreich ${restAmount.toFixed(2)} € verbucht! 🎉`);
+            renderGoals();
+            renderHistory();
+        }
+
+        function closeMonthCloseModal() {
+            document.getElementById('monthCloseModal').classList.remove('active');
         }
 
         function selectMonthAndEdit(key) {
@@ -1224,6 +1294,10 @@
             document.getElementById('jahrEinnahmen').innerText = totalEinnahmen.toFixed(2) + ' €';
             document.getElementById('jahrFix').innerText = totalFix.toFixed(2) + ' €';
             document.getElementById('jahrSparen').innerText = totalSparen.toFixed(2) + ' €';
+
+            // Durchschnittliche Sparquote berechnen
+            let avgSparquote = totalEinnahmen > 0 ? (totalSparen / totalEinnahmen) * 100 : 0;
+            document.getElementById('jahrSparquote').innerText = avgSparquote.toFixed(1) + '%';
 
             if (monthlyDataList.length === 0) {
                 chartContainer.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine gebuchten Monate für ' + selectedYear + ' vorhanden.</div>';
