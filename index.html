@@ -201,6 +201,9 @@
         .badge-booked { background: #dcfce7; color: #166534; }
         .badge-kategorie { background: #f3e8ff; color: #7e22ce; }
         .badge-urlaub { background: #fef3c7; color: #b45309; }
+        
+        /* Neu: Gamification Badges */
+        .badge-gamification { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
 
         .goal-card-box { background: var(--card-sub); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; cursor: pointer; }
         .goal-card-box:hover { border-color: var(--accent); }
@@ -233,6 +236,8 @@
         .chart-container { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .chart-bar-row { background: var(--card-sub); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); }
         .chart-label-line { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
+        
+        .receipt-btn { font-size: 0.7rem; background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -337,6 +342,10 @@
                         </select>
                     </div>
                     <div class="input-group full"><label>Datum</label><input type="date" id="HHDate"></div>
+                    <div class="input-group full">
+                        <label>🧾 Beleg-Foto anhängen (Optional)</label>
+                        <input type="file" id="HHReceiptInput" accept="image/*">
+                    </div>
                 </div>
                 <button class="btn-add" onclick="addHaushaltItem()">Ausgabe hinzufügen ➕</button>
             </div>
@@ -467,6 +476,11 @@
                 <div class="grid">
                     <div class="input-group full"><label>Tag auswählen</label><select id="uDaySelectForExpense" onchange="renderUrlaubView()"></select></div>
                     <div class="input-group full"><label>Ausgabe heute (€)</label><input type="number" id="uDayExpenseInput" placeholder="0" oninput="updateDayExpenseFromInput()"></div>
+                    <div class="input-group full">
+                        <label>🧾 Beleg für diesen Tag anhängen</label>
+                        <input type="file" id="uDayReceiptInput" accept="image/*" onchange="uploadUrlaubDayReceipt()">
+                        <div id="uDayReceiptStatus" style="font-size:0.75rem; color:var(--text-sub); margin-top:4px;"></div>
+                    </div>
                 </div>
             </div>
 
@@ -474,7 +488,7 @@
                 <div class="card-title">📊 Deine Tages-Umschläge (Live-Stand)</div>
                 <div class="table-wrapper">
                     <table class="month-table">
-                        <thead><tr><th>Tag</th><th>Basis (€)</th><th>+ Bonus (€)</th><th>Verfügbar (€)</th><th>Ausgegeben (€)</th><th>Überschuss (€)</th></tr></thead>
+                        <thead><tr><th>Tag</th><th>Basis (€)</th><th>+ Bonus (€)</th><th>Verfügbar (€)</th><th>Ausgegeben (€)</th><th>Überschuss (€)</th><th>Beleg</th></tr></thead>
                         <tbody id="urlaubTableBody"></tbody>
                     </table>
                 </div>
@@ -583,6 +597,17 @@
         </div>
     </div>
 
+    <!-- MODAL: BELEG-VORSCHAU (FOTO) -->
+    <div id="receiptModal" class="modal">
+        <div class="modal-content" style="text-align:center;">
+            <div class="card-title">🧾 Beleg-Vorschau</div>
+            <div style="max-height:60vh; overflow:auto; margin-bottom:12px; border:1px solid var(--border); border-radius:8px; padding:4px;">
+                <img id="receiptModalImg" src="" style="max-width:100%; border-radius:6px; display:block; margin:0 auto;" alt="Kassenbon Beleg">
+            </div>
+            <button class="btn-add" onclick="closeReceiptModal()" style="background:var(--accent);">Schließen</button>
+        </div>
+    </div>
+
     <script>
         let entries = {};
         let goals = [
@@ -603,7 +628,8 @@
                 fixSupermarkt: 20,
                 fixBusHin: 5.5,
                 fixAbreisePuffer: 40,
-                dayExpenses: [0, 0, 0, 0, 0]
+                dayExpenses: [0, 0, 0, 0, 0],
+                dayReceipts: [null, null, null, null, null]
             },
             {
                 id: "u_2",
@@ -616,7 +642,8 @@
                 fixSupermarkt: 25,
                 fixBusHin: 5.5,
                 fixAbreisePuffer: 50,
-                dayExpenses: [50, 20, null, null, null]
+                dayExpenses: [50, 20, null, null, null],
+                dayReceipts: [null, null, null, null, null]
             }
         ];
         let currentUrlaubId = "u_2";
@@ -632,6 +659,44 @@
         document.getElementById('monthInput').value = "2026-11";
         document.getElementById('selectYear').value = new Date().getFullYear();
         document.getElementById('HHDate').valueAsDate = new Date();
+
+        // Hilfsfunktion: Bild in ein komprimiertes Base64 umwandeln
+        function compressImage(file, maxWidth = 800, quality = 0.7) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = event => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = error => reject(error);
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        function showReceiptModal(imgDataUrl) {
+            document.getElementById('receiptModalImg').src = imgDataUrl;
+            document.getElementById('receiptModal').classList.add('active');
+        }
+
+        function closeReceiptModal() {
+            document.getElementById('receiptModal').classList.remove('active');
+            document.getElementById('receiptModalImg').src = '';
+        }
 
         async function handleLogin() {
             const email = document.getElementById('authEmail').value.trim();
@@ -841,12 +906,26 @@
             const amount = parseFloat(document.getElementById('HHAmount').value);
             const category = document.getElementById('HHKategorie').value;
             const date = document.getElementById('HHDate').value;
+            const receiptInput = document.getElementById('HHReceiptInput');
+
             if(!name || isNaN(amount) || amount <= 0 || !date) return alert('Bitte Bezeichnung, Betrag und Datum angeben!');
             if(!haushaltItems) haushaltItems = [];
-            haushaltItems.push({ id: Date.now(), name, amount, category, date });
+
+            let receiptDataUrl = null;
+            if (receiptInput.files && receiptInput.files[0]) {
+                try {
+                    receiptDataUrl = await compressImage(receiptInput.files[0]);
+                } catch (err) {
+                    console.error("Fehler beim Verarbeiten des Belegs:", err);
+                }
+            }
+
+            haushaltItems.push({ id: Date.now(), name, amount, category, date, receipt: receiptDataUrl });
             await saveToCloud();
+
             document.getElementById('HHName').value = '';
             document.getElementById('HHAmount').value = '';
+            document.getElementById('HHReceiptInput').value = '';
             document.getElementById('HHDate').valueAsDate = new Date();
             renderHaushaltView();
         }
@@ -872,8 +951,9 @@
                 totalSpent += parseFloat(item.amount || 0);
                 const div = document.createElement('div');
                 div.className = 'history-item';
+                let receiptBtnHtml = item.receipt ? `<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">🧾 Beleg</button>` : '';
                 div.innerHTML = `
-                    <div><div class="history-date">${item.name} <span class="badge badge-kategorie">${item.category}</span></div><div class="history-sub">Datum: ${item.date}</div></div>
+                    <div><div class="history-date">${item.name} <span class="badge badge-kategorie">${item.category}</span> ${receiptBtnHtml}</div><div class="history-sub">Datum: ${item.date}</div></div>
                     <div style="text-align:right; display:flex; align-items:center; gap:8px;">
                         <span class="val-red">-${parseFloat(item.amount).toFixed(2)} €</span>
                         <span style="color:#ef4444; font-size:0.75rem; cursor:pointer;" onclick="deleteHaushaltItem(${item.id})">🗑️</span>
@@ -1206,7 +1286,8 @@
                 fixSupermarkt: 20,
                 fixBusHin: 5,
                 fixAbreisePuffer: 40,
-                dayExpenses: [0, 0, 0, 0, 0]
+                dayExpenses: [0, 0, 0, 0, 0],
+                dayReceipts: [null, null, null, null, null]
             };
             urlaubeList.push(newU);
             currentUrlaubId = newId;
@@ -1300,6 +1381,12 @@
                 u.dayExpenses = newArr;
             }
 
+            if (!u.dayReceipts || u.dayReceipts.length !== numDays) {
+                let newArr = [];
+                for(let i = 0; i < numDays; i++) newArr.push(u.dayReceipts && u.dayReceipts[i] !== undefined ? u.dayReceipts[i] : null);
+                u.dayReceipts = newArr;
+            }
+
             let bonus = new Array(numDays).fill(0);
             let available = new Array(numDays).fill(0);
             let surplus = new Array(numDays).fill(0);
@@ -1340,10 +1427,18 @@
             }
             document.getElementById('uDayExpenseInput').value = u.dayExpenses[selectedIdx] ?? '';
 
+            const statusEl = document.getElementById('uDayReceiptStatus');
+            if(u.dayReceipts[selectedIdx]) {
+                statusEl.innerHTML = `<span style="color:var(--accent-green); font-weight:bold;">✅ Beleg vorhanden</span> <button class="receipt-btn" onclick="showReceiptModal('${u.dayReceipts[selectedIdx]}')">Anzeigen</button>`;
+            } else {
+                statusEl.innerText = 'Kein Beleg hochgeladen.';
+            }
+
             const tbody = document.getElementById('urlaubTableBody');
             tbody.innerHTML = '';
             for(let i = 0; i < numDays; i++) {
                 const isHasExp = u.dayExpenses[i] !== null && u.dayExpenses[i] !== undefined && u.dayExpenses[i] !== '';
+                let recBtn = u.dayReceipts[i] ? `<button class="receipt-btn" onclick="showReceiptModal('${u.dayReceipts[i]}')">🧾 Beleg</button>` : '-';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${dayLabels[i]}</strong></td>
@@ -1352,6 +1447,7 @@
                     <td style="font-weight:bold; color:var(--text-main);">${available[i].toFixed(2)} €</td>
                     <td class="val-red">${isHasExp ? parseFloat(u.dayExpenses[i]).toFixed(2) + ' €' : '-'}</td>
                     <td class="val-highlight">${isHasExp ? surplus[i].toFixed(2) + ' €' : '0,00 €'}</td>
+                    <td>${recBtn}</td>
                 `;
                 tbody.appendChild(tr);
             }
@@ -1373,9 +1469,6 @@
             goals.forEach(g => {
                 if(g.urlaubLinkId === u.id) {
                     g.target = u.target;
-                    if(u.startDate) {
-                        g.targetDate = u.startDate.substring(0, 7);
-                    }
                 }
             });
 
@@ -1395,6 +1488,26 @@
             renderUrlaubView();
         }
 
+        async function uploadUrlaubDayReceipt() {
+            const u = getCurrentUrlaub();
+            if(!u) return;
+            const dayIdx = parseInt(document.getElementById('uDaySelectForExpense').value, 10);
+            const input = document.getElementById('uDayReceiptInput');
+
+            if (input.files && input.files[0]) {
+                try {
+                    const compressed = await compressImage(input.files[0]);
+                    if(!u.dayReceipts) u.dayReceipts = [];
+                    u.dayReceipts[dayIdx] = compressed;
+                    await saveToCloud();
+                    input.value = '';
+                    renderUrlaubView();
+                } catch (err) {
+                    console.error("Fehler beim Upload des Urlaubsbelegs:", err);
+                }
+            }
+        }
+
         function populateUrlaubLinkOptions(selectElementId, selectedId = "") {
             const el = document.getElementById(selectElementId);
             if(!el) return;
@@ -1408,6 +1521,7 @@
             });
         }
 
+        // Sparziele & Gamification Badges Berechnen
         function renderGoals() {
             populateUrlaubLinkOptions('zielUrlaubLinkSelect');
             const list = document.getElementById('goalsList');
@@ -1416,7 +1530,6 @@
                 let linkedUrlaub = goal.urlaubLinkId ? urlaubeList.find(u => u.id === goal.urlaubLinkId) : null;
                 if(linkedUrlaub) {
                     goal.target = linkedUrlaub.target;
-                    if(linkedUrlaub.startDate) goal.targetDate = linkedUrlaub.startDate.substring(0, 7);
                 }
 
                 let currentVal = getSavedAmountForGoal(goal);
@@ -1431,6 +1544,13 @@
                     else monthlyNeededText = `⚠️ Frist erreicht`;
                 }
 
+                // Gamification Badge ermitteln
+                let badgeGamification = '';
+                if (percent >= 100) badgeGamification = `<span class="badge badge-gamification">👑 100% Erreicht! 🎉</span>`;
+                else if (percent >= 75) badgeGamification = `<span class="badge badge-gamification">🥇 75% Endspurt!</span>`;
+                else if (percent >= 50) badgeGamification = `<span class="badge badge-gamification">🥈 50% Halbzeit!</span>`;
+                else if (percent >= 25) badgeGamification = `<span class="badge badge-gamification">🥉 25% Start!</span>`;
+
                 let urlaubBadge = linkedUrlaub ? `<span class="badge badge-urlaub">✈️ ${linkedUrlaub.name}</span>` : '';
 
                 const div = document.createElement('div');
@@ -1439,7 +1559,7 @@
                 div.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
                         <div>
-                            <div class="history-date">${goal.name} ${['notfall', 'freizeit', 'kassette'].includes(goal.id) ? '<span class="badge badge-dauer">Auto</span>' : ''} ${urlaubBadge}</div>
+                            <div class="history-date">${goal.name} ${['notfall', 'freizeit', 'kassette'].includes(goal.id) ? '<span class="badge badge-dauer">Auto</span>' : ''} ${urlaubBadge} ${badgeGamification}</div>
                             <div class="history-sub" style="margin-top:2px;">Stand: <strong>${currentVal.toFixed(2)} €</strong> ${goal.target > 0 ? '/ ' + goal.target.toFixed(2) + ' €' : ''}</div>
                         </div>
                         <div style="text-align:right;">
@@ -1533,7 +1653,6 @@
                     let u = urlaubeList.find(x => x.id === goal.urlaubLinkId);
                     if(u) {
                         goal.target = u.target;
-                        if(u.startDate) goal.targetDate = u.startDate.substring(0, 7);
                     }
                 }
 
@@ -1565,7 +1684,6 @@
                 let u = urlaubeList.find(x => x.id === urlaubLinkId);
                 if(u) {
                     target = u.target;
-                    if(u.startDate) targetDate = u.startDate.substring(0, 7);
                 }
             }
 
