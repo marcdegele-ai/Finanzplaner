@@ -618,7 +618,6 @@
             try { await window.FirebaseAuthSdk.signOut(window.firebaseAuth); } catch (e) { console.error(e); }
         }
 
-        // AUTOMATISCHE ÜBERNAHME DER ALTEN DATEN
         window.migrateOldDataIfNeeded = async function() {
             if (!window.currentUser) return;
             try {
@@ -626,14 +625,12 @@
                 const userRef = window.FirestoreSdk.doc(window.db, "finanzdaten", userDocId);
                 const userSnap = await window.FirestoreSdk.getDoc(userRef);
 
-                // Wenn der User noch keine eigenen Daten hat, prüfen wir den alten "main_data"-Pfad
                 if (!userSnap.exists()) {
                     const oldRef = window.FirestoreSdk.doc(window.db, "finanzdaten", "main_data");
                     const oldSnap = await window.FirestoreSdk.getDoc(oldRef);
 
                     if (oldSnap.exists()) {
                         const oldData = oldSnap.data();
-                        // Kopiere die alten Daten in den neuen Account!
                         await window.FirestoreSdk.setDoc(userRef, oldData);
                         console.log("Alte Daten erfolgreich in dein neues Konto übernommen!");
                     }
