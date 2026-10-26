@@ -616,12 +616,23 @@
                 </select>
             </div>
 
+            <!-- Manuell Einzahlen -->
             <div style="background:var(--card-sub); border:1px solid var(--accent-green); padding:10px; border-radius:8px; margin-bottom:12px;">
                 <label style="color:var(--accent-green); font-weight:bold;">➕ Geld manuell hinzufügen (z.B. Geburtstag)</label>
                 <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Füge einmalig einen Betrag hinzu.</div>
                 <div style="display:flex; gap:6px;">
                     <input type="number" id="manualDepositAmount" placeholder="Betrag (€)" style="flex:1;">
                     <button class="btn-secondary" style="background:var(--accent-green); color:#ffffff; font-weight:bold; border:none;" onclick="addManualDepositToGoal()">Einzahlen ➕</button>
+                </div>
+            </div>
+
+            <!-- Manuell Abheben / Entnehmen (NEU!) -->
+            <div style="background:var(--card-sub); border:1px solid #ef4444; padding:10px; border-radius:8px; margin-bottom:12px;">
+                <label style="color:#ef4444; font-weight:bold;">➖ Geld manuell abheben / entnehmen</label>
+                <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Ziehe Geld ab, wenn du etwas entnommen hast.</div>
+                <div style="display:flex; gap:6px;">
+                    <input type="number" id="manualWithdrawAmount" placeholder="Betrag (€)" style="flex:1;">
+                    <button class="btn-secondary" style="background:#ef4444; color:#ffffff; font-weight:bold; border:none;" onclick="withdrawManualFromGoal()">Abheben ➖</button>
                 </div>
             </div>
 
@@ -1784,6 +1795,7 @@
             document.getElementById('modalTargetInput').value = goal.target;
             document.getElementById('modalDateInput').value = goal.targetDate || '';
             document.getElementById('manualDepositAmount').value = '';
+            document.getElementById('manualWithdrawAmount').value = '';
             document.getElementById('cashTransferBox').style.display = (goal.id === 'freizeit') ? 'block' : 'none';
             document.getElementById('modalCurrentInput').value = ['notfall', 'freizeit'].includes(goal.id) ? (goal.manualOffset || 0) : (goal.manualCurrent || 0);
 
@@ -1817,6 +1829,20 @@
             await saveToCloud();
             document.getElementById('manualDepositAmount').value = '';
             alert(`${amount.toFixed(2)} € erfolgreich hinzugefügt! 🎉`);
+            renderGoals(); renderHistory(); renderUrlaubView(); openModal(goal.id);
+        }
+
+        async function withdrawManualFromGoal() {
+            const amount = parseFloat(document.getElementById('manualWithdrawAmount').value);
+            if(isNaN(amount) || amount <= 0) return alert('Bitte einen gültigen Betrag eingeben!');
+            const goal = goals.find(g => g.id === currentModalGoalId);
+            if(!goal) return;
+            if(['notfall', 'freizeit'].includes(goal.id)) goal.manualOffset = (parseFloat(goal.manualOffset) || 0) - amount;
+            else if (goal.id === 'kassette') goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) - amount;
+            else goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) - amount;
+            await saveToCloud();
+            document.getElementById('manualWithdrawAmount').value = '';
+            alert(`${amount.toFixed(2)} € erfolgreich abgehoben! 💸`);
             renderGoals(); renderHistory(); renderUrlaubView(); openModal(goal.id);
         }
 
