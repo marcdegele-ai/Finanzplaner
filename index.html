@@ -452,8 +452,9 @@
             </div>
 
             <div class="card">
-                <div class="card-title">📊 Budget-Übersicht</div>
+                <div class="card-title">📊 Budget- & Spar-Status</div>
                 <div class="stat-row"><span>Gesamtdauer:</span><span id="uDaysDisplay" style="font-weight:bold;">0 Tage</span></div>
+                <div class="stat-row"><span>Für diesen Urlaub gespart:</span><span id="uSavedForTripDisplay" class="val-highlight">0,00 € / 0,00 €</span></div>
                 <div class="stat-row"><span>Echte Ausgaben bisher:</span><span id="uSpentDisplay" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Tages-Überschüsse (Gespart):</span><span id="uSavingsDisplay" class="val-highlight">0,00 €</span></div>
                 <div class="progress-bar-container"><div class="progress-bar-fill" id="uProgressFill" style="width: 0%;"></div></div>
@@ -483,7 +484,7 @@
             <div class="card">
                 <div class="card-title">🎯 Neues Sparziel anlegen</div>
                 <div class="grid">
-                    <div class="input-group full"><label>Bezeichnung des Ziels</label><input type="text" id="zielName" placeholder="z.B. Urlaub, Neues Bike..."></div>
+                    <div class="input-group full"><label>Bezeichnung des Ziels</label><input type="text" id="zielName" placeholder="z.B. Urlaub Köln, Neues Bike..."></div>
                     <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="zielBetrag" placeholder="z.B. 2000"></div>
                     <div class="input-group"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0"></div>
                     <div class="input-group full">
@@ -1064,6 +1065,14 @@
             return { total: runningSum, breakdown };
         }
 
+        function getSavedAmountForGoal(goal) {
+            if(!goal) return 0;
+            if(['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
+                return getGoalData(goal.id).total;
+            }
+            return parseFloat(goal.manualCurrent || 0);
+        }
+
         function renderHistory() {
             const list = document.getElementById('historyList');
             list.innerHTML = '';
@@ -1262,6 +1271,11 @@
             document.getElementById('uFixTotalDisplay').innerText = fixSum.toFixed(2) + ' €';
             document.getElementById('uNettoTagesBudgetDisplay').innerText = netTagesBudget.toFixed(2) + ' €';
 
+            // Verknüpften Spar-Stand ermitteln
+            let linkedGoal = goals.find(g => g.urlaubLinkId === u.id);
+            let actualSaved = linkedGoal ? getSavedAmountForGoal(linkedGoal) : 0;
+            document.getElementById('uSavedForTripDisplay').innerText = `${actualSaved.toFixed(2)} € / ${target.toFixed(2)} €`;
+
             let baseBudgets = [];
             if (numDays === 1) {
                 baseBudgets = [netTagesBudget];
@@ -1303,7 +1317,10 @@
 
             document.getElementById('uSpentDisplay').innerText = totalSpent.toFixed(2) + ' €';
             document.getElementById('uSavingsDisplay').innerText = totalSavings.toFixed(2) + ' €';
-            document.getElementById('uProgressFill').style.width = Math.min(100, (totalSpent / (target || 1)) * 100).toFixed(1) + '%';
+            
+            // Fortschrittsbalken basiert nun darauf, wie viel du für die Reise bereits im Sparziel angespart hast!
+            let progressPercent = target > 0 ? Math.min(100, (actualSaved / target) * 100) : 0;
+            document.getElementById('uProgressFill').style.width = progressPercent.toFixed(1) + '%';
 
             const selectEl = document.getElementById('uDaySelectForExpense');
             const selectedIdx = Math.min(parseInt(selectEl.value || 0, 10), numDays - 1);
@@ -1345,12 +1362,11 @@
             u.fixBusHin = parseFloat(document.getElementById('fixBusHin').value) || 0;
             u.fixAbreisePuffer = parseFloat(document.getElementById('fixAbreisePuffer').value) || 0;
             
-            // Verknüpfte Sparziele automatisch anpassen!
             goals.forEach(g => {
                 if(g.urlaubLinkId === u.id) {
                     g.target = u.target;
                     if(u.startDate) {
-                        g.targetDate = u.startDate.substring(0, 7); // z.B. 2027-08
+                        g.targetDate = u.startDate.substring(0, 7);
                     }
                 }
             });
@@ -1389,14 +1405,13 @@
             const list = document.getElementById('goalsList');
             list.innerHTML = '';
             goals.forEach((goal, index) => {
-                // Wenn verknüpft, Zielsumme und ggf. Datum synchronisieren
                 let linkedUrlaub = goal.urlaubLinkId ? urlaubeList.find(u => u.id === goal.urlaubLinkId) : null;
                 if(linkedUrlaub) {
                     goal.target = linkedUrlaub.target;
                     if(linkedUrlaub.startDate) goal.targetDate = linkedUrlaub.startDate.substring(0, 7);
                 }
 
-                let currentVal = ['notfall', 'freizeit', 'kassette'].includes(goal.id) ? getGoalData(goal.id).total : (goal.manualCurrent || 0);
+                let currentVal = getSavedAmountForGoal(goal);
                 let percent = goal.target > 0 ? Math.min(100, (currentVal / goal.target) * 100) : 0;
                 let remaining = goal.target - currentVal;
                 let monthlyNeededText = "";
@@ -1479,7 +1494,7 @@
             await saveToCloud();
             document.getElementById('manualDepositAmount').value = '';
             alert(`${amount.toFixed(2)} € erfolgreich hinzugefügt! 🎉`);
-            renderGoals(); renderHistory(); openModal(goal.id);
+            renderGoals(); renderHistory(); renderUrlaubView(); openModal(goal.id);
         }
 
         async function transferFreizeitToKassette() {
@@ -1506,7 +1521,6 @@
                 goal.target = parseFloat(document.getElementById('modalTargetInput').value) || goal.target;
                 goal.targetDate = document.getElementById('modalDateInput').value;
                 
-                // Falls mit Urlaub verknüpft, Zielsumme überschreiben
                 if(goal.urlaubLinkId) {
                     let u = urlaubeList.find(x => x.id === goal.urlaubLinkId);
                     if(u) {
@@ -1519,7 +1533,7 @@
                 if(['notfall', 'freizeit'].includes(goal.id)) goal.manualOffset = isNaN(newCurrent) ? 0 : newCurrent;
                 else goal.manualCurrent = isNaN(newCurrent) ? 0 : newCurrent;
                 
-                await saveToCloud(); renderGoals(); renderHistory(); closeModal();
+                await saveToCloud(); renderGoals(); renderHistory(); renderUrlaubView(); closeModal();
             }
         }
 
@@ -1527,7 +1541,7 @@
             if(!currentModalGoalId) return;
             if(confirm('Sparziel wirklich löschen?')) {
                 goals = goals.filter(g => g.id !== currentModalGoalId);
-                await saveToCloud(); renderGoals(); renderHistory(); closeModal();
+                await saveToCloud(); renderGoals(); renderHistory(); renderUrlaubView(); closeModal();
             }
         }
 
@@ -1553,13 +1567,13 @@
             goals.push({ id: newId, name, target, manualCurrent: ['notfall', 'freizeit'].includes(newId) ? 0 : startVal, manualOffset: ['notfall', 'freizeit'].includes(newId) ? startVal : 0, targetDate, urlaubLinkId });
             await saveToCloud();
             document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; document.getElementById('zielStart').value = '0'; document.getElementById('zielDatum').value = '';
-            renderGoals(); renderHistory();
+            renderGoals(); renderHistory(); renderUrlaubView();
         }
 
         async function deleteGoalDirect(index) {
             if(confirm('Sparziel wirklich löschen?')) {
                 goals.splice(index, 1);
-                await saveToCloud(); renderGoals(); renderHistory();
+                await saveToCloud(); renderGoals(); renderHistory(); renderUrlaubView();
             }
         }
     </script>
