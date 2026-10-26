@@ -918,8 +918,18 @@
             </div>
 
             <div class="input-group" style="margin-bottom: 8px;">
-                <label>Aktueller Stand / Anpassung (€):</label>
+                <label>Aktueller Stand / Grund-Guthaben (€):</label>
                 <input type="number" id="modalCurrentInput">
+            </div>
+
+            <!-- NEU: MANUELLE EINZAHLUNG (GEBURTSTAG ETC.) -->
+            <div style="background:var(--card-sub); border:1px solid var(--accent-green); padding:10px; border-radius:8px; margin-bottom:12px;">
+                <label style="color:var(--accent-green); font-weight:bold;">➕ Geld manuell hinzufügen (z.B. Geburtstag)</label>
+                <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Füge einmalig einen Betrag hinzu (wird zum aktuellen Stand addiert).</div>
+                <div style="display:flex; gap:6px;">
+                    <input type="number" id="manualDepositAmount" placeholder="Betrag (€)" style="flex:1;">
+                    <button class="btn-secondary" style="background:var(--accent-green); color:#0f172a; font-weight:bold;" onclick="addManualDepositToGoal()">Einzahlen ➕</button>
+                </div>
             </div>
 
             <div id="cashTransferBox" style="display:none; background:var(--card-sub); border:1px solid var(--accent-orange); padding:10px; border-radius:8px; margin-bottom:12px;">
@@ -1005,7 +1015,7 @@
             } catch (err) {
                 console.error("Cloud-Fehler:", err);
                 document.getElementById('cloudStatus').innerText = "⚠️ Lokal aktiv";
-                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v400')) || {
+                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v410')) || {
                     "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
                 };
                 loadCashBreakdownToUI();
@@ -1787,6 +1797,7 @@
             document.getElementById('modalTitle').innerText = `Ziel: ${goal.name}`;
             document.getElementById('modalTargetInput').value = goal.target;
             document.getElementById('modalDateInput').value = goal.targetDate || '';
+            document.getElementById('manualDepositAmount').value = '';
 
             document.getElementById('cashTransferBox').style.display = (goal.id === 'freizeit') ? 'block' : 'none';
 
@@ -1824,6 +1835,30 @@
             }
 
             document.getElementById('goalModal').classList.add('active');
+        }
+
+        async function addManualDepositToGoal() {
+            const amount = parseFloat(document.getElementById('manualDepositAmount').value);
+            if(isNaN(amount) || amount <= 0) return alert('Bitte einen gültigen Betrag eingeben!');
+
+            const goal = goals.find(g => g.id === currentModalGoalId);
+            if(!goal) return;
+
+            if(['notfall', 'freizeit'].includes(goal.id)) {
+                goal.manualOffset = (parseFloat(goal.manualOffset) || 0) + amount;
+            } else if (goal.id === 'kassette') {
+                goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) + amount;
+                cashBreakdown.c50 = (cashBreakdown.c50 || 0) + Math.floor(amount / 50); // Optional Puffer in Kasse
+            } else {
+                goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) + amount;
+            }
+
+            await saveToCloud();
+            document.getElementById('manualDepositAmount').value = '';
+            alert(`${amount.toFixed(2)} € erfolgreich zu "${goal.name}" hinzugefügt! 🎉`);
+            renderGoals();
+            renderHistory();
+            openModal(goal.id);
         }
 
         async function transferFreizeitToKassette() {
@@ -1934,4 +1969,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
