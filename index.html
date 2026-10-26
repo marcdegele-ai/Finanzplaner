@@ -43,7 +43,6 @@
                 document.getElementById('mainAppContainer').style.display = 'block';
                 document.getElementById('userEmailDisplay').innerText = user.email;
                 
-                // AUTOMATISCHE DATEN-ÜBERNAHME PRÜFEN
                 await window.migrateOldDataIfNeeded();
                 window.initCloudSync();
             } else {
@@ -227,8 +226,8 @@
         .cash-box { background: var(--card-sub); border: 1px solid var(--border); border-radius: 8px; padding: 7px; text-align: center; }
         .cash-badge-img { width: 36px; height: 22px; object-fit: contain; border-radius: 4px; margin: 0 auto 2px auto; display: block; border: 1px solid var(--border); background: #e2e8f0; }
         .coin-badge-img { width: 22px; height: 22px; object-fit: contain; border-radius: 50%; margin: 0 auto 2px auto; display: block; border: 1px solid #facc15; background: #f59e0b; }
-        .cash-box label { font-size: 0.7rem; display: block; margin-bottom: 3px; color: #b45309; font-weight: bold; }
-        .cash-box input { width: 100%; text-align: center; padding: 5px; font-size: 0.85rem; }
+        .cash-box label { font-size: 0.7rem; display: block; margin-bottom: 3px; color: #b45309; font-weight: bold; cursor: pointer; }
+        .cash-box input { width: 100%; text-align: center; padding: 5px; font-size: 0.85rem; cursor: pointer; }
 
         .chart-container { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .chart-bar-row { background: var(--card-sub); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); }
@@ -359,18 +358,18 @@
         <div id="uebersicht-view" class="view-section">
             <div class="card" style="border: 1px solid #f59e0b;">
                 <div class="card-title"><span>🪙 Digitale Bargeld-Kassette</span><span id="cashTotalBadge" style="color:#b45309; font-size:1rem;">0,00 €</span></div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">Trage die Anzahl der Scheine & Münzen ein:</div>
+                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">💡 Tipp: Klicke auf ein Feld, um die Anzahl automatisch um 1 zu erhöhen!</div>
                 
                 <div class="cash-grid">
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">100€</div><label>100 €</label><input type="number" id="c100" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">50€</div><label>50 €</label><input type="number" id="c50" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">20€</div><label>20 €</label><input type="number" id="c20" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">10€</div><label>10 €</label><input type="number" id="c10" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">5€</div><label>5 €</label><input type="number" id="c5" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;">2€</div><label>2 €</label><input type="number" id="c2" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;">1€</div><label>1 €</label><input type="number" id="c1" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;">50c</div><label>50 Cent</label><input type="number" id="c050" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;">20c</div><label>20 Cent</label><input type="number" id="c020" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c100')">100€</div><label onclick="incrementCash('c100')">100 €</label><input type="number" id="c100" min="0" value="0" onclick="incrementCash('c100')" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c50')">50€</div><label onclick="incrementCash('c50')">50 €</label><input type="number" id="c50" min="0" value="0" onclick="incrementCash('c50')" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c20')">20€</div><label onclick="incrementCash('c20')">20 €</label><input type="number" id="c20" min="0" value="0" onclick="incrementCash('c20')" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c10')">10€</div><label onclick="incrementCash('c10')">10 €</label><input type="number" id="c10" min="0" value="0" onclick="incrementCash('c10')" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c5')">5€</div><label onclick="incrementCash('c5')">5 €</label><input type="number" id="c5" min="0" value="0" onclick="incrementCash('c5')" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c2')">2€</div><label onclick="incrementCash('c2')">2 €</label><input type="number" id="c2" min="0" value="0" onclick="incrementCash('c2')" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c1')">1€</div><label onclick="incrementCash('c1')">1 €</label><input type="number" id="c1" min="0" value="0" onclick="incrementCash('c1')" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c050')">50c</div><label onclick="incrementCash('c050')">50 Cent</label><input type="number" id="c050" min="0" value="0" onclick="incrementCash('c050')" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c020')">20c</div><label onclick="incrementCash('c020')">20 Cent</label><input type="number" id="c020" min="0" value="0" onclick="incrementCash('c020')" oninput="calcCashBox()"></div>
                 </div>
                 <button class="btn-secondary" style="width:100%; margin-top:8px; background:#f59e0b; color:#ffffff; font-weight:bold; border:none;" onclick="saveCashBoxToCloud()">💾 Stückelung speichern</button>
             </div>
@@ -704,6 +703,13 @@
             document.getElementById('c050').value = cashBreakdown.c050 || 0;
             document.getElementById('c020').value = cashBreakdown.c020 || 0;
             calcCashBox(false);
+        }
+
+        function incrementCash(inputId) {
+            const input = document.getElementById(inputId);
+            let currentVal = parseInt(input.value) || 0;
+            input.value = currentVal + 1;
+            calcCashBox();
         }
 
         function calcCashBox(shouldSave = true) {
