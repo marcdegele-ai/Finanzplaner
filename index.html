@@ -10,7 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1e293b">
+    <meta name="theme-color" content="#f1f5f9">
 
     <!-- Firebase SDKs -->
     <script type="module">
@@ -37,16 +37,16 @@
 
     <style>
         :root {
-            --bg-color: #0f172a; /* Etwas heller/freundlicherer moderner Hintergrund */
-            --card-bg: #1e293b;
-            --card-sub: #334155;
-            --accent: #38bdf8;
-            --accent-green: #4ade80;
-            --accent-orange: #fb923c;
-            --accent-red: #f87171;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-            --border: #475569;
+            --bg-color: #f1f5f9;       /* Hell und freundlich (Modern Light Gray) */
+            --card-bg: #ffffff;        /* Reine weiße Karten */
+            --card-sub: #f8fafc;       /* Sanftes Untergrund-Weiß/Grau */
+            --accent: #0284c7;         /* Kräftiges, gut lesbares Blau */
+            --accent-green: #16a34a;   /* Sattes Grün */
+            --accent-orange: #d97706;  /* Warmes Orange */
+            --accent-red: #dc2626;     /* Klares Rot */
+            --text-main: #0f172a;      /* Fast schwarzer Text für perfekte Lesbarkeit */
+            --text-sub: #64748b;       /* Dezentes Grau für Beschriftungen */
+            --border: #cbd5e1;         /* Klare, saubere Ränder */
         }
 
         * {
@@ -82,12 +82,12 @@
         .cloud-status {
             font-size: 0.75rem;
             color: var(--accent-green);
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .tab-bar {
             display: flex;
-            background: #1e293b;
+            background: #e2e8f0;
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 4px;
@@ -111,10 +111,10 @@
         }
 
         .tab-btn.active {
-            background: var(--card-sub);
+            background: #ffffff;
             color: var(--accent);
             border: 1px solid var(--border);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .view-section {
@@ -131,7 +131,7 @@
             padding: 14px;
             margin-bottom: 14px;
             border: 1px solid var(--border);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .card-title {
@@ -179,7 +179,7 @@
 
         input:focus, select:focus {
             border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+            box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
         }
 
         .checkbox-container {
@@ -231,7 +231,7 @@
 
         .btn-add {
             background: var(--accent);
-            color: #0f172a;
+            color: #ffffff;
             font-weight: 700;
             border: none;
             padding: 11px;
@@ -244,10 +244,10 @@
         }
 
         .btn-secondary {
-            background: var(--border);
+            background: #e2e8f0;
             color: var(--text-main);
             font-weight: 600;
-            border: none;
+            border: 1px solid var(--border);
             padding: 8px 10px;
             border-radius: 8px;
             font-size: 0.8rem;
@@ -280,11 +280,11 @@
             margin-left: 4px;
         }
 
-        .badge-dauer { background: #0284c7; color: #e0f2fe; }
-        .badge-paused { background: #991b1b; color: #fef2f2; }
-        .badge-once { background: #475569; color: #f8fafc; }
-        .badge-booked { background: #16a34a; color: #f0fdf4; }
-        .badge-kategorie { background: #7c3aed; color: #ede9fe; }
+        .badge-dauer { background: #e0f2fe; color: #0369a1; }
+        .badge-paused { background: #fee2e2; color: #991b1b; }
+        .badge-once { background: #f1f5f9; color: #475569; }
+        .badge-booked { background: #dcfce7; color: #166534; }
+        .badge-kategorie { background: #f3e8ff; color: #7e22ce; }
 
         .goal-card-box {
             background: var(--card-sub);
@@ -314,7 +314,7 @@
         }
 
         .progress-bar-container {
-            background: var(--card-bg);
+            background: #e2e8f0;
             border-radius: 6px;
             height: 8px;
             width: 100%;
@@ -334,7 +334,7 @@
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.85);
+            background: rgba(15, 23, 42, 0.5);
             justify-content: center;
             align-items: center;
             z-index: 100;
@@ -354,6 +354,7 @@
             max-width: 460px;
             max-height: 85vh;
             overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
         .action-link {
@@ -361,7 +362,7 @@
             cursor: pointer;
             padding: 3px 6px;
             border-radius: 4px;
-            background: var(--border);
+            background: #e2e8f0;
             color: var(--text-main);
             text-decoration: none;
             display: inline-block;
@@ -383,7 +384,7 @@
         .month-table th {
             text-align: left;
             padding: 9px 10px;
-            background: var(--card-sub);
+            background: #e2e8f0;
             color: var(--accent);
             border-bottom: 1px solid var(--border);
             white-space: nowrap;
@@ -397,7 +398,7 @@
         }
 
         .month-table tr:hover {
-            background: rgba(56, 189, 248, 0.08);
+            background: rgba(2, 132, 199, 0.05);
             cursor: pointer;
         }
 
@@ -409,7 +410,7 @@
         }
 
         .cash-box {
-            background: var(--card-bg);
+            background: var(--card-sub);
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 7px;
@@ -423,8 +424,8 @@
             border-radius: 4px;
             margin: 0 auto 2px auto;
             display: block;
-            border: 1px solid rgba(255,255,255,0.2);
-            background: #475569;
+            border: 1px solid var(--border);
+            background: #e2e8f0;
         }
 
         .coin-badge-img {
@@ -435,14 +436,14 @@
             margin: 0 auto 2px auto;
             display: block;
             border: 1px solid #facc15;
-            background: #d97706;
+            background: #f59e0b;
         }
 
         .cash-box label {
             font-size: 0.7rem;
             display: block;
             margin-bottom: 3px;
-            color: #facc15;
+            color: #b45309;
             font-weight: bold;
         }
 
@@ -453,7 +454,6 @@
             font-size: 0.85rem;
         }
 
-        /* NEU: Chart / Jahres-Visualisierung */
         .chart-container {
             display: flex;
             flex-direction: column;
@@ -546,7 +546,7 @@
                 </div>
 
                 <div class="input-group full" style="margin-top: 6px;">
-                    <button class="btn-add" style="background: var(--accent-green); color: #0f172a;" onclick="saveCurrentMonthManual()">☁️ Monat in Cloud speichern</button>
+                    <button class="btn-add" style="background: var(--accent-green);" onclick="saveCurrentMonthManual()">☁️ Monat in Cloud speichern</button>
                 </div>
             </div>
         </div>
@@ -571,7 +571,7 @@
             </div>
             <div class="stat-row">
                 <span>Bargeld-Kassette 🪙:</span>
-                <span id="resBargeld" style="color:#facc15; font-weight:bold;">0,00 €</span>
+                <span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span>
             </div>
             <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;">
                 <span>Gesamt Sparen im Monat:</span>
@@ -641,36 +641,36 @@
     <!-- TAB 3: PROGNOSE & STAND -->
     <div id="uebersicht-view" class="view-section">
         <!-- DIGITALE GELD-KASSETTE WIDGET -->
-        <div class="card" style="border: 1px solid #facc15;">
+        <div class="card" style="border: 1px solid #f59e0b;">
             <div class="card-title">
                 <span>🪙 Digitale Bargeld-Kassette</span>
-                <span id="cashTotalBadge" style="color:#facc15; font-size:1rem;">0,00 €</span>
+                <span id="cashTotalBadge" style="color:#b45309; font-size:1rem;">0,00 €</span>
             </div>
             <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">Trage die Anzahl der Scheine & Münzen ein:</div>
             
             <div class="cash-grid">
                 <div class="cash-box">
-                    <div class="cash-badge-img" style="background:#84cc16; color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">100€</div>
+                    <div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">100€</div>
                     <label>100 €</label>
                     <input type="number" id="c100" min="0" value="0" oninput="calcCashBox()">
                 </div>
                 <div class="cash-box">
-                    <div class="cash-badge-img" style="background:#f97316; color:#fff; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">50€</div>
+                    <div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">50€</div>
                     <label>50 €</label>
                     <input type="number" id="c50" min="0" value="0" oninput="calcCashBox()">
                 </div>
                 <div class="cash-box">
-                    <div class="cash-badge-img" style="background:#0284c7; color:#fff; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">20€</div>
+                    <div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">20€</div>
                     <label>20 €</label>
                     <input type="number" id="c20" min="0" value="0" oninput="calcCashBox()">
                 </div>
                 <div class="cash-box">
-                    <div class="cash-badge-img" style="background:#dc2626; color:#fff; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">10€</div>
+                    <div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">10€</div>
                     <label>10 €</label>
                     <input type="number" id="c10" min="0" value="0" oninput="calcCashBox()">
                 </div>
                 <div class="cash-box">
-                    <div class="cash-badge-img" style="background:#64748b; color:#fff; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">5€</div>
+                    <div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;">5€</div>
                     <label>5 €</label>
                     <input type="number" id="c5" min="0" value="0" oninput="calcCashBox()">
                 </div>
@@ -695,7 +695,7 @@
                     <input type="number" id="c020" min="0" value="0" oninput="calcCashBox()">
                 </div>
             </div>
-            <button class="btn-secondary" style="width:100%; margin-top:8px; background:#facc15; color:#0f172a; font-weight:bold;" onclick="saveCashBoxToCloud()">💾 Stückelung speichern</button>
+            <button class="btn-secondary" style="width:100%; margin-top:8px; background:#f59e0b; color:#ffffff; font-weight:bold; border:none;" onclick="saveCashBoxToCloud()">💾 Stückelung speichern</button>
         </div>
 
         <div class="card">
@@ -710,7 +710,7 @@
             </div>
             <div class="stat-row">
                 <span>Bargeld-Kassette:</span>
-                <span id="totalKassette" style="color:#facc15; font-weight:bold;">0,00 €</span>
+                <span id="totalKassette" style="color:#b45309; font-weight:bold;">0,00 €</span>
             </div>
             <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;">
                 <span>Gesamte Ersparnisse:</span>
@@ -772,9 +772,7 @@
 
         <div class="card">
             <div class="card-title">📊 Visuelle Monats-Sparraten</div>
-            <div class="chart-container" id="jahrChartContainer">
-                <!-- Dynamische Balken -->
-            </div>
+            <div class="chart-container" id="jahrChartContainer"></div>
         </div>
     </div>
 
@@ -984,7 +982,7 @@
                 <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Füge einmalig einen Betrag hinzu (wird zum aktuellen Stand addiert).</div>
                 <div style="display:flex; gap:6px;">
                     <input type="number" id="manualDepositAmount" placeholder="Betrag (€)" style="flex:1;">
-                    <button class="btn-secondary" style="background:var(--accent-green); color:#0f172a; font-weight:bold;" onclick="addManualDepositToGoal()">Einzahlen ➕</button>
+                    <button class="btn-secondary" style="background:var(--accent-green); color:#ffffff; font-weight:bold; border:none;" onclick="addManualDepositToGoal()">Einzahlen ➕</button>
                 </div>
             </div>
 
@@ -993,7 +991,7 @@
                 <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Übertrage Geld vom Freizeitkonto in deine physische Kasse.</div>
                 <div style="display:flex; gap:6px;">
                     <input type="number" id="transferCashAmount" placeholder="Betrag (€)" style="flex:1;">
-                    <button class="btn-secondary" style="background:var(--accent-orange); color:#0f172a; font-weight:bold;" onclick="transferFreizeitToKassette()">Einzahlen 🪙</button>
+                    <button class="btn-secondary" style="background:var(--accent-orange); color:#ffffff; font-weight:bold; border:none;" onclick="transferFreizeitToKassette()">Einzahlen 🪙</button>
                 </div>
             </div>
 
@@ -1073,7 +1071,7 @@
             } catch (err) {
                 console.error("Cloud-Fehler:", err);
                 document.getElementById('cloudStatus').innerText = "⚠️ Lokal aktiv";
-                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v420')) || {
+                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v430')) || {
                     "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
                 };
                 loadCashBreakdownToUI();
@@ -1651,7 +1649,6 @@
             renderGoals();
         }
 
-        // --- JAHRES-AUSWERTUNG LOGIK ---
         function renderJahresView() {
             const selectedYear = document.getElementById('selectYear').value;
             let totalEinnahmen = 0;
@@ -1662,9 +1659,9 @@
             const chartContainer = document.getElementById('jahrChartContainer');
             chartContainer.innerHTML = '';
 
-            let maxSavingMonth = 1; // Für prozentuale Balkenlänge
-
+            let maxSavingMonth = 1;
             let monthlyDataList = [];
+
             for(let m = 1; m <= 12; m++) {
                 const monthKey = `${selectedYear}-${String(m).padStart(2, '0')}`;
                 const item = entries[monthKey];
