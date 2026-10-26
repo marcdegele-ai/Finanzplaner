@@ -449,7 +449,7 @@
                 </div>
                 <div class="stat-row" style="margin-top:8px;"><span>Summe Fixkosten & Puffer:</span><span id="uFixTotalDisplay" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>🎯 Ziel-Netto (bei 100% Ziel):</span><span id="uTargetNettoDisplay" style="color:var(--text-sub);">0,00 €</span></div>
-                <div class="stat-row"><span>⚡ Aktuelles Live-Netto (heute):</span><span id="uNettoTagesBudgetDisplay" class="val-highlight">0,00 €</span></div>
+                <div class="stat-row"><span>⚡ Aktuelles Live-Netto (aktuell gespart):</span><span id="uNettoTagesBudgetDisplay" class="val-highlight">0,00 €</span></div>
             </div>
 
             <div class="card">
@@ -1278,7 +1278,7 @@
             let actualSaved = linkedGoal ? getSavedAmountForGoal(linkedGoal) : 0;
             document.getElementById('uSavedForTripDisplay').innerText = `${actualSaved.toFixed(2)} € / ${target.toFixed(2)} €`;
 
-            // DYNAMISCHE DIVERSIFIZIERUNG: Echte Basis auf Basis des AKTUELL GESPARTEN Guthabens
+            // LIVE-Tagesbudget basiert jetzt strikt auf dem aktuell GESPARTEN Stand (actualSaved)
             const liveNettoTotal = Math.max(0, actualSaved - fixSum);
             document.getElementById('uNettoTagesBudgetDisplay').innerText = liveNettoTotal.toFixed(2) + ' €';
 
@@ -1289,7 +1289,8 @@
                 const mainDays = numDays - 1;
                 const equalShare = liveNettoTotal / mainDays;
                 for(let i = 0; i < mainDays; i++) baseBudgets.push(equalShare);
-                baseBudgets.push(parseFloat(u.fixAbreisePuffer) || 0);
+                // Wenn noch nichts gespart wurde, ist der Abreise-Puffer aus dem echten Stand ggf. geringer, wird aber gedeckelt
+                baseBudgets.push(Math.min(parseFloat(u.fixAbreisePuffer) || 0, Math.max(0, actualSaved - (fixSum - (parseFloat(u.fixAbreisePuffer)||0)))));
             }
 
             if (!u.dayExpenses || u.dayExpenses.length !== numDays) {
