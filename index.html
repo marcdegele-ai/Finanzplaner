@@ -10,7 +10,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#0f172a">
+    <meta name="theme-color" content="#1e293b">
 
     <!-- Firebase SDKs -->
     <script type="module">
@@ -37,7 +37,7 @@
 
     <style>
         :root {
-            --bg-color: #0f172a;
+            --bg-color: #0f172a; /* Etwas heller/freundlicherer moderner Hintergrund */
             --card-bg: #1e293b;
             --card-sub: #334155;
             --accent: #38bdf8;
@@ -104,7 +104,7 @@
             background: transparent;
             color: var(--text-sub);
             font-weight: 600;
-            font-size: 0.72rem;
+            font-size: 0.70rem;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s ease;
@@ -452,6 +452,27 @@
             padding: 5px;
             font-size: 0.85rem;
         }
+
+        /* NEU: Chart / Jahres-Visualisierung */
+        .chart-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .chart-bar-row {
+            background: var(--card-sub);
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        .chart-label-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
     </style>
 </head>
 <body>
@@ -463,6 +484,7 @@
             <button class="tab-btn active" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
             <button class="tab-btn" onclick="switchTab('haushalt-view', this)">🏠 Haushalt</button>
             <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
+            <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres-Check</button>
             <button class="tab-btn" onclick="switchTab('urlaub-view', this)">✈️ Urlaub</button>
             <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
         </div>
@@ -721,7 +743,42 @@
         </div>
     </div>
 
-    <!-- TAB 4: URLAUBSBUDGET -->
+    <!-- TAB 4: JAHRES-AUSWERTUNG & DIAGRAMME -->
+    <div id="jahres-view" class="view-section">
+        <div class="card">
+            <div class="card-title">
+                <span>📈 Jahres-Auswertung & Visualisierung</span>
+                <select id="selectYear" style="width: 110px; padding: 4px 8px; font-size: 0.8rem;" onchange="renderJahresView()">
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                    <option value="2028">2028</option>
+                </select>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Summen und Balkendiagramme für das gewählte Jahr (gebuchte Monate):</div>
+            
+            <div class="stat-row">
+                <span>Gesamteinnahmen:</span>
+                <span id="jahrEinnahmen" class="val-highlight">0,00 €</span>
+            </div>
+            <div class="stat-row">
+                <span>Gesamte Fixkosten:</span>
+                <span id="jahrFix" class="val-red">0,00 €</span>
+            </div>
+            <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;">
+                <span>Gesamt Eingesparte Summe:</span>
+                <span id="jahrSparen" style="color:var(--accent);">0,00 €</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">📊 Visuelle Monats-Sparraten</div>
+            <div class="chart-container" id="jahrChartContainer">
+                <!-- Dynamische Balken -->
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 5: URLAUBSBUDGET -->
     <div id="urlaub-view" class="view-section">
         <div class="card">
             <div class="card-title">
@@ -830,7 +887,7 @@
         </div>
     </div>
 
-    <!-- TAB 5: SPARZIELE -->
+    <!-- TAB 6: SPARZIELE -->
     <div id="ziele-view" class="view-section">
         <div class="card">
             <div class="card-title">🎯 Neues Sparziel anlegen</div>
@@ -922,7 +979,6 @@
                 <input type="number" id="modalCurrentInput">
             </div>
 
-            <!-- NEU: MANUELLE EINZAHLUNG (GEBURTSTAG ETC.) -->
             <div style="background:var(--card-sub); border:1px solid var(--accent-green); padding:10px; border-radius:8px; margin-bottom:12px;">
                 <label style="color:var(--accent-green); font-weight:bold;">➕ Geld manuell hinzufügen (z.B. Geburtstag)</label>
                 <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Füge einmalig einen Betrag hinzu (wird zum aktuellen Stand addiert).</div>
@@ -984,6 +1040,7 @@
         let currentMonthPausedItems = [];
 
         document.getElementById('monthInput').value = "2026-11";
+        document.getElementById('selectYear').value = new Date().getFullYear();
         document.getElementById('HHDate').valueAsDate = new Date();
 
         window.initCloudSync = async function() {
@@ -1012,10 +1069,11 @@
                 renderGoals();
                 renderUrlaubView();
                 renderHaushaltView();
+                renderJahresView();
             } catch (err) {
                 console.error("Cloud-Fehler:", err);
                 document.getElementById('cloudStatus').innerText = "⚠️ Lokal aktiv";
-                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v410')) || {
+                entries = JSON.parse(localStorage.getItem('finanzplan_entries_v420')) || {
                     "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
                 };
                 loadCashBreakdownToUI();
@@ -1024,6 +1082,7 @@
                 renderGoals();
                 renderUrlaubView();
                 renderHaushaltView();
+                renderJahresView();
             }
         };
 
@@ -1105,6 +1164,9 @@
             if(viewId === 'haushalt-view') {
                 renderHaushaltView();
             }
+            if(viewId === 'jahres-view') {
+                renderJahresView();
+            }
         }
 
         function getSelectedMonthKey() {
@@ -1155,6 +1217,7 @@
             renderNextThree(m);
             renderHistory();
             renderHaushaltView();
+            renderJahresView();
         }
 
         // --- HAUSHALTSBUCH LOGIK ---
@@ -1417,6 +1480,7 @@
             await saveToCloud();
             renderHistory();
             renderNextThree(m);
+            renderJahresView();
         }
 
         function selectMonthAndEdit(key) {
@@ -1585,6 +1649,68 @@
             }
 
             renderGoals();
+        }
+
+        // --- JAHRES-AUSWERTUNG LOGIK ---
+        function renderJahresView() {
+            const selectedYear = document.getElementById('selectYear').value;
+            let totalEinnahmen = 0;
+            let totalFix = 0;
+            let totalSparen = 0;
+
+            const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+            const chartContainer = document.getElementById('jahrChartContainer');
+            chartContainer.innerHTML = '';
+
+            let maxSavingMonth = 1; // Für prozentuale Balkenlänge
+
+            let monthlyDataList = [];
+            for(let m = 1; m <= 12; m++) {
+                const monthKey = `${selectedYear}-${String(m).padStart(2, '0')}`;
+                const item = entries[monthKey];
+                if (item && item.booked) {
+                    const calc = calculateValuesFor(item);
+                    const fix = getTotalFixForMonthData(item);
+                    const einnahmen = (parseFloat(item.gehalt) || 0) + (parseFloat(item.sarah) || 0);
+
+                    totalEinnahmen += einnahmen;
+                    totalFix += fix;
+                    totalSparen += calc.gesamtSparen;
+
+                    if (calc.gesamtSparen > maxSavingMonth) {
+                        maxSavingMonth = calc.gesamtSparen;
+                    }
+
+                    monthlyDataList.push({ name: monthNames[m-1], saving: calc.gesamtSparen });
+                }
+            }
+
+            document.getElementById('jahrEinnahmen').innerText = totalEinnahmen.toFixed(2) + ' €';
+            document.getElementById('jahrFix').innerText = totalFix.toFixed(2) + ' €';
+            document.getElementById('jahrSparen').innerText = totalSparen.toFixed(2) + ' €';
+
+            if (monthlyDataList.length === 0) {
+                chartContainer.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine gebuchten Monate für ' + selectedYear + ' vorhanden.</div>';
+                return;
+            }
+
+            monthlyDataList.forEach(d => {
+                let percent = (d.saving / maxSavingMonth) * 100;
+                if(percent > 100) percent = 100;
+
+                const row = document.createElement('div');
+                row.className = 'chart-bar-row';
+                row.innerHTML = `
+                    <div class="chart-label-line">
+                        <span>${d.name}</span>
+                        <span class="val-highlight">+${d.saving.toFixed(2)} €</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: ${percent}%;"></div>
+                    </div>
+                `;
+                chartContainer.appendChild(row);
+            });
         }
 
         // --- URLAUBSBUDGET ---
@@ -1848,7 +1974,7 @@
                 goal.manualOffset = (parseFloat(goal.manualOffset) || 0) + amount;
             } else if (goal.id === 'kassette') {
                 goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) + amount;
-                cashBreakdown.c50 = (cashBreakdown.c50 || 0) + Math.floor(amount / 50); // Optional Puffer in Kasse
+                cashBreakdown.c50 = (cashBreakdown.c50 || 0) + Math.floor(amount / 50);
             } else {
                 goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) + amount;
             }
