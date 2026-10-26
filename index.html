@@ -200,6 +200,7 @@
         .badge-once { background: #f1f5f9; color: #475569; }
         .badge-booked { background: #dcfce7; color: #166534; }
         .badge-kategorie { background: #f3e8ff; color: #7e22ce; }
+        .badge-urlaub { background: #fef3c7; color: #b45309; }
 
         .goal-card-box { background: var(--card-sub); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; cursor: pointer; }
         .goal-card-box:hover { border-color: var(--accent); }
@@ -376,7 +377,7 @@
             <div class="card">
                 <div class="card-title">🏦 Kontostand (Gebuchte Ersparnisse)</div>
                 <div class="stat-row"><span>Notfallkonto Stand:</span><span id="totalNotfall" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row"><span>FreizeitKnto Stand:</span><span id="totalFreizeit" class="val-orange">0,00 €</span></div>
+                <div class="stat-row"><span>FreizeitKonto Stand:</span><span id="totalFreizeit" class="val-orange">0,00 €</span></div>
                 <div class="stat-row"><span>Bargeld-Kassette:</span><span id="totalKassette" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
                 <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Gesamte Ersparnisse:</span><span id="totalErsparnisse">0,00 €</span></div>
             </div>
@@ -494,6 +495,12 @@
                             <option value="kassette">🪙 Verknüpft mit Bargeld-Kassette</option>
                         </select>
                     </div>
+                    <div class="input-group full">
+                        <label>✈️ Mit Urlaub verknüpfen (Optional)</label>
+                        <select id="zielUrlaubLinkSelect">
+                            <option value="">Keine Urlaubs-Verknüpfung</option>
+                        </select>
+                    </div>
                     <div class="input-group full"><label>Ziel-Datum (Frist)</label><input type="month" id="zielDatum"></div>
                 </div>
                 <button class="btn-add" onclick="saveGoal()">Sparziel Hinzufügen</button>
@@ -536,6 +543,13 @@
             <div class="input-group" style="margin-bottom: 8px;"><label>Zielbetrag anpassen (€):</label><input type="number" id="modalTargetInput"></div>
             <div class="input-group" style="margin-bottom: 8px;"><label>Aktueller Stand / Grund-Guthaben (€):</label><input type="number" id="modalCurrentInput"></div>
 
+            <div class="input-group" style="margin-bottom: 12px;">
+                <label>✈️ Mit Urlaub verknüpfen:</label>
+                <select id="modalUrlaubLinkSelect">
+                    <option value="">Keine Urlaubs-Verknüpfung</option>
+                </select>
+            </div>
+
             <div style="background:var(--card-sub); border:1px solid var(--accent-green); padding:10px; border-radius:8px; margin-bottom:12px;">
                 <label style="color:var(--accent-green); font-weight:bold;">➕ Geld manuell hinzufügen (z.B. Geburtstag)</label>
                 <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Füge einmalig einen Betrag hinzu.</div>
@@ -570,7 +584,7 @@
         let entries = {};
         let goals = [
             { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-11" },
-            { id: "freizeit", name: "Urlaub & Freizeit", target: 2000, manualOffset: 0, targetDate: "2027-08" },
+            { id: "freizeit", name: "Urlaub & Freizeit", target: 2000, manualOffset: 0, targetDate: "2027-08", urlaubLinkId: "u_2" },
             { id: "kassette", name: "Bargeld-Kassette (Tresor)", target: 1000, manualCurrent: 0, targetDate: "" }
         ];
 
@@ -781,6 +795,7 @@
             if(viewId === 'haushalt-view') renderHaushaltView();
             if(viewId === 'jahres-view') renderJahresView();
             if(viewId === 'urlaub-view') renderUrlaubView();
+            if(viewId === 'ziele-view') renderGoals();
         }
 
         function getSelectedMonthKey() { return document.getElementById('monthInput').value; }
@@ -1217,7 +1232,6 @@
             document.getElementById('fixBusHin').value = u.fixBusHin || 0;
             document.getElementById('fixAbreisePuffer').value = u.fixAbreisePuffer || 0;
 
-            // Tage-Berechnung dynamisch anhand Start/End-Datum
             let numDays = 5;
             let dayLabels = [];
             if (u.startDate && u.endDate) {
@@ -1248,7 +1262,6 @@
             document.getElementById('uFixTotalDisplay').innerText = fixSum.toFixed(2) + ' €';
             document.getElementById('uNettoTagesBudgetDisplay').innerText = netTagesBudget.toFixed(2) + ' €';
 
-            // Verteilung des Budgets auf die Tage
             let baseBudgets = [];
             if (numDays === 1) {
                 baseBudgets = [netTagesBudget];
@@ -1331,8 +1344,20 @@
             u.fixSupermarkt = parseFloat(document.getElementById('fixSupermarkt').value) || 0;
             u.fixBusHin = parseFloat(document.getElementById('fixBusHin').value) || 0;
             u.fixAbreisePuffer = parseFloat(document.getElementById('fixAbreisePuffer').value) || 0;
+            
+            // Verknüpfte Sparziele automatisch anpassen!
+            goals.forEach(g => {
+                if(g.urlaubLinkId === u.id) {
+                    g.target = u.target;
+                    if(u.startDate) {
+                        g.targetDate = u.startDate.substring(0, 7); // z.B. 2027-08
+                    }
+                }
+            });
+
             await saveToCloud();
             renderUrlaubView();
+            renderGoals();
         }
 
         async function updateDayExpenseFromInput() {
@@ -1346,10 +1371,31 @@
             renderUrlaubView();
         }
 
+        function populateUrlaubLinkOptions(selectElementId, selectedId = "") {
+            const el = document.getElementById(selectElementId);
+            if(!el) return;
+            el.innerHTML = '<option value="">Keine Urlaubs-Verknüpfung</option>';
+            urlaubeList.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.innerText = u.name + ' (' + (u.target || 0) + ' €)';
+                if(u.id === selectedId) opt.selected = true;
+                el.appendChild(opt);
+            });
+        }
+
         function renderGoals() {
+            populateUrlaubLinkOptions('zielUrlaubLinkSelect');
             const list = document.getElementById('goalsList');
             list.innerHTML = '';
             goals.forEach((goal, index) => {
+                // Wenn verknüpft, Zielsumme und ggf. Datum synchronisieren
+                let linkedUrlaub = goal.urlaubLinkId ? urlaubeList.find(u => u.id === goal.urlaubLinkId) : null;
+                if(linkedUrlaub) {
+                    goal.target = linkedUrlaub.target;
+                    if(linkedUrlaub.startDate) goal.targetDate = linkedUrlaub.startDate.substring(0, 7);
+                }
+
                 let currentVal = ['notfall', 'freizeit', 'kassette'].includes(goal.id) ? getGoalData(goal.id).total : (goal.manualCurrent || 0);
                 let percent = goal.target > 0 ? Math.min(100, (currentVal / goal.target) * 100) : 0;
                 let remaining = goal.target - currentVal;
@@ -1362,13 +1408,15 @@
                     else monthlyNeededText = `⚠️ Frist erreicht`;
                 }
 
+                let urlaubBadge = linkedUrlaub ? `<span class="badge badge-urlaub">✈️ ${linkedUrlaub.name}</span>` : '';
+
                 const div = document.createElement('div');
                 div.className = 'goal-card-box';
                 div.onclick = () => openModal(goal.id);
                 div.innerHTML = `
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
                         <div>
-                            <div class="history-date">${goal.name} ${['notfall', 'freizeit', 'kassette'].includes(goal.id) ? '<span class="badge badge-dauer">Auto</span>' : ''}</div>
+                            <div class="history-date">${goal.name} ${['notfall', 'freizeit', 'kassette'].includes(goal.id) ? '<span class="badge badge-dauer">Auto</span>' : ''} ${urlaubBadge}</div>
                             <div class="history-sub" style="margin-top:2px;">Stand: <strong>${currentVal.toFixed(2)} €</strong> ${goal.target > 0 ? '/ ' + goal.target.toFixed(2) + ' €' : ''}</div>
                         </div>
                         <div style="text-align:right;">
@@ -1391,6 +1439,9 @@
             currentModalGoalId = goalId;
             const goal = goals.find(g => g.id === goalId);
             if(!goal) return;
+            
+            populateUrlaubLinkOptions('modalUrlaubLinkSelect', goal.urlaubLinkId || "");
+
             document.getElementById('modalTitle').innerText = `Ziel: ${goal.name}`;
             document.getElementById('modalTargetInput').value = goal.target;
             document.getElementById('modalDateInput').value = goal.targetDate || '';
@@ -1451,11 +1502,23 @@
             if(!currentModalGoalId) return;
             const goal = goals.find(g => g.id === currentModalGoalId);
             if(goal) {
+                goal.urlaubLinkId = document.getElementById('modalUrlaubLinkSelect').value || null;
                 goal.target = parseFloat(document.getElementById('modalTargetInput').value) || goal.target;
                 goal.targetDate = document.getElementById('modalDateInput').value;
+                
+                // Falls mit Urlaub verknüpft, Zielsumme überschreiben
+                if(goal.urlaubLinkId) {
+                    let u = urlaubeList.find(x => x.id === goal.urlaubLinkId);
+                    if(u) {
+                        goal.target = u.target;
+                        if(u.startDate) goal.targetDate = u.startDate.substring(0, 7);
+                    }
+                }
+
                 const newCurrent = parseFloat(document.getElementById('modalCurrentInput').value);
                 if(['notfall', 'freizeit'].includes(goal.id)) goal.manualOffset = isNaN(newCurrent) ? 0 : newCurrent;
                 else goal.manualCurrent = isNaN(newCurrent) ? 0 : newCurrent;
+                
                 await saveToCloud(); renderGoals(); renderHistory(); closeModal();
             }
         }
@@ -1470,14 +1533,24 @@
 
         async function saveGoal() {
             const name = document.getElementById('zielName').value.trim();
-            const target = parseFloat(document.getElementById('zielBetrag').value) || 0;
+            const urlaubLinkId = document.getElementById('zielUrlaubLinkSelect').value || null;
+            let target = parseFloat(document.getElementById('zielBetrag').value) || 0;
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
-            const targetDate = document.getElementById('zielDatum').value;
+            let targetDate = document.getElementById('zielDatum').value;
             const goalType = document.getElementById('zielTypeSelect').value;
-            if(!name || target <= 0) return alert('Name und Zielbetrag angeben!');
+
+            if(urlaubLinkId) {
+                let u = urlaubeList.find(x => x.id === urlaubLinkId);
+                if(u) {
+                    target = u.target;
+                    if(u.startDate) targetDate = u.startDate.substring(0, 7);
+                }
+            }
+
+            if(!name || (target <= 0 && !urlaubLinkId)) return alert('Name und Zielbetrag angeben!');
             let newId = ['notfall', 'freizeit', 'kassette'].includes(goalType) ? goalType : 'custom_' + Date.now();
             goals = goals.filter(g => g.id !== newId);
-            goals.push({ id: newId, name, target, manualCurrent: ['notfall', 'freizeit'].includes(newId) ? 0 : startVal, manualOffset: ['notfall', 'freizeit'].includes(newId) ? startVal : 0, targetDate });
+            goals.push({ id: newId, name, target, manualCurrent: ['notfall', 'freizeit'].includes(newId) ? 0 : startVal, manualOffset: ['notfall', 'freizeit'].includes(newId) ? startVal : 0, targetDate, urlaubLinkId });
             await saveToCloud();
             document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; document.getElementById('zielStart').value = '0'; document.getElementById('zielDatum').value = '';
             renderGoals(); renderHistory();
