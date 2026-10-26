@@ -448,7 +448,8 @@
                     <div class="input-group"><label>Abreise-Puffer (€)</label><input type="number" id="fixAbreisePuffer" oninput="saveUrlaubConfig()"></div>
                 </div>
                 <div class="stat-row" style="margin-top:8px;"><span>Summe Fixkosten & Puffer:</span><span id="uFixTotalDisplay" class="val-red">0,00 €</span></div>
-                <div class="stat-row"><span>Netto für Partytage:</span><span id="uNettoTagesBudgetDisplay" class="val-highlight">0,00 €</span></div>
+                <div class="stat-row"><span>🎯 Ziel-Netto (bei 100% Ziel):</span><span id="uTargetNettoDisplay" style="color:var(--text-sub);">0,00 €</span></div>
+                <div class="stat-row"><span>⚡ Aktuelles Live-Netto (heute):</span><span id="uNettoTagesBudgetDisplay" class="val-highlight">0,00 €</span></div>
             </div>
 
             <div class="card">
@@ -469,7 +470,7 @@
             </div>
 
             <div class="card">
-                <div class="card-title">📊 Deine Tages-Umschläge</div>
+                <div class="card-title">📊 Deine Tages-Umschläge (Live-Stand)</div>
                 <div class="table-wrapper">
                     <table class="month-table">
                         <thead><tr><th>Tag</th><th>Basis (€)</th><th>+ Bonus (€)</th><th>Verfügbar (€)</th><th>Ausgegeben (€)</th><th>Überschuss (€)</th></tr></thead>
@@ -1266,22 +1267,27 @@
 
             const target = parseFloat(u.target) || 0;
             const fixSum = (parseFloat(u.fixKurtaxe)||0) + (parseFloat(u.fixSupermarkt)||0) + (parseFloat(u.fixBusHin)||0) + (parseFloat(u.fixAbreisePuffer)||0);
-            const netTagesBudget = Math.max(0, target - fixSum);
-
+            
+            // Ziel-Tagesbudget (bei 100% Zielerreichung)
+            const targetNettoTotal = Math.max(0, target - fixSum);
             document.getElementById('uFixTotalDisplay').innerText = fixSum.toFixed(2) + ' €';
-            document.getElementById('uNettoTagesBudgetDisplay').innerText = netTagesBudget.toFixed(2) + ' €';
+            document.getElementById('uTargetNettoDisplay').innerText = targetNettoTotal.toFixed(2) + ' €';
 
-            // Verknüpften Spar-Stand ermitteln
+            // Verknüpften echten Spar-Stand ermitteln
             let linkedGoal = goals.find(g => g.urlaubLinkId === u.id);
             let actualSaved = linkedGoal ? getSavedAmountForGoal(linkedGoal) : 0;
             document.getElementById('uSavedForTripDisplay').innerText = `${actualSaved.toFixed(2)} € / ${target.toFixed(2)} €`;
 
+            // DYNAMISCHE DIVERSIFIZIERUNG: Echte Basis auf Basis des AKTUELL GESPARTEN Guthabens
+            const liveNettoTotal = Math.max(0, actualSaved - fixSum);
+            document.getElementById('uNettoTagesBudgetDisplay').innerText = liveNettoTotal.toFixed(2) + ' €';
+
             let baseBudgets = [];
             if (numDays === 1) {
-                baseBudgets = [netTagesBudget];
+                baseBudgets = [liveNettoTotal];
             } else {
                 const mainDays = numDays - 1;
-                const equalShare = netTagesBudget / mainDays;
+                const equalShare = liveNettoTotal / mainDays;
                 for(let i = 0; i < mainDays; i++) baseBudgets.push(equalShare);
                 baseBudgets.push(parseFloat(u.fixAbreisePuffer) || 0);
             }
@@ -1318,7 +1324,6 @@
             document.getElementById('uSpentDisplay').innerText = totalSpent.toFixed(2) + ' €';
             document.getElementById('uSavingsDisplay').innerText = totalSavings.toFixed(2) + ' €';
             
-            // Fortschrittsbalken basiert nun darauf, wie viel du für die Reise bereits im Sparziel angespart hast!
             let progressPercent = target > 0 ? Math.min(100, (actualSaved / target) * 100) : 0;
             document.getElementById('uProgressFill').style.width = progressPercent.toFixed(1) + '%';
 
