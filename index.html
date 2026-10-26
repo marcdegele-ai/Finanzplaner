@@ -183,6 +183,7 @@
 
         .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; color: var(--text-main); }
         .stat-row:last-child { border-bottom: none; }
+        .stat-row.sub-row { font-size: 0.78rem; padding: 5px 0 5px 12px; border-bottom: 1px dashed #e2e8f0; color: var(--text-sub); }
 
         .val-highlight { font-weight: bold; color: var(--accent-green); }
         .val-orange { font-weight: bold; color: var(--accent-orange); }
@@ -322,10 +323,21 @@
                 <div class="stat-row"><span>Netto nach Ausgaben:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>Verfügbarer Überschuss:</span><span id="resUeberschuss">0,00 €</span></div>
                 <div class="stat-row"><span>Notfallkonto Sparen:</span><span id="resNotfall" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row"><span>FreizeitKonto Sparen:</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
+                
+                <div class="stat-row"><span>FreizeitKonto Brutto Sparen:</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
+                
+                <!-- Container für die dynamische Sparziel-Aufschlüsselung -->
+                <div id="sparzieleBreakdownContainer"></div>
+
+                <div class="stat-row" style="background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 4px 0;">
+                    <span style="font-weight:600; color:#15803d;">🎉 Rest-Freizeitgeld (Frei verfügbar):</span>
+                    <span id="resFreizeitRest" class="val-highlight" style="font-size:0.95rem;">0,00 €</span>
+                </div>
+
                 <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
+                
                 <div class="stat-row" style="background: var(--card-sub); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); margin: 6px 0;">
-                    <span>🏦 Abzug Sparziele (Autom. Übertrag):</span>
+                    <span>🏦 Gesamt Abzug Sparpakete (Autom. Übertrag):</span>
                     <span id="resSparzieleAbzug" class="val-red">-0,00 €</span>
                 </div>
                 <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Gesamt Sparen im Monat:</span><span id="resGesamtSparen">0,00 €</span></div>
@@ -1133,10 +1145,45 @@
             document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
             document.getElementById('resNotfall').innerText = calc.notfallSparen.toFixed(2) + ' €';
             document.getElementById('resFreizeit').innerText = calc.freizeitSparen.toFixed(2) + ' €';
+            
+            // Dynamische Aufschlüsselung der Sparziel-Monatsbeiträge aus dem Freizeitkonto
+            const container = document.getElementById('sparzieleBreakdownContainer');
+            container.innerHTML = '';
+            let totalSparzielDeductions = 0;
+
+            goals.forEach(goal => {
+                if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
+                    let currentVal = getSavedAmountForGoal(goal);
+                    let remaining = goal.target - currentVal;
+                    if (goal.targetDate && remaining > 0) {
+                        const [tY, tM] = goal.targetDate.split('-').map(Number);
+                        const selectedMonthStr = getSelectedMonthKey();
+                        const [sY, sM] = selectedMonthStr.split('-').map(Number);
+                        
+                        const diffMonths = (tY - sY) * 12 + (tM - sM);
+                        if (diffMonths > 0) {
+                            let monthlyShare = remaining / diffMonths;
+                            totalSparzielDeductions += monthlyShare;
+
+                            const row = document.createElement('div');
+                            row.className = 'stat-row sub-row';
+                            row.innerHTML = `
+                                <span>↳ Abzug Sparziel: <strong>${goal.name}</strong></span>
+                                <span class="val-red">-${monthlyShare.toFixed(2)} €</span>
+                            `;
+                            container.appendChild(row);
+                        }
+                    }
+                }
+            });
+
+            const freizeitRest = Math.max(0, calc.freizeitSparen - totalSparzielDeductions);
+            document.getElementById('resFreizeitRest').innerText = freizeitRest.toFixed(2) + ' €';
+
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
             
-            const sparzieleAbzug = calc.notfallSparen + calc.freizeitSparen;
-            document.getElementById('resSparzieleAbzug').innerText = '-' + sparzieleAbzug.toFixed(2) + ' €';
+            const sparzieleAbzugGesamt = calc.notfallSparen + calc.freizeitSparen;
+            document.getElementById('resSparzieleAbzug').innerText = '-' + sparzieleAbzugGesamt.toFixed(2) + ' €';
 
             document.getElementById('resGesamtSparen').innerText = calc.gesamtSparen.toFixed(2) + ' €';
             renderHaushaltView();
