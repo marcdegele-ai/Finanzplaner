@@ -301,7 +301,18 @@
 
                     <div class="input-group"><label>Taschengeld / Einkaufen 🛒</label><input type="number" id="taschengeldInput" placeholder="0" oninput="liveCalc()"></div>
                     <div class="input-group"><label>Bargeld (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="liveCalc()"></div>
-                    <div class="input-group full"><label>Notfall Split % (vom Überschuss)</label><input type="number" id="splitNotfallInput" min="0" max="100" oninput="liveCalc()"></div>
+                    
+                    <div class="input-group full">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <label style="margin:0;">Notfallkonto-Sparart</label>
+                            <select id="splitModeSelect" style="width: 130px; padding: 4px 6px; font-size: 0.75rem;" onchange="toggleSplitMode()">
+                                <option value="percent">Prozent (%)</option>
+                                <option value="fixed">Fester Betrag (€)</option>
+                            </select>
+                        </div>
+                        <input type="number" id="splitNotfallInput" min="0" placeholder="z.B. 15 oder 150" oninput="liveCalc()">
+                    </div>
+
                     <div class="input-group full" style="margin-top: 6px;"><button class="btn-add" style="background: var(--accent-green);" onclick="saveCurrentMonthManual()">☁️ Monat in Cloud speichern</button></div>
                 </div>
             </div>
@@ -796,7 +807,7 @@
                     haushaltItems = cloudData.haushaltItems || [];
                 } else {
                     entries = {
-                        "2026-11": { gehalt: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
+                        "2026-11": { gehalt: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false }
                     };
                     await saveToCloud();
                 }
@@ -903,7 +914,7 @@
             if (prevKey && entries[prevKey] && entries[prevKey].items) {
                 inheritedItems = entries[prevKey].items.filter(i => i.type === 'dauer');
             }
-            return { gehalt: 0, items: inheritedItems, pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false };
+            return { gehalt: 0, items: inheritedItems, pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false };
         }
 
         function loadMonthData() {
@@ -913,17 +924,30 @@
             document.getElementById('gehaltInput').value = item.gehalt || '';
             document.getElementById('bargeldInput').value = item.bargeld || 0;
             document.getElementById('taschengeldInput').value = item.taschengeld || 0;
-            document.getElementById('splitNotfallInput').value = item.splitNotfall || 15;
+            document.getElementById('splitModeSelect').value = item.splitMode || 'percent';
+            document.getElementById('splitNotfallInput').value = item.splitNotfall ?? 15;
             
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
 
+            toggleSplitMode();
             updateTotalFixFromItems();
             liveCalc();
             renderNextThree(m);
             renderHistory();
             renderHaushaltView();
             renderJahresView();
+        }
+
+        function toggleSplitMode() {
+            const mode = document.getElementById('splitModeSelect').value;
+            const input = document.getElementById('splitNotfallInput');
+            if (mode === 'fixed') {
+                input.placeholder = 'z.B. 150';
+            } else {
+                input.placeholder = 'z.B. 15';
+            }
+            liveCalc();
         }
 
         async function addHaushaltItem() {
@@ -1076,9 +1100,19 @@
             const g = parseFloat(item.gehalt) || 0;
             const netto = g - fix;
             const ueberschuss = netto - (parseFloat(item.taschengeld) || 0);
-            const notfallSparen = ueberschuss * ((parseFloat(item.splitNotfall) || 0) / 100);
+            
+            let notfallSparen = 0;
+            const splitVal = parseFloat(item.splitNotfall) || 0;
+            const mode = item.splitMode || 'percent';
+
+            if (mode === 'fixed') {
+                notfallSparen = Math.max(0, Math.min(ueberschuss, splitVal));
+            } else {
+                notfallSparen = ueberschuss * (splitVal / 100);
+            }
+
             const bargeldSparen = parseFloat(item.bargeld) || 0;
-            const freizeitSparen = (ueberschuss * (1 - ((parseFloat(item.splitNotfall) || 0) / 100)));
+            const freizeitSparen = Math.max(0, ueberschuss - notfallSparen);
             const gesamtSparen = notfallSparen + freizeitSparen + bargeldSparen;
             return { netto, ueberschuss, notfallSparen, freizeitSparen, bargeldSparen, gesamtSparen };
         }
@@ -1090,6 +1124,7 @@
                 bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
                 taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
                 splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
+                splitMode: document.getElementById('splitModeSelect').value,
                 booked: document.getElementById('gehaltBookedInput').checked
             };
             const calc = calculateValuesFor(item);
@@ -1100,7 +1135,6 @@
             document.getElementById('resFreizeit').innerText = calc.freizeitSparen.toFixed(2) + ' €';
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
             
-            // Abzug Sparziele aufschlüsseln und anzeigen
             const sparzieleAbzug = calc.notfallSparen + calc.freizeitSparen;
             document.getElementById('resSparzieleAbzug').innerText = '-' + sparzieleAbzug.toFixed(2) + ' €';
 
@@ -1118,11 +1152,11 @@
                 bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
                 taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
                 splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
+                splitMode: document.getElementById('splitModeSelect').value,
                 booked: document.getElementById('gehaltBookedInput').checked
             };
             await saveToCloud();
             
-            // Wenn gebucht, prüfen ob es Rest-Taschengeld gibt für den Kassensturz
             if(entries[m].booked) {
                 checkAndOpenMonthClose(m);
             }
@@ -1140,7 +1174,7 @@
                 if(i.date && i.date.startsWith(selectedM)) spent += parseFloat(i.amount || 0);
             });
             const rest = tg - spent;
-            if(rest > 5) { // Nur bei mehr als 5 € Restbetrag fragen
+            if(rest > 5) {
                 document.getElementById('closeRestAmount').innerText = rest.toFixed(2) + ' €';
                 document.getElementById('monthCloseModal').classList.add('active');
             }
@@ -1304,7 +1338,6 @@
             document.getElementById('jahrFix').innerText = totalFix.toFixed(2) + ' €';
             document.getElementById('jahrSparen').innerText = totalSparen.toFixed(2) + ' €';
 
-            // Durchschnittliche Sparquote berechnen
             let avgSparquote = totalEinnahmen > 0 ? (totalSparen / totalEinnahmen) * 100 : 0;
             document.getElementById('jahrSparquote').innerText = avgSparquote.toFixed(1) + '%';
 
