@@ -300,7 +300,7 @@
                         <input type="hidden" id="fixkostenInput" value="0">
                     </div>
 
-                    <div class="input-group"><label>Taschengeld / Einkaufen 🛒</label><input type="number" id="taschengeldInput" placeholder="0" oninput="liveCalc()"></div>
+                    <div class="input-group"><label>Taschengeld / Einkaufen 🛒</label><input type="number" id="taschengeldInput" placeholder="Manuell oder autom." oninput="liveCalc()"></div>
                     <div class="input-group"><label>Bargeld (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="liveCalc()"></div>
                     
                     <div class="input-group full">
@@ -378,7 +378,7 @@
             <div class="card">
                 <div class="card-title">📊 Ausgaben im gewählten Monat (<span id="HHMonthDisplay">-</span>)</div>
                 <div class="stat-row"><span>Gesamtausgaben Haushalt:</span><span id="HHTotalDisplay" class="val-red">0,00 €</span></div>
-                <div class="stat-row"><span>Verfügbares Taschengeld-Budget:</span><span id="HHBudgetDisplay" class="val-highlight">0,00 €</span></div>
+                <div class="stat-row"><span>Verfügbares Taschengeld-Budget (Rest-Freizeitgeld):</span><span id="HHBudgetDisplay" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row" style="font-weight:bold;"><span>Rest-Budget:</span><span id="HHRestDisplay">0,00 €</span></div>
             </div>
 
@@ -691,7 +691,7 @@
                 fixSupermarkt: 25,
                 fixBusHin: 5.5,
                 fixAbreisePuffer: 50,
-                dayExpenses: [50, 20, null, null, null],
+                dayExpenses: [0, 0, null, null, null],
                 dayReceipts: [null, null, null, null, null]
             }
         ];
@@ -999,6 +999,39 @@
             }
         }
 
+        function getRestFreizeitGeldCalculated() {
+            const item = {
+                gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
+                items: currentMonthItems, pausedItems: currentMonthPausedItems,
+                bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
+                taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
+                splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
+                splitMode: document.getElementById('splitModeSelect').value,
+                booked: document.getElementById('gehaltBookedInput').checked
+            };
+            const calc = calculateValuesFor(item);
+            let totalSparzielDeductions = 0;
+
+            goals.forEach(goal => {
+                if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
+                    let currentVal = getSavedAmountForGoal(goal);
+                    let remaining = goal.target - currentVal;
+                    if (goal.targetDate && remaining > 0) {
+                        const [tY, tM] = goal.targetDate.split('-').map(Number);
+                        const selectedMonthStr = getSelectedMonthKey();
+                        const [sY, sM] = selectedMonthStr.split('-').map(Number);
+                        
+                        const diffMonths = (tY - sY) * 12 + (tM - sM);
+                        if (diffMonths > 0) {
+                            totalSparzielDeductions += (remaining / diffMonths);
+                        }
+                    }
+                }
+            });
+
+            return Math.max(0, calc.freizeitSparen - totalSparzielDeductions);
+        }
+
         function renderHaushaltView() {
             const selectedM = getSelectedMonthKey();
             document.getElementById('HHMonthDisplay').innerText = selectedM;
@@ -1025,9 +1058,12 @@
 
             if(filtered.length === 0) list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine Haushalts-Ausgaben für ' + selectedM + ' eingetragen.</div>';
             document.getElementById('HHTotalDisplay').innerText = totalSpent.toFixed(2) + ' €';
-            const taschengeldBudget = parseFloat(document.getElementById('taschengeldInput').value) || 0;
-            document.getElementById('HHBudgetDisplay').innerText = taschengeldBudget.toFixed(2) + ' €';
-            const rest = taschengeldBudget - totalSpent;
+            
+            // AUTOMATISCHE KOPPLUNG: Nimmt das berechnete Rest-Freizeitgeld als Taschengeld-Budget
+            const restFreizeitBudget = getRestFreizeitGeldCalculated();
+            document.getElementById('HHBudgetDisplay').innerText = restFreizeitBudget.toFixed(2) + ' €';
+            
+            const rest = restFreizeitBudget - totalSpent;
             const restEl = document.getElementById('HHRestDisplay');
             restEl.innerText = rest.toFixed(2) + ' €';
             restEl.className = rest >= 0 ? 'val-highlight' : 'val-red';
@@ -1215,7 +1251,7 @@
 
         function checkAndOpenMonthClose(monthKey) {
             const selectedM = monthKey;
-            const tg = parseFloat(document.getElementById('taschengeldInput').value) || 0;
+            const tg = getRestFreizeitGeldCalculated();
             let spent = 0;
             (haushaltItems || []).forEach(i => {
                 if(i.date && i.date.startsWith(selectedM)) spent += parseFloat(i.amount || 0);
