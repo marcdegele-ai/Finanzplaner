@@ -313,6 +313,10 @@
                 <div class="stat-row"><span>Notfallkonto Sparen:</span><span id="resNotfall" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>FreizeitKonto Sparen:</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
                 <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
+                <div class="stat-row" style="background: var(--card-sub); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); margin: 6px 0;">
+                    <span>🏦 Abzug Sparziele (Autom. Übertrag):</span>
+                    <span id="resSparzieleAbzug" class="val-red">-0,00 €</span>
+                </div>
                 <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Gesamt Sparen im Monat:</span><span id="resGesamtSparen">0,00 €</span></div>
             </div>
 
@@ -1095,6 +1099,11 @@
             document.getElementById('resNotfall').innerText = calc.notfallSparen.toFixed(2) + ' €';
             document.getElementById('resFreizeit').innerText = calc.freizeitSparen.toFixed(2) + ' €';
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
+            
+            // Abzug Sparziele aufschlüsseln und anzeigen
+            const sparzieleAbzug = calc.notfallSparen + calc.freizeitSparen;
+            document.getElementById('resSparzieleAbzug').innerText = '-' + sparzieleAbzug.toFixed(2) + ' €';
+
             document.getElementById('resGesamtSparen').innerText = calc.gesamtSparen.toFixed(2) + ' €';
             renderHaushaltView();
         }
