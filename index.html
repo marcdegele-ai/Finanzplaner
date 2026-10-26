@@ -282,8 +282,7 @@
                             </div>
                         </label>
                     </div>
-                    <div class="input-group"><label>Einnahmen Gehalt (€)</label><input type="number" id="gehaltInput" placeholder="0" oninput="liveCalc()"></div>
-                    <div class="input-group"><label>Sarah / Zusatz (€)</label><input type="number" id="sarahInput" placeholder="0" oninput="liveCalc()"></div>
+                    <div class="input-group full"><label>Einnahmen Gehalt (€)</label><input type="number" id="gehaltInput" placeholder="0" oninput="liveCalc()"></div>
                     
                     <div class="input-group full">
                         <div style="background: var(--card-sub); border: 1px solid var(--border); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
@@ -655,7 +654,7 @@
                     haushaltItems = cloudData.haushaltItems || [];
                 } else {
                     entries = {
-                        "2026-11": { gehalt: 0, sarah: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
+                        "2026-11": { gehalt: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false }
                     };
                     await saveToCloud();
                 }
@@ -759,7 +758,7 @@
             if (prevKey && entries[prevKey] && entries[prevKey].items) {
                 inheritedItems = entries[prevKey].items.filter(i => i.type === 'dauer');
             }
-            return { gehalt: 0, sarah: 0, items: inheritedItems, pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false };
+            return { gehalt: 0, items: inheritedItems, pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, booked: false };
         }
 
         function loadMonthData() {
@@ -767,7 +766,6 @@
             const item = getMonthDataOrFallback(m);
             document.getElementById('gehaltBookedInput').checked = !!item.booked;
             document.getElementById('gehaltInput').value = item.gehalt || '';
-            document.getElementById('sarahInput').value = item.sarah || 0;
             document.getElementById('bargeldInput').value = item.bargeld || 0;
             document.getElementById('taschengeldInput').value = item.taschengeld || 0;
             document.getElementById('splitNotfallInput').value = item.splitNotfall || 15;
@@ -920,7 +918,7 @@
             const ueberschuss = netto - (parseFloat(item.taschengeld) || 0);
             const notfallSparen = ueberschuss * ((parseFloat(item.splitNotfall) || 0) / 100);
             const bargeldSparen = parseFloat(item.bargeld) || 0;
-            const freizeitSparen = (ueberschuss * (1 - ((parseFloat(item.splitNotfall) || 0) / 100))) + (parseFloat(item.sarah) || 0);
+            const freizeitSparen = (ueberschuss * (1 - ((parseFloat(item.splitNotfall) || 0) / 100)));
             const gesamtSparen = notfallSparen + freizeitSparen + bargeldSparen;
             return { netto, ueberschuss, notfallSparen, freizeitSparen, bargeldSparen, gesamtSparen };
         }
@@ -928,7 +926,6 @@
         function liveCalc() {
             const item = {
                 gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
-                sarah: parseFloat(document.getElementById('sarahInput').value) || 0,
                 items: currentMonthItems, pausedItems: currentMonthPausedItems,
                 bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
                 taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
@@ -951,7 +948,6 @@
             if(!m) return;
             entries[m] = {
                 gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
-                sarah: parseFloat(document.getElementById('sarahInput').value) || 0,
                 items: JSON.parse(JSON.stringify(currentMonthItems)),
                 pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
                 bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
@@ -1075,7 +1071,7 @@
                 if (item && item.booked) {
                     const calc = calculateValuesFor(item);
                     const fix = getTotalFixForMonthData(item);
-                    const einnahmen = (parseFloat(item.gehalt) || 0) + (parseFloat(item.sarah) || 0);
+                    const einnahmen = parseFloat(item.gehalt) || 0;
                     totalEinnahmen += einnahmen;
                     totalFix += fix;
                     totalSparen += calc.gesamtSparen;
