@@ -131,6 +131,8 @@
             padding: 6px 12px;
             border-radius: 8px;
             border: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 6px;
         }
 
         .cloud-status { color: var(--accent-green); font-weight: 600; }
@@ -194,6 +196,10 @@
 
         .btn-add { background: var(--accent); color: #ffffff; font-weight: 700; border: none; padding: 11px; border-radius: 8px; width: 100%; font-size: 0.9rem; cursor: pointer; margin-top: 6px; }
         .btn-secondary { background: #e2e8f0; color: var(--text-main); font-weight: 600; border: 1px solid var(--border); padding: 8px 10px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; }
+
+        .quick-btn-row { display: flex; gap: 6px; margin-bottom: 6px; }
+        .quick-btn { flex: 1; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 6px; padding: 5px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; }
+        .quick-btn:hover { background: #bae6fd; }
 
         .history-list { display: flex; flex-direction: column; gap: 8px; }
         .history-item { background: var(--card-sub); padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); color: var(--text-main); }
@@ -267,7 +273,12 @@
             <div class="user-bar">
                 <span>👤 Eingeloggt: <strong id="userEmailDisplay" style="color:var(--accent);">-</strong></span>
                 <span class="cloud-status" id="cloudStatus">☁️ Synchronisiert ✅</span>
-                <button class="btn-secondary" style="padding: 2px 6px; font-size:0.65rem; background:#fee2e2; color:#991b1b; border-color:#fca5a5;" onclick="handleLogout()">Abmelden 🚪</button>
+                <div style="display:flex; gap:4px;">
+                    <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="exportBackupJSON()">💾 Backup</button>
+                    <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="document.getElementById('importFile').click()">📂 Wiederherstellen</button>
+                    <input type="file" id="importFile" style="display:none" accept=".json" onchange="importBackupJSON(event)">
+                    <button class="btn-secondary" style="padding: 2px 6px; font-size:0.65rem; background:#fee2e2; color:#991b1b; border-color:#fca5a5;" onclick="handleLogout()">Abmelden 🚪</button>
+                </div>
             </div>
             <div class="tab-bar">
                 <button class="tab-btn active" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
@@ -376,6 +387,15 @@
                     <label style="color: var(--accent); font-weight: bold;">📅 Monat im Haushaltsbuch wählen:</label>
                     <input type="month" id="hhMonthInput" min="2026-11" onchange="syncMonthInput(this.value)" style="background:#ffffff; font-weight:bold; color:var(--accent);">
                 </div>
+                
+                <!-- QUICK-BUTTONS SCHNELL-EINGABE -->
+                <div class="quick-btn-row">
+                    <button class="quick-btn" onclick="quickFillHH(10)">+ 10 €</button>
+                    <button class="quick-btn" onclick="quickFillHH(20)">+ 20 €</button>
+                    <button class="quick-btn" onclick="quickFillHH(50)">+ 50 €</button>
+                    <button class="quick-btn" onclick="quickFillHH(100)">+ 100 €</button>
+                </div>
+
                 <div class="grid">
                     <div class="input-group full">
                         <label>Typ der Buchung</label>
@@ -392,6 +412,15 @@
                     </div>
                     <div class="input-group full"><label>Datum</label><input type="date" id="HHDate"></div>
                     <div class="input-group full">
+                        <label class="checkbox-container">
+                            <input type="checkbox" id="HHRepeatCheckbox">
+                            <div>
+                                <strong>Jeden Monat automatisch wiederholen 🔄</strong>
+                                <div style="font-size:0.72rem; color:var(--text-sub);">Übernimmt diesen Posten im Folgemonat automatisch.</div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="input-group full">
                         <label>📸 Beleg knipsen / hochladen (Optional)</label>
                         <input type="file" id="HHReceiptInput" accept="image/*" capture="environment">
                     </div>
@@ -405,6 +434,12 @@
                 <div class="stat-row"><span>Gesamteinnahmen Haushalt (extra):</span><span id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</span></div>
                 <div class="stat-row"><span>Verfügbares Taschengeld-Budget (Basis):</span><span id="HHBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></div>
                 <div class="stat-row" style="font-weight:bold; font-size:0.95rem;"><span>Rest-Budget (inkl. Einnahmen):</span><span id="HHRestDisplay">0,00 €</span></div>
+            </div>
+
+            <!-- KATEGORIE-AUSWERTUNG CHART CONTAINER -->
+            <div class="card" id="categoryChartCard" style="display:none;">
+                <div class="card-title">📊 Ausgaben nach Kategorien</div>
+                <div class="chart-container" id="categoryChartContainer"></div>
             </div>
 
             <div class="card">
@@ -779,6 +814,59 @@
             return cleaned;
         }
 
+        // BACKUP & WIEDERHERSTELLUNG
+        function exportBackupJSON() {
+            const data = {
+                entries: entries,
+                goals: goals,
+                urlaubeList: urlaubeList,
+                currentUrlaubId: currentUrlaubId,
+                cashBreakdown: cashBreakdown,
+                haushaltItems: haushaltItems
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Finanzplan_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importBackupJSON(event) {
+            const fileReader = new FileReader();
+            if (event.target.files && event.target.files[0]) {
+                fileReader.readAsText(event.target.files[0], "UTF-8");
+                fileReader.onload = async (e) => {
+                    try {
+                        const parsed = JSON.parse(e.target.result);
+                        if(parsed.entries) entries = parsed.entries;
+                        if(parsed.goals) goals = parsed.goals;
+                        if(parsed.urlaubeList) urlaubeList = parsed.urlaubeList;
+                        if(parsed.currentUrlaubId) currentUrlaubId = parsed.currentUrlaubId;
+                        if(parsed.cashBreakdown) cashBreakdown = parsed.cashBreakdown;
+                        if(parsed.haushaltItems) haushaltItems = parsed.haushaltItems;
+
+                        await saveToCloud();
+                        alert('Backup erfolgreich eingespielt und synchronisiert! 📂✨');
+                        loadMonthData();
+                        renderHistory();
+                        renderGoals();
+                        renderUrlaubView();
+                        renderHaushaltView();
+                        renderJahresView();
+                    } catch (err) {
+                        alert('Fehler beim Lesen der Backup-Datei: ' + err.message);
+                    }
+                };
+            }
+        }
+
+        function quickFillHH(amt) {
+            const current = parseFloat(document.getElementById('HHAmount').value) || 0;
+            document.getElementById('HHAmount').value = current + amt;
+        }
+
         function updateHHKategorien() {
             const type = document.getElementById('HHType').value;
             const select = document.getElementById('HHKategorie');
@@ -896,7 +984,6 @@
                     if (oldSnap.exists()) {
                         const oldData = oldSnap.data();
                         await window.FirestoreSdk.setDoc(userRef, oldData);
-                        console.log("Alte Daten erfolgreich in dein neues Konto übernommen!");
                     }
                 }
             } catch (err) {
@@ -1029,6 +1116,14 @@
 
         function getSelectedMonthKey() { return document.getElementById('monthInput').value; }
 
+        function getNextMonthKey(currentKey) {
+            const parts = currentKey.split('-');
+            let y = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10) + 1;
+            if (m > 12) { m = 1; y += 1; }
+            return `${y}-${String(m).padStart(2, '0')}`;
+        }
+
         function getMonthDataOrFallback(m) {
             if (entries[m]) return entries[m];
             const sortedKeys = Object.keys(entries).sort();
@@ -1152,6 +1247,7 @@
             const category = document.getElementById('HHKategorie').value;
             const date = document.getElementById('HHDate').value;
             const itemType = document.getElementById('HHType').value || 'expense';
+            const isRepeat = document.getElementById('HHRepeatCheckbox').checked;
             const receiptInput = document.getElementById('HHReceiptInput');
 
             if(!name || isNaN(amount) || amount <= 0 || !date) return alert('Bitte Bezeichnung, Betrag und Datum angeben!');
@@ -1167,10 +1263,21 @@
             }
 
             haushaltItems.push({ id: Date.now(), name, amount, category, date, type: itemType, receipt: receiptDataUrl });
+
+            // Wenn "wiederholen" aktiv ist, direkt für den Folgemonat mit eintragen
+            if (isRepeat) {
+                const currentMonthKey = date.slice(0, 7);
+                const nextMKey = getNextMonthKey(currentMonthKey);
+                const [y, m] = nextMKey.split('-');
+                const nextDate = `${y}-${m}-${date.slice(8, 10)}`;
+                haushaltItems.push({ id: Date.now() + 1, name, amount, category, date: nextDate, type: itemType, receipt: receiptDataUrl });
+            }
+
             await saveToCloud();
 
             document.getElementById('HHName').value = '';
             document.getElementById('HHAmount').value = '';
+            document.getElementById('HHRepeatCheckbox').checked = false;
             document.getElementById('HHReceiptInput').value = '';
             document.getElementById('HHDate').valueAsDate = new Date();
             renderHaushaltView();
@@ -1239,14 +1346,20 @@
             list.innerHTML = '';
             let totalSpent = 0;
             let totalIncome = 0;
+            let categoryTotals = {};
 
             const filtered = (haushaltItems || []).filter(i => i.date && i.date.startsWith(selectedM));
             filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             filtered.forEach(item => {
                 const isIncome = item.type === 'income';
-                if (isIncome) totalIncome += parseFloat(item.amount || 0);
-                else totalSpent += parseFloat(item.amount || 0);
+                const amt = parseFloat(item.amount || 0);
+                if (isIncome) {
+                    totalIncome += amt;
+                } else {
+                    totalSpent += amt;
+                    categoryTotals[item.category] = (categoryTotals[item.category] || 0) + amt;
+                }
 
                 const div = document.createElement('div');
                 div.className = 'history-item';
@@ -1258,12 +1371,35 @@
                 div.innerHTML = `
                     <div><div class="history-date" style="${isIncome ? 'color:var(--accent-green);' : ''}">${item.name} <span class="badge ${badgeClass}">${item.category}</span> ${receiptBtnHtml}</div><div class="history-sub">Datum: ${item.date}</div></div>
                     <div style="text-align:right; display:flex; align-items:center; gap:8px;">
-                        <span class="${amountClass}">${sign}${parseFloat(item.amount).toFixed(2)} €</span>
+                        <span class="${amountClass}">${sign}${amt.toFixed(2)} €</span>
                         <span style="color:#ef4444; font-size:0.75rem; cursor:pointer;" onclick="deleteHaushaltItem(${item.id})">🗑️</span>
                     </div>
                 `;
                 list.appendChild(div);
             });
+
+            // Kategorien-Diagramm rendern
+            const chartCard = document.getElementById('categoryChartCard');
+            const chartContainer = document.getElementById('categoryChartContainer');
+            chartContainer.innerHTML = '';
+
+            const catKeys = Object.keys(categoryTotals);
+            if (catKeys.length > 0 && totalSpent > 0) {
+                chartCard.style.display = 'block';
+                catKeys.forEach(cat => {
+                    const catVal = categoryTotals[cat];
+                    const percent = (catVal / totalSpent) * 100;
+                    const row = document.createElement('div');
+                    row.className = 'chart-bar-row';
+                    row.innerHTML = `
+                        <div class="chart-label-line"><span>${cat}</span><span class="val-red">${catVal.toFixed(2)} € (${percent.toFixed(1)}%)</span></div>
+                        <div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${percent}%; background: var(--accent-orange);"></div></div>
+                    `;
+                    chartContainer.appendChild(row);
+                });
+            } else {
+                chartCard.style.display = 'none';
+            }
 
             const monthData = entries[selectedM];
             if(monthData && monthData.extraTransfers && monthData.extraTransfers.length > 0) {
@@ -1570,14 +1706,6 @@
         function selectMonthAndEdit(key) {
             syncMonthInput(key);
             switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);
-        }
-
-        function getNextMonthKey(currentKey) {
-            const parts = currentKey.split('-');
-            let y = parseInt(parts[0], 10);
-            let m = parseInt(parts[1], 10) + 1;
-            if (m > 12) { m = 1; y += 1; }
-            return `${y}-${String(m).padStart(2, '0')}`;
         }
 
         function renderNextThree(currentMonthKey) {
