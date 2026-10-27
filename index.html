@@ -216,15 +216,15 @@
                     <div class="input-group full"><label>Monat wählen</label><input type="month" id="monthInput" min="2026-11" onchange="syncMonthInput(this.value)"></div>
                     <div class="input-group full">
                         <label class="checkbox-container">
-                            <input type="checkbox" id="gehaltBookedInput" onchange="liveCalc()">
+                            <input type="checkbox" id="gehaltBookedInput" onchange="autoSaveLive()">
                             <div>
                                 <strong style="color:var(--accent-green); font-size:0.85rem;">Gehalt für diesen Monat gebucht / erhalten ✅</strong>
                                 <div style="font-size:0.72rem; color:var(--text-sub);">Haken setzen, sobald das Geld da ist.</div>
                             </div>
                         </label>
                     </div>
-                    <div class="input-group"><label>Einnahmen Gehalt (€)</label><input type="number" id="gehaltInput" placeholder="0" oninput="liveCalc()"></div>
-                    <div class="input-group"><label>Bargeld / Einnahmen bar (€)</label><input type="number" id="bargeldEinnahmeInput" placeholder="0" oninput="liveCalc()"></div>
+                    <div class="input-group"><label>Einnahmen Gehalt (€)</label><input type="number" id="gehaltInput" placeholder="0" oninput="autoSaveLive()"></div>
+                    <div class="input-group"><label>Bargeld / Einnahmen bar (€)</label><input type="number" id="bargeldEinnahmeInput" placeholder="0" oninput="autoSaveLive()"></div>
                     
                     <div class="input-group full">
                         <div style="background: var(--card-sub); border: 1px solid var(--border); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
@@ -237,21 +237,21 @@
                         <input type="hidden" id="fixkostenInput" value="0">
                     </div>
 
-                    <div class="input-group"><label>Taschengeld / Einkaufen 🛒</label><input type="number" id="taschengeldInput" placeholder="Manuell oder autom." oninput="liveCalc()"></div>
-                    <div class="input-group"><label>Bargeld (Kassette) (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="liveCalc()"></div>
+                    <div class="input-group"><label>Taschengeld / Einkaufen 🛒</label><input type="number" id="taschengeldInput" placeholder="Manuell oder autom." oninput="autoSaveLive()"></div>
+                    <div class="input-group"><label>Bargeld (Kassette) (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
                     
                     <div class="input-group full">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
                             <label style="margin:0;">Notfallkonto-Sparart</label>
-                            <select id="splitModeSelect" style="width: 130px; padding: 4px 6px; font-size: 0.75rem;" onchange="toggleSplitMode()">
+                            <select id="splitModeSelect" style="width: 130px; padding: 4px 6px; font-size: 0.75rem;" onchange="autoSaveLive()">
                                 <option value="percent">Prozent (%)</option>
                                 <option value="fixed">Fester Betrag (€)</option>
                             </select>
                         </div>
-                        <input type="number" id="splitNotfallInput" min="0" placeholder="z.B. 15 oder 150" oninput="liveCalc()">
+                        <input type="number" id="splitNotfallInput" min="0" placeholder="z.B. 15 oder 150" oninput="autoSaveLive()">
                     </div>
 
-                    <div class="input-group full" style="margin-top: 6px;"><button class="btn-add" style="background: var(--accent-green);" onclick="saveCurrentMonthManual()">💾 Monat lokal speichern</button></div>
+                    <div class="input-group full" style="margin-top: 6px;"><button class="btn-add" style="background: var(--accent-green);" onclick="saveCurrentMonthManual()">💾 Monat manuell sichern</button></div>
                 </div>
             </div>
 
@@ -687,13 +687,6 @@
         let entries = JSON.parse(localStorage.getItem('finanz_entries_local')) || {
             "2026-11": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }
         };
-        
-        // Bereinige direkt beim Start alle Einträge von alten Daueraufträgen, falls gewünscht
-        Object.keys(entries).forEach(k => {
-            if(entries[k] && entries[k].items) {
-                entries[k].items = entries[k].items.filter(i => i.type !== 'dauer');
-            }
-        });
 
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
             { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-11" },
@@ -756,6 +749,27 @@
             localStorage.setItem('finanz_current_urlaub_local', currentUrlaubId);
             localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
             localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
+        }
+
+        // Live-Autosave bei jeder Eingabe
+        function autoSaveLive() {
+            const m = getSelectedMonthKey();
+            if(!m) return;
+            const existingExtra = entries[m] ? entries[m].extraTransfers : [];
+            entries[m] = {
+                gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
+                bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0,
+                items: JSON.parse(JSON.stringify(currentMonthItems)),
+                pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
+                bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
+                taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
+                splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
+                splitMode: document.getElementById('splitModeSelect').value,
+                booked: document.getElementById('gehaltBookedInput').checked,
+                extraTransfers: existingExtra
+            };
+            saveLocally();
+            liveCalc();
         }
 
         // BACKUP & WIEDERHERSTELLUNG
@@ -925,7 +939,10 @@
             document.getElementById('cashTotalBadge').innerText = total.toFixed(2) + ' €';
             let kassetteGoal = goals.find(g => g.id === 'kassette');
             if(kassetteGoal) kassetteGoal.manualCurrent = total;
-            if(shouldSave) renderHistory();
+            if(shouldSave) {
+                saveLocally();
+                renderHistory();
+            }
         }
 
         function saveCashBoxLocally() {
@@ -1314,7 +1331,7 @@
         function closeExpenseModal() {
             updateTotalFixFromItems();
             document.getElementById('expenseModal').classList.remove('active');
-            liveCalc();
+            autoSaveLive();
         }
 
         function renderExpenseItemsModal() {
@@ -1346,6 +1363,7 @@
             if(currentMonthPausedItems.includes(itemName)) currentMonthPausedItems = currentMonthPausedItems.filter(n => n !== itemName);
             else currentMonthPausedItems.push(itemName);
             renderExpenseItemsModal();
+            autoSaveLive();
         }
 
         function addExpenseItem() {
@@ -1359,6 +1377,7 @@
             document.getElementById('expAmount').value = '';
             document.getElementById('expEndDate').value = '';
             renderExpenseItemsModal();
+            autoSaveLive();
         }
 
         function deleteExpenseItem(index) {
@@ -1388,6 +1407,7 @@
 
             saveLocally();
             renderExpenseItemsModal();
+            autoSaveLive();
         }
 
         function calculateValuesFor(item) {
@@ -1512,28 +1532,12 @@
         }
 
         function saveCurrentMonthManual() {
+            autoSaveLive();
+            alert('Monat erfolgreich gesichert! 💾');
             const m = getSelectedMonthKey();
-            if(!m) return;
-            const existingExtra = entries[m] ? entries[m].extraTransfers : [];
-            entries[m] = {
-                gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
-                bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0,
-                items: JSON.parse(JSON.stringify(currentMonthItems)),
-                pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
-                bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
-                taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
-                splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
-                splitMode: document.getElementById('splitModeSelect').value,
-                booked: document.getElementById('gehaltBookedInput').checked,
-                extraTransfers: existingExtra
-            };
-            saveLocally();
-            alert('Monat lokal gespeichert! 💾');
-            
-            if(entries[m].booked) {
+            if(entries[m] && entries[m].booked) {
                 checkAndOpenMonthClose(m);
             }
-
             renderHistory();
             renderNextThree(m);
             renderJahresView();
