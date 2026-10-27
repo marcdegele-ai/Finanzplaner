@@ -190,10 +190,10 @@
             <h1>📊 Mein Dynamischer Finanzplan</h1>
             <div class="app-creator-sub">Ersteller: Marc Degele</div>
             <div class="user-bar">
-                <span>👤 Status: <strong style="color:var(--accent-green);">Lokal & Bereit ✅</strong></span>
+                <span>👤 Status: <strong style="color:var(--accent-green);">Lokal & OneDrive Sync ✅</strong></span>
                 <span class="cloud-status">⚡ Auto-Speicherung aktiv</span>
                 <div style="display:flex; gap:4px;">
-                    <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="exportBackupJSON()">💾 Backup</button>
+                    <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="exportBackupOneDrive()">💾 OneDrive Backup</button>
                     <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="document.getElementById('importFile').click()">📂 Laden</button>
                     <input type="file" id="importFile" style="display:none" accept=".json" onchange="importBackupJSON(event)">
                 </div>
@@ -772,8 +772,8 @@
             liveCalc();
         }
 
-        // BACKUP & WIEDERHERSTELLUNG
-        function exportBackupJSON() {
+        // ONEDRIVE BACKUP PER TEILEN-MENÜ
+        async function exportBackupOneDrive() {
             const data = {
                 entries: entries,
                 goals: goals,
@@ -782,10 +782,28 @@
                 cashBreakdown: cashBreakdown,
                 haushaltItems: haushaltItems
             };
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const dataStr = JSON.stringify(data, null, 2);
+            const fileName = `Finanzplan_Backup_${new Date().toISOString().slice(0,10)}.json`;
+            const file = new File([dataStr], fileName, { type: "application/json" });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        title: 'Finanzplan Backup',
+                        text: 'Automatisches Backup für OneDrive',
+                        files: [file]
+                    });
+                    return;
+                } catch (err) {
+                    if (err.name !== 'AbortError') console.log("Share fallback", err);
+                }
+            }
+
+            // Fallback auf normalen Download
+            const dataUri = "data:text/json;charset=utf-8," + encodeURIComponent(dataStr);
             const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `Finanzplan_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            downloadAnchor.setAttribute("href", dataUri);
+            downloadAnchor.setAttribute("download", fileName);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
