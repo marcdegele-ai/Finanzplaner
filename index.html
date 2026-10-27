@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mein Dynamischer Finanzplan</title>
+    <title>Mein Dynamischer Finanzplan – Marc Degele</title>
+    <meta name="author" content="Marc Degele">
     
     <!-- PWA App-Modus Meta-Tags -->
     <link rel="manifest" href="manifest.json">
@@ -105,7 +106,8 @@
             text-align: center;
         }
 
-        .login-card h2 { color: var(--accent); margin-bottom: 6px; font-size: 1.4rem; }
+        .login-card h2 { color: var(--accent); margin-bottom: 4px; font-size: 1.4rem; }
+        .login-card .creator-tag { font-size: 0.75rem; color: var(--accent); font-weight: bold; margin-bottom: 12px; display: block; }
         .login-card p { color: var(--text-sub); font-size: 0.85rem; margin-bottom: 20px; }
 
         header {
@@ -115,7 +117,8 @@
             margin-bottom: 14px;
         }
 
-        header h1 { font-size: 1.2rem; color: var(--accent); margin-bottom: 4px; font-weight: 700; }
+        header h1 { font-size: 1.2rem; color: var(--accent); margin-bottom: 2px; font-weight: 700; }
+        .app-creator-sub { font-size: 0.72rem; color: var(--text-sub); margin-bottom: 6px; }
 
         .user-bar {
             display: flex;
@@ -245,6 +248,7 @@
     <div id="loginScreen">
         <div class="login-card">
             <h2>🔐 Finanzplan Login</h2>
+            <span class="creator-tag">Ersteller: Marc Degele</span>
             <p>Melde dich an, um deine Daten abzurufen.</p>
             
             <div class="input-group"><label>E-Mail-Adresse</label><input type="email" id="authEmail" placeholder="deine@email.de"></div>
@@ -258,6 +262,7 @@
     <div id="mainAppContainer" style="display:none;">
         <header>
             <h1>📊 Mein Dynamischer Finanzplan</h1>
+            <div class="app-creator-sub">Ersteller: Marc Degele</div>
             <div class="user-bar">
                 <span>👤 Eingeloggt: <strong id="userEmailDisplay" style="color:var(--accent);">-</strong></span>
                 <span class="cloud-status" id="cloudStatus">☁️ Synchronisiert ✅</span>
