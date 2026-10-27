@@ -842,7 +842,7 @@
                     haushaltItems = cloudData.haushaltItems || [];
                 } else {
                     entries = {
-                        "2026-11": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false }
+                        "2026-11": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }
                     };
                     await saveToCloud();
                 }
@@ -949,7 +949,7 @@
             if (prevKey && entries[prevKey] && entries[prevKey].items) {
                 inheritedItems = entries[prevKey].items.filter(i => i.type === 'dauer');
             }
-            return { gehalt: 0, bargeldEinnahme: 0, items: inheritedItems, pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false };
+            return { gehalt: 0, bargeldEinnahme: 0, items: inheritedItems, pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] };
         }
 
         function loadMonthData() {
@@ -1001,6 +1001,7 @@
             let goal = goals.find(g => g.id === targetId);
             if(!goal) return;
 
+            // Ziel Guthaben direkt erhöhen
             if(['notfall', 'freizeit'].includes(goal.id)) {
                 goal.manualOffset = (parseFloat(goal.manualOffset) || 0) + amount;
             } else if(goal.id === 'kassette') {
@@ -1009,14 +1010,28 @@
                 goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) + amount;
             }
 
-            let freizeitGoal = goals.find(g => g.id === 'freizeit');
-            if(freizeitGoal) {
-                freizeitGoal.manualOffset = (parseFloat(freizeitGoal.manualOffset) || 0) - amount;
+            // In den Monatsdaten für den ausgewählten Monat festhalten
+            const m = getSelectedMonthKey();
+            if(!entries[m]) {
+                entries[m] = {
+                    gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
+                    bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0,
+                    items: JSON.parse(JSON.stringify(currentMonthItems)),
+                    pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
+                    bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
+                    taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
+                    splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
+                    splitMode: document.getElementById('splitModeSelect').value,
+                    booked: document.getElementById('gehaltBookedInput').checked,
+                    extraTransfers: []
+                };
             }
+            if(!entries[m].extraTransfers) entries[m].extraTransfers = [];
+            entries[m].extraTransfers.push({ targetId: goal.id, targetName: goal.name, amount: amount });
 
             await saveToCloud();
             document.getElementById('extraTransferAmount').value = '';
-            alert(`Erfolgreich ${amount.toFixed(2)} € auf "${goal.name}" übertragen! 🚀`);
+            alert(`Erfolgreich ${amount.toFixed(2)} € auf "${goal.name}" übertragen und im Monat ${m} vermerkt! 🚀`);
             renderGoals();
             renderHistory();
             liveCalc();
@@ -1071,6 +1086,8 @@
         }
 
         function getRestFreizeitGeldCalculated() {
+            const m = getSelectedMonthKey();
+            const monthData = entries[m] || {};
             const item = {
                 gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
                 bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0,
@@ -1090,7 +1107,7 @@
                     let remaining = goal.target - currentVal;
                     if (goal.targetDate && remaining > 0) {
                         const [tY, tM] = goal.targetDate.split('-').map(Number);
-                        const nowObj = new Date();
+                        const nowObj = new Date(m + "-01");
                         const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1));
                         if (diffMonths > 0) {
                             totalSparzielDeductions += (remaining / diffMonths);
@@ -1099,7 +1116,13 @@
                 }
             });
 
-            return Math.max(0, calc.freizeitSparen - totalSparzielDeductions);
+            // Extra-Überweisungen für diesen Monat abziehen
+            let extraTransfersSum = 0;
+            if(monthData.extraTransfers) {
+                monthData.extraTransfers.forEach(tr => { extraTransfersSum += tr.amount; });
+            }
+
+            return Math.max(0, calc.freizeitSparen - totalSparzielDeductions - extraTransfersSum);
         }
 
         function renderHaushaltView() {
@@ -1235,6 +1258,8 @@
         }
 
         function liveCalc() {
+            const m = getSelectedMonthKey();
+            const monthData = entries[m] || {};
             const item = {
                 gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
                 bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0,
@@ -1246,7 +1271,7 @@
                 booked: document.getElementById('gehaltBookedInput').checked
             };
             const calc = calculateValuesFor(item);
-            document.getElementById('displayMonth').innerText = getSelectedMonthKey();
+            document.getElementById('displayMonth').innerText = m;
             document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
             document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
             document.getElementById('resNotfall').innerText = calc.notfallSparen.toFixed(2) + ' €';
@@ -1262,7 +1287,7 @@
                     let remaining = goal.target - currentVal;
                     if (goal.targetDate && remaining > 0) {
                         const [tY, tM] = goal.targetDate.split('-').map(Number);
-                        const nowObj = new Date();
+                        const nowObj = new Date(m + "-01");
                         const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1));
                         if (diffMonths > 0) {
                             let monthlyShare = remaining / diffMonths;
@@ -1280,7 +1305,20 @@
                 }
             });
 
-            const freizeitRest = Math.max(0, calc.freizeitSparen - totalSparzielDeductions);
+            // Extra-Überweisungen als Zeilen anzeigen
+            if(monthData.extraTransfers) {
+                monthData.extraTransfers.forEach(tr => {
+                    const row = document.createElement('div');
+                    row.className = 'stat-row sub-row';
+                    row.innerHTML = `
+                        <span>⚡ Extra-Überweisung: <strong>${tr.targetName}</strong></span>
+                        <span class="val-red">-${tr.amount.toFixed(2)} €</span>
+                    `;
+                    container.appendChild(row);
+                });
+            }
+
+            const freizeitRest = getRestFreizeitGeldCalculated();
             document.getElementById('resFreizeitRest').innerText = freizeitRest.toFixed(2) + ' €';
 
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
@@ -1295,6 +1333,7 @@
         async function saveCurrentMonthManual() {
             const m = getSelectedMonthKey();
             if(!m) return;
+            const existingExtra = entries[m] ? entries[m].extraTransfers : [];
             entries[m] = {
                 gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
                 bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0,
@@ -1304,7 +1343,8 @@
                 taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
                 splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
                 splitMode: document.getElementById('splitModeSelect').value,
-                booked: document.getElementById('gehaltBookedInput').checked
+                booked: document.getElementById('gehaltBookedInput').checked,
+                extraTransfers: existingExtra
             };
             await saveToCloud();
             
@@ -1406,6 +1446,15 @@
                         runningSum += val;
                         breakdown.push({ month: key, amount: val, totalSoFar: runningSum });
                     }
+                }
+                // Extra-Überweisungen in die Historie des Ziels einfließen lassen
+                if (itemData && itemData.extraTransfers) {
+                    itemData.extraTransfers.forEach(tr => {
+                        if (tr.targetId === goalId) {
+                            runningSum += tr.amount;
+                            breakdown.push({ month: key + " (Extra)", amount: tr.amount, totalSoFar: runningSum });
+                        }
+                    });
                 }
             });
             return { total: runningSum, breakdown };
@@ -1801,9 +1850,10 @@
                 let percent = goal.target > 0 ? Math.min(100, (currentVal / goal.target) * 100) : 0;
                 let remaining = goal.target - currentVal;
                 let monthlyNeededText = "";
+                const m = getSelectedMonthKey();
                 if (goal.targetDate && remaining > 0) {
                     const [tY, tM] = goal.targetDate.split('-').map(Number);
-                    const nowObj = new Date();
+                    const nowObj = new Date(m + "-01");
                     const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1));
                     if (diffMonths > 0) monthlyNeededText = `Ø ${(remaining / diffMonths).toFixed(0)} €/M. bis ${goal.targetDate}`;
                     else monthlyNeededText = `⚠️ Frist erreicht`;
@@ -1859,19 +1909,16 @@
 
             const histList = document.getElementById('modalHistoryList');
             histList.innerHTML = '';
-            if(['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
-                const data = getGoalData(goal.id);
-                if (data.breakdown.length === 0) histList.innerHTML = '<div style="color:var(--text-sub); text-align:center; font-size:0.75rem;">Keine gebuchten Einzahlungen.</div>';
-                else {
-                    data.breakdown.forEach(item => {
-                        const row = document.createElement('div');
-                        row.className = 'history-item';
-                        row.innerHTML = `<div><div class="history-date">${item.month}</div><div class="history-sub">Stand: ${item.totalSoFar.toFixed(2)} €</div></div><div style="text-align:right;"><div class="val-highlight">+${item.amount.toFixed(2)} €</div></div>`;
-                        histList.appendChild(row);
-                    });
-                }
-            } else {
-                histList.innerHTML = '<div style="color:var(--text-sub); text-align:center; font-size:0.75rem;">Manuelles Ziel.</div>';
+            
+            const data = getGoalData(goal.id);
+            if (data.breakdown.length === 0) histList.innerHTML = '<div style="color:var(--text-sub); text-align:center; font-size:0.75rem;">Keine gebuchten Einzahlungen.</div>';
+            else {
+                data.breakdown.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'history-item';
+                    row.innerHTML = `<div><div class="history-date">${item.month}</div><div class="history-sub">Stand: ${item.totalSoFar.toFixed(2)} €</div></div><div style="text-align:right;"><div class="val-highlight">+${item.amount.toFixed(2)} €</div></div>`;
+                    histList.appendChild(row);
+                });
             }
             document.getElementById('goalModal').classList.add('active');
         }
@@ -1957,7 +2004,7 @@
             let target = parseFloat(document.getElementById('zielBetrag').value) || 0;
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
             let targetDate = document.getElementById('zielDatum').value;
-            const goalType = document.getElementById('zielTypeSelect').value;
+            const goalType = document.getElementById('zielTypeSelect'.value);
 
             if(urlaubLinkId) {
                 let u = urlaubeList.find(x => x.id === urlaubLinkId);
