@@ -518,7 +518,7 @@
                 <div class="stat-row"><span>Geplante Brutto-Sparsumme:</span><span id="jahrSparen" style="color:var(--accent);">0,00 €</span></div>
                 <div class="stat-row"><span>🔥 Echte Netto-Sparsumme (nach Haushaltsausgaben):</span><span id="jahrEchtesSparen" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Ø Geplante Sparquote (Plan):</span><span id="jahrSparquote" class="val-highlight">0.0%</span></div>
-                <div class="stat-row" style="font-weight: bold; font-size: 0.9rem; background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 4px;">
+                <div class="stat-row" style="font-weight: bold; font-size: 0.95rem; background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 4px;">
                     <span style="color:#15803d;">🎯 Ø Echte Sparquote (Real):</span>
                     <span id="jahrEchteSparquote" class="val-highlight" style="font-size:0.95rem;">0.0%</span>
                 </div>
@@ -642,7 +642,11 @@
                 <div class="input-group"><label>Betrag (€)</label><input type="number" id="expAmount" placeholder="z.B. 750"></div>
                 <div class="input-group">
                     <label>Art der Ausgabe</label>
-                    <select id="expType"><option value="dauer">🔄 Dauerauftrag</option><option value="einmalig">⚡ Einmalig</option></select>
+                    <select id="expType" onchange="toggleEndDateInput()"><option value="dauer">🔄 Dauerauftrag</option><option value="einmalig">⚡ Einmalig</option></select>
+                </div>
+                <div class="input-group full" id="endDateGroup">
+                    <label>Gültig bis Monat (optional - leer = unendlich)</label>
+                    <input type="month" id="expEndDate" placeholder="z.B. 2027-12">
                 </div>
                 <div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Ausgabe hinzufügen</button></div>
             </div>
@@ -1036,6 +1040,14 @@
                     await saveToCloud();
                 }
 
+                // Daueraufträge komplett leeren wie gewünscht
+                Object.keys(entries).forEach(k => {
+                    if(entries[k] && entries[k].items) {
+                        entries[k].items = entries[k].items.filter(i => i.type !== 'dauer');
+                    }
+                });
+                await saveToCloud();
+
                 document.getElementById('cloudStatus').innerText = "☁️ Synchronisiert ✅";
                 updateHHKategorien();
                 loadCashBreakdownToUI();
@@ -1140,13 +1152,18 @@
             return `${y}-${String(m).padStart(2, '0')}`;
         }
 
-        // VERERBUNGS-LOGIK: Übernimmt aktive Daueraufträge aus dem Vormonat dynamisch
+        // VERERBUNGS-LOGIK MIT DATUMSPRÜFUNG (Bis wann läuft der Dauerauftrag?)
         function getMonthDataOrFallback(m) {
             const sortedKeys = Object.keys(entries).sort();
             const prevKey = sortedKeys.reverse().find(k => k < m);
             let inheritedItems = [];
             if (prevKey && entries[prevKey] && entries[prevKey].items) {
-                inheritedItems = entries[prevKey].items.filter(i => i.type === 'dauer');
+                inheritedItems = entries[prevKey].items.filter(i => {
+                    if (i.type !== 'dauer') return false;
+                    // Wenn ein Enddatum angegeben ist und der aktuelle Monat m größer ist als das Enddatum, wird er nicht mehr vererbt!
+                    if (i.endDate && m > i.endDate) return false;
+                    return true;
+                });
             }
 
             if (entries[m]) {
@@ -1267,17 +1284,6 @@
             alert('Überweisung storniert! Das Geld ist wieder in deinem frei verfügbaren Budget. ↩️');
             renderGoals();
             renderHistory();
-            liveCalc();
-        }
-
-        function toggleSplitMode() {
-            const mode = document.getElementById('splitModeSelect').value;
-            const input = document.getElementById('splitNotfallInput');
-            if (mode === 'fixed') {
-                input.placeholder = 'z.B. 150';
-            } else {
-                input.placeholder = 'z.B. 15';
-            }
             liveCalc();
         }
 
@@ -1489,8 +1495,15 @@
             document.getElementById('fixkostenInput').value = total;
         }
 
+        function toggleEndDateInput() {
+            const type = document.getElementById('expType').value;
+            const group = document.getElementById('endDateGroup');
+            group.style.display = (type === 'dauer') ? 'block' : 'none';
+        }
+
         function openExpenseModal() {
             document.getElementById('modalExpMonth').innerText = getSelectedMonthKey();
+            toggleEndDateInput();
             renderExpenseItemsModal();
             document.getElementById('expenseModal').classList.add('active');
         }
@@ -1510,7 +1523,7 @@
                 if(!isPaused) total += parseFloat(item.amount || 0);
                 const div = document.createElement('div');
                 div.className = `history-item ${isPaused ? 'paused' : ''}`;
-                let badgeHtml = item.type === 'dauer' ? `<span class="badge badge-dauer">Dauer</span>` : `<span class="badge badge-once">Einmalig</span>`;
+                let badgeHtml = item.type === 'dauer' ? `<span class="badge badge-dauer">Dauer${item.endDate ? ' (bis ' + item.endDate + ')' : ''}</span>` : `<span class="badge badge-once">Einmalig</span>`;
                 if (isPaused) badgeHtml += ` <span class="badge badge-paused">Pausiert</span>`;
                 div.innerHTML = `
                     <div><div class="history-date">${item.name} ${badgeHtml}</div></div>
@@ -1536,10 +1549,12 @@
             const name = document.getElementById('expName').value.trim();
             const amount = parseFloat(document.getElementById('expAmount').value);
             const type = document.getElementById('expType').value;
+            const endDate = document.getElementById('expEndDate').value;
             if(!name || isNaN(amount) || amount <= 0) return alert('Bitte Namen und Betrag eingeben!');
-            currentMonthItems.push({ name, amount, type });
+            currentMonthItems.push({ name, amount, type, endDate: type === 'dauer' ? endDate : null });
             document.getElementById('expName').value = '';
             document.getElementById('expAmount').value = '';
+            document.getElementById('expEndDate').value = '';
             renderExpenseItemsModal();
         }
 
