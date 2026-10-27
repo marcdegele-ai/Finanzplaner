@@ -636,6 +636,21 @@
                 </select>
             </div>
 
+            <!-- HOCHRECHNUNG & SIMULATOR -->
+            <div style="background:var(--card-sub); border:1px solid var(--accent); padding:10px; border-radius:8px; margin-bottom:12px;">
+                <label style="color:var(--accent); font-weight:bold;">📈 Zukunfts-Hochrechnung & Simulator</label>
+                <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Teste, wo du landest (z.B. wenn du statt 100 € mal 50 € einzahlst).</div>
+                <div style="display:flex; gap:6px; margin-bottom:8px;">
+                    <input type="number" id="simMonthlyInput" placeholder="Monatsbetrag zum Testen" style="flex:1;" oninput="updateGoalSimulation()">
+                    <select id="simMonthsCount" style="width:105px;" onchange="updateGoalSimulation()">
+                        <option value="6">6 Monate</option>
+                        <option value="12" selected>12 Monate</option>
+                        <option value="24">24 Monate</option>
+                    </select>
+                </div>
+                <div id="simResultBox" style="font-size:0.8rem; background:#fff; padding:8px; border-radius:6px; border:1px solid var(--border); color:var(--text-main); line-height:1.4;"></div>
+            </div>
+
             <!-- Manuell Einzahlen -->
             <div style="background:var(--card-sub); border:1px solid var(--accent-green); padding:10px; border-radius:8px; margin-bottom:12px;">
                 <label style="color:var(--accent-green); font-weight:bold;">➕ Geld manuell hinzufügen (z.B. Geburtstag)</label>
@@ -1997,6 +2012,20 @@
             document.getElementById('modalDateInput').value = goal.targetDate || '';
             document.getElementById('manualDepositAmount').value = '';
             document.getElementById('manualWithdrawAmount').value = '';
+            
+            // Standardwert für den Simulator setzen
+            let defaultMonthly = goal.fixedMonthly || 100;
+            if(!goal.fixedMonthly && goal.targetDate) {
+                const m = getSelectedMonthKey();
+                const [tY, tM] = goal.targetDate.split('-').map(Number);
+                const nowObj = new Date(m + "-01");
+                const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1)) + 1;
+                let rem = goal.target - getSavedAmountForGoal(goal);
+                if(diffMonths > 0 && rem > 0) defaultMonthly = Math.round(rem / diffMonths);
+            }
+            document.getElementById('simMonthlyInput').value = defaultMonthly;
+            updateGoalSimulation();
+
             document.getElementById('cashTransferBox').style.display = (goal.id === 'freizeit') ? 'block' : 'none';
             document.getElementById('modalCurrentInput').value = ['notfall', 'freizeit'].includes(goal.id) ? (goal.manualOffset || 0) : (goal.manualCurrent || 0);
 
@@ -2014,6 +2043,25 @@
                 });
             }
             document.getElementById('goalModal').classList.add('active');
+        }
+
+        function updateGoalSimulation() {
+            const goal = goals.find(g => g.id === currentModalGoalId);
+            if(!goal) return;
+            const currentVal = getSavedAmountForGoal(goal);
+            const monthlyInput = parseFloat(document.getElementById('simMonthlyInput').value) || 0;
+            const monthsCount = parseInt(document.getElementById('simMonthsCount').value) || 12;
+
+            let projectedSum = currentVal + (monthlyInput * monthsCount);
+            let target = goal.target || 0;
+            let percent = target > 0 ? Math.min(100, (projectedSum / target) * 100) : 0;
+            
+            let html = `Stand heute: <strong>${currentVal.toFixed(2)} €</strong><br>`;
+            html += `In ${monthsCount} Monaten (bei ${monthlyInput.toFixed(2)} €/Mo.): <strong style="color:var(--accent-green);">${projectedSum.toFixed(2)} €</strong>`;
+            if(target > 0) {
+                html += ` (${percent.toFixed(1)}% vom Ziel erreicht)`;
+            }
+            document.getElementById('simResultBox').innerHTML = html;
         }
 
         async function addManualDepositToGoal() {
