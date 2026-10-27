@@ -1142,10 +1142,9 @@
                     if (goal.targetDate && remaining > 0) {
                         const [tY, tM] = goal.targetDate.split('-').map(Number);
                         const nowObj = new Date(m + "-01");
-                        // Zielmonat inkludieren: (+1 Monat)
                         const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1)) + 1;
                         if (diffMonths > 0) {
-                            totalSparzielDeductions += (remaining / diffMonths);
+                            totalSparzielDeductions += Math.round((remaining / diffMonths) * 100) / 100;
                         }
                     }
                 }
@@ -1157,7 +1156,8 @@
                 monthData.extraTransfers.forEach(tr => { extraTransfersSum += tr.amount; });
             }
 
-            return Math.max(0, calc.freizeitSparen - totalSparzielDeductions - extraTransfersSum);
+            const res = calc.freizeitSparen - totalSparzielDeductions - extraTransfersSum;
+            return Math.max(0, Math.round(res * 100) / 100);
         }
 
         function renderHaushaltView() {
@@ -1169,6 +1169,7 @@
             const filtered = (haushaltItems || []).filter(i => i.date && i.date.startsWith(selectedM));
             filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+            // Anzeige von normalen Haushaltsausgaben
             filtered.forEach(item => {
                 totalSpent += parseFloat(item.amount || 0);
                 const div = document.createElement('div');
@@ -1184,7 +1185,31 @@
                 list.appendChild(div);
             });
 
-            if(filtered.length === 0) list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine Haushalts-Ausgaben für ' + selectedM + ' eingetragen.</div>';
+            // Zusätzliche Anzeige von getätigten Extra-Überweisungen im Haushaltsbuch zur Information
+            const monthData = entries[selectedM];
+            if(monthData && monthData.extraTransfers && monthData.extraTransfers.length > 0) {
+                monthData.extraTransfers.forEach(tr => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.style.background = '#f0f9ff';
+                    div.style.borderColor = '#bae6fd';
+                    div.innerHTML = `
+                        <div>
+                            <div class="history-date" style="color:var(--accent);">⚡ Extra-Sparüberweisung: ${tr.targetName}</div>
+                            <div class="history-sub">Vom Rest-Freizeitgeld abgezogen</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span class="val-red" style="font-weight:bold;">-${tr.amount.toFixed(2)} €</span>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+
+            if(filtered.length === 0 && (!monthData || !monthData.extraTransfers || monthData.extraTransfers.length === 0)) {
+                list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine Haushalts-Ausgaben für ' + selectedM + ' eingetragen.</div>';
+            }
+
             document.getElementById('HHTotalDisplay').innerText = totalSpent.toFixed(2) + ' €';
             
             const restFreizeitBudget = getRestFreizeitGeldCalculated();
@@ -1289,7 +1314,14 @@
             const bargeldSparen = parseFloat(item.bargeld) || 0;
             const freizeitSparen = Math.max(0, ueberschuss - notfallSparen);
             const gesamtSparen = notfallSparen + freizeitSparen + bargeldSparen;
-            return { netto, ueberschuss, notfallSparen, freizeitSparen, bargeldSparen, gesamtSparen };
+            return { 
+                netto: Math.round(netto * 100) / 100, 
+                ueberschuss: Math.round(ueberschuss * 100) / 100, 
+                notfallSparen: Math.round(notfallSparen * 100) / 100, 
+                freizeitSparen: Math.round(freizeitSparen * 100) / 100, 
+                bargeldSparen: Math.round(bargeldSparen * 100) / 100, 
+                gesamtSparen: Math.round(gesamtSparen * 100) / 100 
+            };
         }
 
         function liveCalc() {
@@ -1323,10 +1355,9 @@
                     if (goal.targetDate && remaining > 0) {
                         const [tY, tM] = goal.targetDate.split('-').map(Number);
                         const nowObj = new Date(m + "-01");
-                        // Zielmonat inkludieren: (+1 Monat)
                         const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1)) + 1;
                         if (diffMonths > 0) {
-                            let monthlyShare = remaining / diffMonths;
+                            let monthlyShare = Math.round((remaining / diffMonths) * 100) / 100;
                             totalSparzielDeductions += monthlyShare;
 
                             const row = document.createElement('div');
@@ -1890,9 +1921,8 @@
                 if (goal.targetDate && remaining > 0) {
                     const [tY, tM] = goal.targetDate.split('-').map(Number);
                     const nowObj = new Date(m + "-01");
-                    // Zielmonat inkludieren: (+1 Monat)
                     const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1)) + 1;
-                    if (diffMonths > 0) monthlyNeededText = `Ø ${(remaining / diffMonths).toFixed(0)} €/M. bis ${goal.targetDate}`;
+                    if (diffMonths > 0) monthlyNeededText = `Ø ${Math.round(remaining / diffMonths)} €/M. bis ${goal.targetDate}`;
                     else monthlyNeededText = `⚠️ Frist erreicht`;
                 }
 
