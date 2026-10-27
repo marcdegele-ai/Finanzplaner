@@ -138,18 +138,8 @@
         .badge-dauer { background: #e0f2fe; color: #0369a1; }
         .badge-paused { background: #fee2e2; color: #991b1b; }
         .badge-once { background: #f1f5f9; color: #475569; }
-        .badge-booked { background: #dcfce7; color: #166534; }
         .badge-kategorie { background: #f3e8ff; color: #7e22ce; }
-        .badge-income { background: #dcfce7; color: #15803d; }
-        .badge-urlaub { background: #fef3c7; color: #b45309; }
-        .badge-gamification { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
-
-        .goal-card-box { background: var(--card-sub); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; cursor: pointer; }
-        .goal-card-box:hover { border-color: var(--accent); }
-
-        .history-date { font-weight: bold; font-size: 0.88rem; color: var(--accent); }
-        .history-sub { font-size: 0.75rem; color: var(--text-sub); margin-top: 2px; line-height: 1.3; }
-
+        
         .progress-bar-container { background: #e2e8f0; border-radius: 6px; height: 8px; width: 100%; margin-top: 7px; overflow: hidden; border: 1px solid var(--border); }
         .progress-bar-fill { background: var(--accent-green); height: 100%; width: 0%; transition: width 0.3s ease; }
 
@@ -170,8 +160,6 @@
         .coin-badge-img { width: 22px; height: 22px; object-fit: contain; border-radius: 50%; margin: 0 auto 2px auto; display: block; border: 1px solid #facc15; background: #f59e0b; }
         .cash-box label { font-size: 0.7rem; display: block; margin-bottom: 3px; color: #b45309; font-weight: bold; cursor: pointer; }
         .cash-box input { width: 100%; text-align: center; padding: 5px; font-size: 0.85rem; cursor: pointer; }
-        
-        .receipt-btn { font-size: 0.7rem; background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -253,13 +241,10 @@
                 <div class="stat-row"><span>Notfallkonto Sparen:</span><span id="resNotfall" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>FreizeitKonto (Brutto):</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
                 
-                <div id="sparzieleBreakdownContainer"></div>
-
                 <div class="stat-row" style="background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 4px 0;">
                     <span style="font-weight:600; color:#15803d;">🎉 Frei verfügbar (Netto-Freizeit):</span>
                     <span id="resFreizeitRest" class="val-highlight" style="font-size:0.95rem;">0,00 €</span>
                 </div>
-
                 <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
                 <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Gesamt Sparen im Monat:</span><span id="resGesamtSparen">0,00 €</span></div>
             </div>
@@ -405,7 +390,7 @@
         </div>
     </div>
 
-    <!-- MODAL: AUSGABEN & DAUERAUFTRÄGE -->
+    <!-- MODAL: AUSGABEN & DAUERAUFTRÄGE (MIT PAUSIEREN-FUNKTION) -->
     <div id="expenseModal" class="modal">
         <div class="modal-content">
             <div class="card-title">Fixkosten & Daueraufträge für <span id="modalExpMonth" style="color:var(--accent);">-</span></div>
@@ -419,7 +404,7 @@
                 <div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Ausgabe hinzufügen</button></div>
             </div>
 
-            <div style="font-weight: 600; margin-bottom: 6px; font-size: 0.8rem; color: var(--accent);">Liste der Ausgaben:</div>
+            <div style="font-weight: 600; margin-bottom: 6px; font-size: 0.8rem; color: var(--accent);">Liste der Ausgaben (Daueraufträge pausierbar):</div>
             <div class="history-list" id="expenseItemsList" style="margin-bottom: 14px;"></div>
             <div class="stat-row" style="font-weight: bold; margin-bottom: 14px;"><span>Summe Fixkosten:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div>
             <button class="btn-add" onclick="closeExpenseModal()">Übernehmen & Schließen</button>
@@ -427,19 +412,19 @@
     </div>
 
     <script>
-        let entries = JSON.parse(localStorage.getItem('finanz_entries_v3')) || {
+        let entries = JSON.parse(localStorage.getItem('finanz_entries_v4')) || {
             "2026-11": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false }
         };
-        let goals = JSON.parse(localStorage.getItem('finanz_goals_v3')) || [
+        let goals = JSON.parse(localStorage.getItem('finanz_goals_v4')) || [
             { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0 },
             { id: "freizeit", name: "Urlaub & Freizeit", target: 2000, manualOffset: 0 }
         ];
-        let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_v3')) || [
+        let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_v4')) || [
             { id: "u_1", name: "Mallorca 2027", target: 500, startDate: "2027-04-21", endDate: "2027-04-25" }
         ];
         let currentUrlaubId = urlaubeList[0].id;
-        let cashBreakdown = JSON.parse(localStorage.getItem('finanz_cash_v3')) || { c100: 0, c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0 };
-        let haushaltItems = JSON.parse(localStorage.getItem('finanz_haushalt_v3')) || [];
+        let cashBreakdown = JSON.parse(localStorage.getItem('finanz_cash_v4')) || { c100: 0, c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0 };
+        let haushaltItems = JSON.parse(localStorage.getItem('finanz_haushalt_v4')) || [];
 
         let currentMonthItems = [];
         let currentMonthPausedItems = [];
@@ -454,11 +439,11 @@
         loadMonthData();
 
         function saveData() {
-            localStorage.setItem('finanz_entries_v3', JSON.stringify(entries));
-            localStorage.setItem('finanz_goals_v3', JSON.stringify(goals));
-            localStorage.setItem('finanz_urlaube_v3', JSON.stringify(urlaubeList));
-            localStorage.setItem('finanz_cash_v3', JSON.stringify(cashBreakdown));
-            localStorage.setItem('finanz_haushalt_v3', JSON.stringify(haushaltItems));
+            localStorage.setItem('finanz_entries_v4', JSON.stringify(entries));
+            localStorage.setItem('finanz_goals_v4', JSON.stringify(goals));
+            localStorage.setItem('finanz_urlaube_v4', JSON.stringify(urlaubeList));
+            localStorage.setItem('finanz_cash_v4', JSON.stringify(cashBreakdown));
+            localStorage.setItem('finanz_haushalt_v4', JSON.stringify(haushaltItems));
         }
 
         function exportBackupJSON() {
