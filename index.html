@@ -230,9 +230,9 @@
         .action-link { font-size: 0.72rem; cursor: pointer; padding: 3px 6px; border-radius: 4px; background: #e2e8f0; color: var(--text-main); text-decoration: none; display: inline-block; }
 
         .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
-        .month-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 460px; }
-        .month-table th { text-align: left; padding: 9px 10px; background: #e2e8f0; color: var(--accent); border-bottom: 1px solid var(--border); white-space: nowrap; }
-        .month-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); color: var(--text-main); white-space: nowrap; }
+        .month-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 520px; }
+        .month-table th { text-align: left; padding: 9px 8px; background: #e2e8f0; color: var(--accent); border-bottom: 1px solid var(--border); white-space: nowrap; }
+        .month-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); color: var(--text-main); white-space: nowrap; }
         .month-table tr:hover { background: rgba(2, 132, 199, 0.05); cursor: pointer; }
 
         .cash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 8px; }
@@ -343,20 +343,20 @@
                 <div class="stat-row"><span>Verfügbarer Überschuss:</span><span id="resUeberschuss">0,00 €</span></div>
                 <div class="stat-row"><span>Notfallkonto Sparen:</span><span id="resNotfall" class="val-highlight">0,00 €</span></div>
                 
-                <div class="stat-row"><span>FreizeitKonto Brutto Sparen:</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
+                <div class="stat-row"><span>FreizeitKonto (Brutto):</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
                 
                 <!-- Container für die dynamische Sparziel-Aufschlüsselung -->
                 <div id="sparzieleBreakdownContainer"></div>
 
                 <div class="stat-row" style="background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 4px 0;">
-                    <span style="font-weight:600; color:#15803d;">🎉 Rest-Freizeitgeld (Frei verfügbar):</span>
+                    <span style="font-weight:600; color:#15803d;">🎉 Frei verfügbar (Netto-Freizeit):</span>
                     <span id="resFreizeitRest" class="val-highlight" style="font-size:0.95rem;">0,00 €</span>
                 </div>
 
                 <!-- EXTRA-ÜBERWEISUNG VOM REST-FREIZEITGELD -->
                 <div style="background: var(--card-sub); border: 1px solid var(--accent); padding: 10px; border-radius: 8px; margin: 8px 0;">
-                    <label style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 4px;">⚡ Extra-Überweisung vom Rest-Freizeitgeld</label>
-                    <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 6px;">Übertrage Geld direkt von deinem Freizeitgeld auf ein Sparziel oder die Kasse.</div>
+                    <label style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 4px;">⚡ Extra-Überweisung vom Frei verfügbaren Betrag</label>
+                    <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 6px;">Übertrage Geld direkt von deinem frei verfügbaren Betrag auf ein Sparziel oder die Kasse.</div>
                     <div style="display: flex; gap: 6px; margin-bottom: 6px;">
                         <select id="extraTransferGoalSelect" style="flex: 1; font-size: 0.8rem; padding: 6px;"></select>
                         <input type="number" id="extraTransferAmount" placeholder="Betrag (€)" style="width: 100px; font-size: 0.8rem; padding: 6px;">
@@ -490,7 +490,7 @@
                 <div class="card-title">📈 Monatsübersicht & Entwicklung</div>
                 <div class="table-wrapper">
                     <table class="month-table">
-                        <thead><tr><th>Monat</th><th>Status</th><th>Sparrate</th><th>Notfall</th><th>Freizeit</th><th>Gesamt Stand</th></tr></thead>
+                        <thead><tr><th>Monat</th><th>Status</th><th>Sparrate</th><th>Notfall</th><th>Freizeit</th><th>Frei verf.</th><th>Gesamt Stand</th></tr></thead>
                         <tbody id="monthSavingsTableBody"></tbody>
                     </table>
                 </div>
@@ -1194,7 +1194,7 @@
             
             const restFreizeit = getRestFreizeitGeldCalculated();
             if(amount > restFreizeit) {
-                if(!confirm('Achtung: Der Betrag ist höher als dein aktuelles Rest-Freizeitgeld! Trotzdem übertragen?')) return;
+                if(!confirm('Achtung: Der Betrag ist höher als dein aktuell frei verfügbarer Betrag! Trotzdem übertragen?')) return;
             }
 
             let goal = goals.find(g => g.id === targetId);
@@ -1240,7 +1240,7 @@
             entries[m].extraTransfers.splice(trIndex, 1);
 
             await saveToCloud();
-            alert('Überweisung storniert! Das Geld ist wieder in deinem Rest-Freizeitgeld. ↩️');
+            alert('Überweisung storniert! Das Geld ist wieder in deinem frei verfügbaren Budget. ↩️');
             renderGoals();
             renderHistory();
             liveCalc();
@@ -1427,7 +1427,7 @@
                     div.innerHTML = `
                         <div>
                             <div class="history-date" style="color:var(--accent);">⚡ Extra-Sparüberweisung: ${tr.targetName}</div>
-                            <div class="history-sub">Vom Rest-Freizeitgeld abgezogen</div>
+                            <div class="history-sub">Vom frei verfügbaren Budget abgezogen</div>
                         </div>
                         <div style="text-align:right;">
                             <span class="val-red" style="font-weight:bold;">-${tr.amount.toFixed(2)} €</span>
@@ -1749,15 +1749,10 @@
             const goal = goals.find(g => g.id === goalId);
             let runningSum = goalId === 'kassette' ? parseFloat(goal?.manualCurrent || 0) : parseFloat(goal?.manualOffset || 0);
             
-            // Hochrechnung (inklusive offener Monate)
             let projectedSum = runningSum;
             let breakdown = [];
 
-            // Alle bekannten Monate (sowohl gebucht als auch offen/fallback) durchgehen
-            // Wir nehmen hier alle in 'entries' gespeicherten Schlüssel + standardmäßig alle Monate aus der Vorschau oder generieren sie fortlaufend
-            // Für eine saubere Hochrechnung holen wir alle Schlüssel aus entries, oder simulieren bis zu einem gewissen Horizont (z.B. 12 Monate ab heute)
             let allMonthsToCheck = new Set(sortedKeys);
-            // Füge die nächsten 12 Monate ab Start hinzu, falls sie nicht in entries sind
             let baseKey = document.getElementById('monthInput').value || "2026-11";
             let simKey = baseKey;
             for(let i=0; i<12; i++) {
@@ -1821,7 +1816,6 @@
             const tableBody = document.getElementById('monthSavingsTableBody');
             tableBody.innerHTML = '';
             
-            // Generiere eine saubere Liste von Monaten (gespeicherte + Vorschau-Monate)
             let baseKey = document.getElementById('monthInput').value || "2026-11";
             let allMonthKeysSet = new Set(Object.keys(entries).sort());
             let tempK = baseKey;
@@ -1848,6 +1842,29 @@
                     });
                 }
 
+                // Berechnung des monatlichen Sparziel-Abzugs für diesen Monat
+                let monthSparzielDeductions = 0;
+                goals.forEach(goal => {
+                    if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
+                        let currentVal = getSavedAmountForGoal(goal);
+                        let remaining = goal.target - currentVal;
+                        if (!(currentVal >= goal.target && goal.target > 0) && !(goal.targetDate && goal.targetDate < key)) {
+                            if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
+                                monthSparzielDeductions += parseFloat(goal.fixedMonthly);
+                            } else if (goal.targetDate && remaining > 0) {
+                                const [tY, tM] = goal.targetDate.split('-').map(Number);
+                                const [mY, mM] = key.split('-').map(Number);
+                                const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
+                                if (diffMonths > 0) {
+                                    monthSparzielDeductions += Math.round((remaining / diffMonths) * 100) / 100;
+                                }
+                            }
+                        }
+                    }
+                });
+
+                let freiVerfubarMonat = Math.max(0, calc.freizeitSparen - monthSparzielDeductions);
+
                 if (itemData.booked) {
                     runningNotfall += (calc.notfallSparen + extraNotfall);
                     runningFreizeit += (calc.freizeitSparen + extraFreizeit);
@@ -1867,13 +1884,13 @@
                     <td>${itemData.booked ? '<span class="badge badge-booked">Aktiv ✅</span>' : '<span class="badge badge-once">Offen (Plan) ⏳</span>'}</td>
                     <td style="font-weight:bold; color:var(--accent-green);">+${calc.gesamtSparen.toFixed(2)} €</td>
                     <td class="val-highlight">${(itemData.booked ? runningNotfall : projRunningNotfall).toFixed(2)} €</td>
-                    <td class="val-orange">${(itemData.booked ? runningFreizeit : projRunningFreizeit).toFixed(2)} €</td>
+                    <td class="val-orange">${calc.freizeitSparen.toFixed(2)} €</td>
+                    <td style="font-weight:bold; color:#15803d;">${freiVerfubarMonat.toFixed(2)} €</td>
                     <td style="font-weight:bold; color:var(--text-main);">${totalMonthStand.toFixed(2)} €</td>
                 `;
                 tableBody.appendChild(tr);
             });
 
-            // Kontostand Box Werte setzen (Gebucht vs Hochrechnung)
             document.getElementById('totalNotfall').innerText = runningNotfall.toFixed(2) + ' €';
             document.getElementById('projNotfall').innerText = projRunningNotfall.toFixed(2) + ' €';
 
