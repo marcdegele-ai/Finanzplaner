@@ -1002,7 +1002,6 @@
             let goal = goals.find(g => g.id === targetId);
             if(!goal) return;
 
-            // Ziel Guthaben direkt erhöhen
             if(['notfall', 'freizeit'].includes(goal.id)) {
                 goal.manualOffset = (parseFloat(goal.manualOffset) || 0) + amount;
             } else if(goal.id === 'kassette') {
@@ -1011,7 +1010,6 @@
                 goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) + amount;
             }
 
-            // In den Monatsdaten für den ausgewählten Monat festhalten
             const m = getSelectedMonthKey();
             if(!entries[m]) {
                 entries[m] = {
@@ -1049,7 +1047,6 @@
             const tr = entries[m].extraTransfers[trIndex];
             if(!confirm(`Möchtest du die Extra-Überweisung von ${tr.amount.toFixed(2)} € an "${tr.targetName}" wirklich stornieren?`)) return;
 
-            // Vom Ziel wieder abziehen
             let goal = goals.find(g => g.id === tr.targetId);
             if(goal) {
                 if(['notfall', 'freizeit'].includes(goal.id)) {
@@ -1061,7 +1058,6 @@
                 }
             }
 
-            // Aus der Liste entfernen
             entries[m].extraTransfers.splice(trIndex, 1);
 
             await saveToCloud();
@@ -1076,8 +1072,10 @@
             const input = document.getElementById('splitNotfallInput');
             if (mode === 'fixed') {
                 input.placeholder = 'z.B. 150';
+                if(parseFloat(input.value) > 100) input.value = 150;
             } else {
                 input.placeholder = 'z.B. 15';
+                if(parseFloat(input.value) > 100) input.value = 15;
             }
             liveCalc();
         }
@@ -1136,7 +1134,6 @@
             let totalSparzielDeductions = 0;
 
             goals.forEach(goal => {
-                // Nur benutzerdefinierte Sparziele abziehen, die nicht das Notfallkonto selbst sind
                 if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
                     let currentVal = getSavedAmountForGoal(goal);
                     let remaining = goal.target - currentVal;
@@ -1387,7 +1384,6 @@
 
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
             
-            // Korrekte Summe der automatischen Abzüge der Sparpakete
             const sparzieleAbzugGesamt = calc.notfallSparen + calc.freizeitSparen;
             document.getElementById('resSparzieleAbzug').innerText = '-' + sparzieleAbzugGesamt.toFixed(2) + ' €';
 
