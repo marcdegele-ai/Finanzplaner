@@ -1744,7 +1744,6 @@
             }
         }
 
-        // HIER AKTUALISIERT: MONATLICHE PLANUNGS-AUFSCHLÜSLUNG FÜR DAS SPARZIEL-MODAL
         function getGoalData(goalId) {
             const sortedKeys = Object.keys(entries).sort();
             const goal = goals.find(g => g.id === goalId);
@@ -1756,7 +1755,6 @@
             let baseKey = document.getElementById('monthInput').value || "2026-11";
             let targetDateLimit = goal && goal.targetDate ? goal.targetDate : "2028-12";
             
-            // Generiere alle Monate von baseKey bis zur Ziel-Frist (mindestens aber die nächsten 12 Monate)
             let allMonthsToCheck = new Set(sortedKeys);
             let simKey = baseKey;
             for(let i=0; i<36; i++) {
@@ -1767,7 +1765,6 @@
             let sortedAllMonths = Array.from(allMonthsToCheck).sort();
 
             sortedAllMonths.forEach(key => {
-                // Wenn ein Ziel ein Enddatum hat, nach dem Ziel-Monat aufhören
                 if(goal && goal.targetDate && key > goal.targetDate && !['notfall', 'freizeit', 'kassette'].includes(goal.id)) return;
 
                 const itemData = getMonthDataOrFallback(key);
@@ -1781,7 +1778,6 @@
                 } else if(goalId === 'kassette') {
                     regularMonthAdd = calc.bargeldSparen;
                 } else {
-                    // Benutzerdefiniertes Ziel: Berechne den geplanten monatlichen Anteil gemäß Logik
                     let currentValEval = runningSum;
                     let remaining = goal.target - currentValEval;
                     if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
@@ -2506,7 +2502,7 @@
             const fixedMonthly = parseFloat(document.getElementById('zielFixedMonthly').value) || 0;
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
             let targetDate = document.getElementById('zielDatum').value;
-            const goalType = document.getElementById('zielTypeSelect'.value);
+            const goalType = document.getElementById('zielTypeSelect').value;
 
             if(urlaubLinkId) {
                 let u = urlaubeList.find(x => x.id === urlaubLinkId);
