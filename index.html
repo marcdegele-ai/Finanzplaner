@@ -687,6 +687,14 @@
         let entries = JSON.parse(localStorage.getItem('finanz_entries_local')) || {
             "2026-11": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }
         };
+        
+        // Bereinige direkt beim Start alle Einträge von alten Daueraufträgen, falls gewünscht
+        Object.keys(entries).forEach(k => {
+            if(entries[k] && entries[k].items) {
+                entries[k].items = entries[k].items.filter(i => i.type !== 'dauer');
+            }
+        });
+
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
             { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-11" },
             { id: "freizeit", name: "Urlaub & Freizeit", target: 2000, manualOffset: 0, targetDate: "2027-08", urlaubLinkId: "u_2" },
@@ -963,8 +971,10 @@
 
             if (entries[m]) {
                 let existingItems = entries[m].items || [];
+                let existingNamesLower = new Set(existingItems.map(i => i.name.trim().toLowerCase()));
+
                 inheritedItems.forEach(inh => {
-                    if (!existingItems.some(i => i.name === inh.name)) {
+                    if (!existingNamesLower.has(inh.name.trim().toLowerCase())) {
                         existingItems.push(JSON.parse(JSON.stringify(inh)));
                     }
                 });
@@ -1371,7 +1381,7 @@
                 const currentM = getSelectedMonthKey();
                 Object.keys(entries).forEach(mKey => {
                     if (mKey >= currentM && entries[mKey] && entries[mKey].items) {
-                        entries[mKey].items = entries[mKey].items.filter(i => i.name !== deletedItem.name);
+                        entries[mKey].items = entries[mKey].items.filter(i => i.name.toLowerCase() !== deletedItem.name.toLowerCase());
                     }
                 });
             }
