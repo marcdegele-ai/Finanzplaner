@@ -1142,7 +1142,8 @@
                     if (goal.targetDate && remaining > 0) {
                         const [tY, tM] = goal.targetDate.split('-').map(Number);
                         const nowObj = new Date(m + "-01");
-                        const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1));
+                        // Zielmonat inkludieren: (+1 Monat)
+                        const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1)) + 1;
                         if (diffMonths > 0) {
                             totalSparzielDeductions += (remaining / diffMonths);
                         }
@@ -1322,7 +1323,8 @@
                     if (goal.targetDate && remaining > 0) {
                         const [tY, tM] = goal.targetDate.split('-').map(Number);
                         const nowObj = new Date(m + "-01");
-                        const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1));
+                        // Zielmonat inkludieren: (+1 Monat)
+                        const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1)) + 1;
                         if (diffMonths > 0) {
                             let monthlyShare = remaining / diffMonths;
                             totalSparzielDeductions += monthlyShare;
@@ -1888,7 +1890,8 @@
                 if (goal.targetDate && remaining > 0) {
                     const [tY, tM] = goal.targetDate.split('-').map(Number);
                     const nowObj = new Date(m + "-01");
-                    const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1));
+                    // Zielmonat inkludieren: (+1 Monat)
+                    const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1)) + 1;
                     if (diffMonths > 0) monthlyNeededText = `Ø ${(remaining / diffMonths).toFixed(0)} €/M. bis ${goal.targetDate}`;
                     else monthlyNeededText = `⚠️ Frist erreicht`;
                 }
