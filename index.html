@@ -1040,14 +1040,6 @@
                     await saveToCloud();
                 }
 
-                // Daueraufträge komplett leeren wie gewünscht
-                Object.keys(entries).forEach(k => {
-                    if(entries[k] && entries[k].items) {
-                        entries[k].items = entries[k].items.filter(i => i.type !== 'dauer');
-                    }
-                });
-                await saveToCloud();
-
                 document.getElementById('cloudStatus').innerText = "☁️ Synchronisiert ✅";
                 updateHHKategorien();
                 loadCashBreakdownToUI();
@@ -1152,7 +1144,6 @@
             return `${y}-${String(m).padStart(2, '0')}`;
         }
 
-        // VERERBUNGS-LOGIK MIT DATUMSPRÜFUNG (Bis wann läuft der Dauerauftrag?)
         function getMonthDataOrFallback(m) {
             const sortedKeys = Object.keys(entries).sort();
             const prevKey = sortedKeys.reverse().find(k => k < m);
@@ -1160,7 +1151,6 @@
             if (prevKey && entries[prevKey] && entries[prevKey].items) {
                 inheritedItems = entries[prevKey].items.filter(i => {
                     if (i.type !== 'dauer') return false;
-                    // Wenn ein Enddatum angegeben ist und der aktuelle Monat m größer ist als das Enddatum, wird er nicht mehr vererbt!
                     if (i.endDate && m > i.endDate) return false;
                     return true;
                 });
