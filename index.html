@@ -1002,14 +1002,7 @@
             let goal = goals.find(g => g.id === targetId);
             if(!goal) return;
 
-            if(['notfall', 'freizeit'].includes(goal.id)) {
-                goal.manualOffset = (parseFloat(goal.manualOffset) || 0) + amount;
-            } else if(goal.id === 'kassette') {
-                goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) + amount;
-            } else {
-                goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) + amount;
-            }
-
+            // Extra-Überweisung im Monat eintragen (Umschichtung aus dem Rest-Freizeitgeld)
             const m = getSelectedMonthKey();
             if(!entries[m]) {
                 entries[m] = {
@@ -1047,17 +1040,6 @@
             const tr = entries[m].extraTransfers[trIndex];
             if(!confirm(`Möchtest du die Extra-Überweisung von ${tr.amount.toFixed(2)} € an "${tr.targetName}" wirklich stornieren?`)) return;
 
-            let goal = goals.find(g => g.id === tr.targetId);
-            if(goal) {
-                if(['notfall', 'freizeit'].includes(goal.id)) {
-                    goal.manualOffset = (parseFloat(goal.manualOffset) || 0) - tr.amount;
-                } else if(goal.id === 'kassette') {
-                    goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) - tr.amount;
-                } else {
-                    goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) - tr.amount;
-                }
-            }
-
             entries[m].extraTransfers.splice(trIndex, 1);
 
             await saveToCloud();
@@ -1072,10 +1054,8 @@
             const input = document.getElementById('splitNotfallInput');
             if (mode === 'fixed') {
                 input.placeholder = 'z.B. 150';
-                if(parseFloat(input.value) > 100) input.value = 150;
             } else {
                 input.placeholder = 'z.B. 15';
-                if(parseFloat(input.value) > 100) input.value = 15;
             }
             liveCalc();
         }
@@ -1336,7 +1316,17 @@
             document.getElementById('displayMonth').innerText = m;
             document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
             document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
-            document.getElementById('resNotfall').innerText = calc.notfallSparen.toFixed(2) + ' €';
+            
+            // Falls Extra-Überweisung auf das Notfallkonto getätigt wurde, beim Notfallkonto aufaddieren
+            let extraNotfallAmount = 0;
+            if (monthData.extraTransfers) {
+                monthData.extraTransfers.forEach(tr => {
+                    if (tr.targetId === 'notfall') extraNotfallAmount += tr.amount;
+                });
+            }
+            const notfallGesamtAnzeige = calc.notfallSparen + extraNotfallAmount;
+            document.getElementById('resNotfall').innerText = notfallGesamtAnzeige.toFixed(2) + ' €';
+            
             document.getElementById('resFreizeit').innerText = calc.freizeitSparen.toFixed(2) + ' €';
             
             const container = document.getElementById('sparzieleBreakdownContainer');
@@ -1503,12 +1493,21 @@
                 if (itemData && itemData.booked) {
                     const calc = calculateValuesFor(itemData);
                     let val = goalId === 'notfall' ? calc.notfallSparen : (goalId === 'freizeit' ? calc.freizeitSparen : (goalId === 'kassette' ? calc.bargeldSparen : 0));
+                    
+                    // Bei Notfall oder Freizeit die Extra-Transfers für diesen gebuchten Monat berücksichtigen
+                    if (itemData.extraTransfers) {
+                        itemData.extraTransfers.forEach(tr => {
+                            if (tr.targetId === goalId) {
+                                val += tr.amount;
+                            }
+                        });
+                    }
+
                     if (val > 0) {
                         runningSum += val;
                         breakdown.push({ month: key, amount: val, totalSoFar: runningSum });
                     }
-                }
-                if (itemData && itemData.extraTransfers) {
+                } else if (itemData && itemData.extraTransfers) {
                     itemData.extraTransfers.forEach(tr => {
                         if (tr.targetId === goalId) {
                             runningSum += tr.amount;
@@ -1545,7 +1544,11 @@
                 const itemData = entries[key];
                 const calc = calculateValuesFor(itemData);
                 if (itemData.booked) {
-                    runningNotfall += calc.notfallSparen;
+                    let extraNotfall = 0;
+                    if(itemData.extraTransfers) {
+                        itemData.extraTransfers.forEach(tr => { if(tr.targetId === 'notfall') extraNotfall += tr.amount; });
+                    }
+                    runningNotfall += (calc.notfallSparen + extraNotfall);
                     runningFreizeit += calc.freizeitSparen;
                     runningKassette += calc.bargeldSparen;
                 }
