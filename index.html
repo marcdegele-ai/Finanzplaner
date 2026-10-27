@@ -1138,12 +1138,16 @@
                 if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
                     let currentVal = getSavedAmountForGoal(goal);
                     let remaining = goal.target - currentVal;
+                    
+                    // Prüfen ob Ziel bereits erreicht ist
+                    if (currentVal >= goal.target && goal.target > 0) return;
+
                     if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                         totalSparzielDeductions += parseFloat(goal.fixedMonthly);
                     } else if (goal.targetDate && remaining > 0) {
                         const [tY, tM] = goal.targetDate.split('-').map(Number);
-                        const nowObj = new Date(m + "-01");
-                        const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1)) + 1;
+                        const [mY, mM] = m.split('-').map(Number);
+                        const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
                         if (diffMonths > 0) {
                             totalSparzielDeductions += Math.round((remaining / diffMonths) * 100) / 100;
                         }
@@ -1361,12 +1365,19 @@
                     let remaining = goal.target - currentVal;
                     let monthlyShare = 0;
 
+                    // Prüfen ob Ziel bereits erreicht ist oder Frist vorbei
+                    if (currentVal >= goal.target && goal.target > 0) return;
+
+                    if (goal.targetDate && goal.targetDate < m) {
+                        return; // Frist abgelaufen, kein Abzug mehr!
+                    }
+
                     if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                         monthlyShare = parseFloat(goal.fixedMonthly);
                     } else if (goal.targetDate && remaining > 0) {
                         const [tY, tM] = goal.targetDate.split('-').map(Number);
-                        const nowObj = new Date(m + "-01");
-                        const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1)) + 1;
+                        const [mY, mM] = m.split('-').map(Number);
+                        const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
                         if (diffMonths > 0) {
                             monthlyShare = Math.round((remaining / diffMonths) * 100) / 100;
                         }
@@ -1960,8 +1971,8 @@
                 } else if (goal.targetDate && remaining > 0) {
                     const m = getSelectedMonthKey();
                     const [tY, tM] = goal.targetDate.split('-').map(Number);
-                    const nowObj = new Date(m + "-01");
-                    const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1)) + 1;
+                    const [mY, mM] = m.split('-').map(Number);
+                    const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
                     if (diffMonths > 0) monthlyNeededText = `Ø ${Math.round(remaining / diffMonths)} €/M. bis ${goal.targetDate}`;
                     else monthlyNeededText = `⚠️ Frist erreicht`;
                 }
@@ -2013,13 +2024,12 @@
             document.getElementById('manualDepositAmount').value = '';
             document.getElementById('manualWithdrawAmount').value = '';
             
-            // Standardwert für den Simulator setzen
             let defaultMonthly = goal.fixedMonthly || 100;
             if(!goal.fixedMonthly && goal.targetDate) {
                 const m = getSelectedMonthKey();
                 const [tY, tM] = goal.targetDate.split('-').map(Number);
-                const nowObj = new Date(m + "-01");
-                const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1)) + 1;
+                const [mY, mM] = m.split('-').map(Number);
+                const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
                 let rem = goal.target - getSavedAmountForGoal(goal);
                 if(diffMonths > 0 && rem > 0) defaultMonthly = Math.round(rem / diffMonths);
             }
