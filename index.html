@@ -204,6 +204,7 @@
         .badge-once { background: #f1f5f9; color: #475569; }
         .badge-booked { background: #dcfce7; color: #166534; }
         .badge-kategorie { background: #f3e8ff; color: #7e22ce; }
+        .badge-income { background: #dcfce7; color: #15803d; }
         .badge-urlaub { background: #fef3c7; color: #b45309; }
         .badge-gamification { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
 
@@ -370,23 +371,24 @@
         <!-- TAB 2: HAUSHALTSBUCH -->
         <div id="haushalt-view" class="view-section">
             <div class="card">
-                <div class="card-title">🏠 Haushaltsbuch – Ausgabe erfassen</div>
+                <div class="card-title">🏠 Haushaltsbuch – Einnahme oder Ausgabe erfassen</div>
                 <div class="input-group full" style="margin-bottom: 12px; background: #e0f2fe; padding: 10px; border-radius: 8px; border: 1px solid #bae6fd;">
                     <label style="color: var(--accent); font-weight: bold;">📅 Monat im Haushaltsbuch wählen:</label>
                     <input type="month" id="hhMonthInput" min="2026-11" onchange="syncMonthInput(this.value)" style="background:#ffffff; font-weight:bold; color:var(--accent);">
                 </div>
                 <div class="grid">
-                    <div class="input-group full"><label>Bezeichnung / Wofür?</label><input type="text" id="HHName" placeholder="z.B. Supermarkt Einkauf, Tanken..."></div>
+                    <div class="input-group full">
+                        <label>Typ der Buchung</label>
+                        <select id="HHType" onchange="updateHHKategorien()">
+                            <option value="expense">🔴 Ausgabe / Geld ausgegeben</option>
+                            <option value="income">🟢 Einnahme / Geld erhalten (z.B. Bar)</option>
+                        </select>
+                    </div>
+                    <div class="input-group full"><label>Bezeichnung / Wofür?</label><input type="text" id="HHName" placeholder="z.B. Bargeld erhalten, Tanken..."></div>
                     <div class="input-group"><label>Betrag (€)</label><input type="number" id="HHAmount" placeholder="0.00"></div>
                     <div class="input-group">
                         <label>Kategorie</label>
-                        <select id="HHKategorie">
-                            <option value="🛒 Lebensmittel">🛒 Lebensmittel</option>
-                            <option value="🚗 Mobilität / Tanken">🚗 Mobilität / Tanken</option>
-                            <option value="🎉 Freizeit & Gastro">🎉 Freizeit & Gastro</option>
-                            <option value="💡 Haushalt & Drogerie">💡 Haushalt & Drogerie</option>
-                            <option value="📦 Sonstiges">📦 Sonstiges</option>
-                        </select>
+                        <select id="HHKategorie"></select>
                     </div>
                     <div class="input-group full"><label>Datum</label><input type="date" id="HHDate"></div>
                     <div class="input-group full">
@@ -394,18 +396,19 @@
                         <input type="file" id="HHReceiptInput" accept="image/*" capture="environment">
                     </div>
                 </div>
-                <button class="btn-add" onclick="addHaushaltItem()">Ausgabe hinzufügen ➕</button>
+                <button class="btn-add" onclick="addHaushaltItem()">Buchung hinzufügen ➕</button>
             </div>
 
             <div class="card">
-                <div class="card-title">📊 Ausgaben im gewählten Monat (<span id="HHMonthDisplay">-</span>)</div>
+                <div class="card-title">📊 Ausgaben & Einnahmen im Monat (<span id="HHMonthDisplay">-</span>)</div>
                 <div class="stat-row"><span>Gesamtausgaben Haushalt:</span><span id="HHTotalDisplay" class="val-red">0,00 €</span></div>
-                <div class="stat-row"><span>Verfügbares Taschengeld-Budget (Rest-Freizeitgeld):</span><span id="HHBudgetDisplay" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row" style="font-weight:bold;"><span>Rest-Budget:</span><span id="HHRestDisplay">0,00 €</span></div>
+                <div class="stat-row"><span>Gesamteinnahmen Haushalt (extra):</span><span id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</span></div>
+                <div class="stat-row"><span>Verfügbares Taschengeld-Budget (Basis):</span><span id="HHBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></div>
+                <div class="stat-row" style="font-weight:bold; font-size:0.95rem;"><span>Rest-Budget (inkl. Einnahmen):</span><span id="HHRestDisplay">0,00 €</span></div>
             </div>
 
             <div class="card">
-                <div class="card-title">📋 Alle Ausgaben diesen Monat</div>
+                <div class="card-title">📋 Alle Buchungen diesen Monat</div>
                 <div class="history-list" id="HHList"></div>
             </div>
         </div>
@@ -760,6 +763,39 @@
         document.getElementById('selectYear').value = new Date().getFullYear();
         document.getElementById('HHDate').valueAsDate = new Date();
 
+        function updateHHKategorien() {
+            const type = document.getElementById('HHType').value;
+            const select = document.getElementById('HHKategorie');
+            select.innerHTML = '';
+
+            if (type === 'income') {
+                const options = [
+                    "💵 Bargeld erhalten",
+                    "🎁 Geschenk / Taschengeld",
+                    "🔄 Rückerstattung",
+                    "📦 Verkäufe / Sonstiges"
+                ];
+                options.forEach(opt => {
+                    const el = document.createElement('option');
+                    el.value = opt; el.innerText = opt;
+                    select.appendChild(el);
+                });
+            } else {
+                const options = [
+                    "🛒 Lebensmittel",
+                    "🚗 Mobilität / Tanken",
+                    "🎉 Freizeit & Gastro",
+                    "💡 Haushalt & Drogerie",
+                    "📦 Sonstiges"
+                ];
+                options.forEach(opt => {
+                    const el = document.createElement('option');
+                    el.value = opt; el.innerText = opt;
+                    select.appendChild(el);
+                });
+            }
+        }
+
         function syncMonthInput(val) {
             document.getElementById('monthInput').value = val;
             document.getElementById('hhMonthInput').value = val;
@@ -882,6 +918,7 @@
                 }
 
                 document.getElementById('cloudStatus').innerText = "☁️ Synchronisiert ✅";
+                updateHHKategorien();
                 loadCashBreakdownToUI();
                 loadMonthData();
                 renderHistory();
@@ -1097,6 +1134,7 @@
             const amount = parseFloat(document.getElementById('HHAmount').value);
             const category = document.getElementById('HHKategorie').value;
             const date = document.getElementById('HHDate').value;
+            const itemType = document.getElementById('HHType').value || 'expense';
             const receiptInput = document.getElementById('HHReceiptInput');
 
             if(!name || isNaN(amount) || amount <= 0 || !date) return alert('Bitte Bezeichnung, Betrag und Datum angeben!');
@@ -1111,7 +1149,7 @@
                 }
             }
 
-            haushaltItems.push({ id: Date.now(), name, amount, category, date, receipt: receiptDataUrl });
+            haushaltItems.push({ id: Date.now(), name, amount, category, date, type: itemType, receipt: receiptDataUrl });
             await saveToCloud();
 
             document.getElementById('HHName').value = '';
@@ -1122,7 +1160,7 @@
         }
 
         async function deleteHaushaltItem(id) {
-            if(confirm('Ausgabe wirklich löschen?')) {
+            if(confirm('Buchung wirklich löschen?')) {
                 haushaltItems = haushaltItems.filter(i => i.id !== id);
                 await saveToCloud();
                 renderHaushaltView();
@@ -1183,18 +1221,27 @@
             const list = document.getElementById('HHList');
             list.innerHTML = '';
             let totalSpent = 0;
+            let totalIncome = 0;
+
             const filtered = (haushaltItems || []).filter(i => i.date && i.date.startsWith(selectedM));
             filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             filtered.forEach(item => {
-                totalSpent += parseFloat(item.amount || 0);
+                const isIncome = item.type === 'income';
+                if (isIncome) totalIncome += parseFloat(item.amount || 0);
+                else totalSpent += parseFloat(item.amount || 0);
+
                 const div = document.createElement('div');
                 div.className = 'history-item';
                 let receiptBtnHtml = item.receipt ? `<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">🧾 Beleg</button>` : '';
+                let badgeClass = isIncome ? 'badge-income' : 'badge-kategorie';
+                let sign = isIncome ? '+' : '-';
+                let amountClass = isIncome ? 'val-highlight' : 'val-red';
+
                 div.innerHTML = `
-                    <div><div class="history-date">${item.name} <span class="badge badge-kategorie">${item.category}</span> ${receiptBtnHtml}</div><div class="history-sub">Datum: ${item.date}</div></div>
+                    <div><div class="history-date" style="${isIncome ? 'color:var(--accent-green);' : ''}">${item.name} <span class="badge ${badgeClass}">${item.category}</span> ${receiptBtnHtml}</div><div class="history-sub">Datum: ${item.date}</div></div>
                     <div style="text-align:right; display:flex; align-items:center; gap:8px;">
-                        <span class="val-red">-${parseFloat(item.amount).toFixed(2)} €</span>
+                        <span class="${amountClass}">${sign}${parseFloat(item.amount).toFixed(2)} €</span>
                         <span style="color:#ef4444; font-size:0.75rem; cursor:pointer;" onclick="deleteHaushaltItem(${item.id})">🗑️</span>
                     </div>
                 `;
@@ -1222,15 +1269,16 @@
             }
 
             if(filtered.length === 0 && (!monthData || !monthData.extraTransfers || monthData.extraTransfers.length === 0)) {
-                list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine Haushalts-Ausgaben für ' + selectedM + ' eingetragen.</div>';
+                list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine Haushalts-Buchungen für ' + selectedM + ' eingetragen.</div>';
             }
 
             document.getElementById('HHTotalDisplay').innerText = totalSpent.toFixed(2) + ' €';
+            document.getElementById('HHIncomeTotalDisplay').innerText = '+' + totalIncome.toFixed(2) + ' €';
             
             const restFreizeitBudget = getRestFreizeitGeldCalculated();
             document.getElementById('HHBudgetDisplay').innerText = restFreizeitBudget.toFixed(2) + ' €';
             
-            const rest = restFreizeitBudget - totalSpent;
+            const rest = restFreizeitBudget + totalIncome - totalSpent;
             const restEl = document.getElementById('HHRestDisplay');
             restEl.innerText = rest.toFixed(2) + ' €';
             restEl.className = rest >= 0 ? 'val-highlight' : 'val-red';
@@ -1461,10 +1509,14 @@
             const selectedM = monthKey;
             const tg = getRestFreizeitGeldCalculated();
             let spent = 0;
+            let income = 0;
             (haushaltItems || []).forEach(i => {
-                if(i.date && i.date.startsWith(selectedM)) spent += parseFloat(i.amount || 0);
+                if(i.date && i.date.startsWith(selectedM)) {
+                    if(i.type === 'income') income += parseFloat(i.amount || 0);
+                    else spent += parseFloat(i.amount || 0);
+                }
             });
-            const rest = tg - spent;
+            const rest = tg + income - spent;
             if(rest > 5) {
                 document.getElementById('closeRestAmount').innerText = rest.toFixed(2) + ' €';
                 document.getElementById('monthCloseModal').classList.add('active');
