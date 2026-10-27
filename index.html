@@ -1136,6 +1136,7 @@
             let totalSparzielDeductions = 0;
 
             goals.forEach(goal => {
+                // Nur benutzerdefinierte Sparziele abziehen, die nicht das Notfallkonto selbst sind
                 if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
                     let currentVal = getSavedAmountForGoal(goal);
                     let remaining = goal.target - currentVal;
@@ -1150,7 +1151,6 @@
                 }
             });
 
-            // Extra-Überweisungen für diesen Monat abziehen
             let extraTransfersSum = 0;
             if(monthData.extraTransfers) {
                 monthData.extraTransfers.forEach(tr => { extraTransfersSum += tr.amount; });
@@ -1169,7 +1169,6 @@
             const filtered = (haushaltItems || []).filter(i => i.date && i.date.startsWith(selectedM));
             filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            // Anzeige von normalen Haushaltsausgaben
             filtered.forEach(item => {
                 totalSpent += parseFloat(item.amount || 0);
                 const div = document.createElement('div');
@@ -1185,7 +1184,6 @@
                 list.appendChild(div);
             });
 
-            // Zusätzliche Anzeige von getätigten Extra-Überweisungen im Haushaltsbuch zur Information
             const monthData = entries[selectedM];
             if(monthData && monthData.extraTransfers && monthData.extraTransfers.length > 0) {
                 monthData.extraTransfers.forEach(tr => {
@@ -1372,7 +1370,6 @@
                 }
             });
 
-            // Extra-Überweisungen als Zeilen anzeigen + Storno-Button
             if(monthData.extraTransfers) {
                 monthData.extraTransfers.forEach(tr => {
                     const row = document.createElement('div');
@@ -1390,6 +1387,7 @@
 
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
             
+            // Korrekte Summe der automatischen Abzüge der Sparpakete
             const sparzieleAbzugGesamt = calc.notfallSparen + calc.freizeitSparen;
             document.getElementById('resSparzieleAbzug').innerText = '-' + sparzieleAbzugGesamt.toFixed(2) + ' €';
 
@@ -1514,7 +1512,6 @@
                         breakdown.push({ month: key, amount: val, totalSoFar: runningSum });
                     }
                 }
-                // Extra-Überweisungen in die Historie des Ziels einfließen lassen
                 if (itemData && itemData.extraTransfers) {
                     itemData.extraTransfers.forEach(tr => {
                         if (tr.targetId === goalId) {
