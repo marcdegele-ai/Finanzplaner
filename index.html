@@ -1834,11 +1834,13 @@
                 const calc = calculateValuesFor(itemData);
                 
                 let extraNotfall = 0, extraFreizeit = 0, extraKassette = 0;
+                let extraTransfersMonthSum = 0;
                 if(itemData.extraTransfers) {
                     itemData.extraTransfers.forEach(tr => { 
                         if(tr.targetId === 'notfall') extraNotfall += tr.amount;
                         if(tr.targetId === 'freizeit') extraFreizeit += tr.amount;
                         if(tr.targetId === 'kassette') extraKassette += tr.amount;
+                        extraTransfersMonthSum += tr.amount;
                     });
                 }
 
@@ -1863,7 +1865,8 @@
                     }
                 });
 
-                let freiVerfubarMonat = Math.max(0, calc.freizeitSparen - monthSparzielDeductions);
+                // KORREKTUR: Auch in der Tabelle jetzt exakt die monatlichen Sparziele UND die Extra-Transfers abziehen!
+                let freiVerfubarMonat = Math.max(0, calc.freizeitSparen - monthSparzielDeductions - extraTransfersMonthSum);
 
                 if (itemData.booked) {
                     runningNotfall += (calc.notfallSparen + extraNotfall);
