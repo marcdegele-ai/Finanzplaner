@@ -1139,8 +1139,8 @@
                     let currentVal = getSavedAmountForGoal(goal);
                     let remaining = goal.target - currentVal;
                     
-                    // Prüfen ob Ziel bereits erreicht ist
                     if (currentVal >= goal.target && goal.target > 0) return;
+                    if (goal.targetDate && goal.targetDate < m) return;
 
                     if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                         totalSparzielDeductions += parseFloat(goal.fixedMonthly);
@@ -1365,12 +1365,8 @@
                     let remaining = goal.target - currentVal;
                     let monthlyShare = 0;
 
-                    // Prüfen ob Ziel bereits erreicht ist oder Frist vorbei
                     if (currentVal >= goal.target && goal.target > 0) return;
-
-                    if (goal.targetDate && goal.targetDate < m) {
-                        return; // Frist abgelaufen, kein Abzug mehr!
-                    }
+                    if (goal.targetDate && goal.targetDate < m) return;
 
                     if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                         monthlyShare = parseFloat(goal.fixedMonthly);
