@@ -1002,7 +1002,6 @@
             let goal = goals.find(g => g.id === targetId);
             if(!goal) return;
 
-            // Extra-Überweisung im Monat eintragen (Umschichtung aus dem Rest-Freizeitgeld)
             const m = getSelectedMonthKey();
             if(!entries[m]) {
                 entries[m] = {
@@ -1317,7 +1316,6 @@
             document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
             document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
             
-            // Falls Extra-Überweisung auf das Notfallkonto getätigt wurde, beim Notfallkonto aufaddieren
             let extraNotfallAmount = 0;
             if (monthData.extraTransfers) {
                 monthData.extraTransfers.forEach(tr => {
@@ -1494,26 +1492,32 @@
                     const calc = calculateValuesFor(itemData);
                     let val = goalId === 'notfall' ? calc.notfallSparen : (goalId === 'freizeit' ? calc.freizeitSparen : (goalId === 'kassette' ? calc.bargeldSparen : 0));
                     
-                    // Bei Notfall oder Freizeit die Extra-Transfers für diesen gebuchten Monat berücksichtigen
+                    let extraThisMonth = 0;
                     if (itemData.extraTransfers) {
                         itemData.extraTransfers.forEach(tr => {
                             if (tr.targetId === goalId) {
-                                val += tr.amount;
+                                extraThisMonth += tr.amount;
                             }
                         });
                     }
 
-                    if (val > 0) {
-                        runningSum += val;
-                        breakdown.push({ month: key, amount: val, totalSoFar: runningSum });
+                    let totalMonthAdd = val + extraThisMonth;
+                    if (totalMonthAdd > 0) {
+                        runningSum += totalMonthAdd;
+                        let labelText = key;
+                        if (extraThisMonth > 0 && val > 0) labelText += " (inkl. " + extraThisMonth.toFixed(2) + "€ Extra)";
+                        else if (extraThisMonth > 0 && val === 0) labelText += " (Extra-Überweisung)";
+                        breakdown.push({ month: labelText, amount: totalMonthAdd, totalSoFar: runningSum });
                     }
                 } else if (itemData && itemData.extraTransfers) {
+                    let extraOnly = 0;
                     itemData.extraTransfers.forEach(tr => {
-                        if (tr.targetId === goalId) {
-                            runningSum += tr.amount;
-                            breakdown.push({ month: key + " (Extra)", amount: tr.amount, totalSoFar: runningSum });
-                        }
+                        if (tr.targetId === goalId) extraOnly += tr.amount;
                     });
+                    if (extraOnly > 0) {
+                        runningSum += extraOnly;
+                        breakdown.push({ month: key + " (Extra)", amount: extraOnly, totalSoFar: runningSum });
+                    }
                 }
             });
             return { total: runningSum, breakdown };
@@ -1545,12 +1549,18 @@
                 const calc = calculateValuesFor(itemData);
                 if (itemData.booked) {
                     let extraNotfall = 0;
+                    let extraFreizeit = 0;
+                    let extraKassette = 0;
                     if(itemData.extraTransfers) {
-                        itemData.extraTransfers.forEach(tr => { if(tr.targetId === 'notfall') extraNotfall += tr.amount; });
+                        itemData.extraTransfers.forEach(tr => { 
+                            if(tr.targetId === 'notfall') extraNotfall += tr.amount;
+                            if(tr.targetId === 'freizeit') extraFreizeit += tr.amount;
+                            if(tr.targetId === 'kassette') extraKassette += tr.amount;
+                        });
                     }
                     runningNotfall += (calc.notfallSparen + extraNotfall);
-                    runningFreizeit += calc.freizeitSparen;
-                    runningKassette += calc.bargeldSparen;
+                    runningFreizeit += (calc.freizeitSparen + extraFreizeit);
+                    runningKassette += (calc.bargeldSparen + extraKassette);
                 }
                 const totalMonthStand = runningNotfall + runningFreizeit + runningKassette;
                 const tr = document.createElement('tr');
