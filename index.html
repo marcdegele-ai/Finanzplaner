@@ -1140,15 +1140,39 @@
             return `${y}-${String(m).padStart(2, '0')}`;
         }
 
+        // VERERBUNGS-LOGIK: Übernimmt aktive Daueraufträge aus dem Vormonat dynamisch
         function getMonthDataOrFallback(m) {
-            if (entries[m]) return entries[m];
             const sortedKeys = Object.keys(entries).sort();
             const prevKey = sortedKeys.reverse().find(k => k < m);
             let inheritedItems = [];
             if (prevKey && entries[prevKey] && entries[prevKey].items) {
                 inheritedItems = entries[prevKey].items.filter(i => i.type === 'dauer');
             }
-            return { gehalt: 0, bargeldEinnahme: 0, items: inheritedItems, pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] };
+
+            if (entries[m]) {
+                let existingItems = entries[m].items || [];
+                let existingNames = new Set(existingItems.map(i => i.name));
+                inheritedItems.forEach(inh => {
+                    if (!existingNames.has(inh.name)) {
+                        existingItems.push(JSON.parse(JSON.stringify(inh)));
+                    }
+                });
+                entries[m].items = existingItems;
+                return entries[m];
+            }
+
+            return { 
+                gehalt: 0, 
+                bargeldEinnahme: 0, 
+                items: JSON.parse(JSON.stringify(inheritedItems)), 
+                pausedItems: [], 
+                bargeld: 0, 
+                taschengeld: 0, 
+                splitNotfall: 15, 
+                splitMode: 'percent', 
+                booked: false, 
+                extraTransfers: [] 
+            };
         }
 
         function loadMonthData() {
