@@ -1090,10 +1090,8 @@
                     let remaining = goal.target - currentVal;
                     if (goal.targetDate && remaining > 0) {
                         const [tY, tM] = goal.targetDate.split('-').map(Number);
-                        const selectedMonthStr = getSelectedMonthKey();
-                        const [sY, sM] = selectedMonthStr.split('-').map(Number);
-                        
-                        const diffMonths = (tY - sY) * 12 + (tM - sM);
+                        const nowObj = new Date();
+                        const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1));
                         if (diffMonths > 0) {
                             totalSparzielDeductions += (remaining / diffMonths);
                         }
@@ -1264,10 +1262,8 @@
                     let remaining = goal.target - currentVal;
                     if (goal.targetDate && remaining > 0) {
                         const [tY, tM] = goal.targetDate.split('-').map(Number);
-                        const selectedMonthStr = getSelectedMonthKey();
-                        const [sY, sM] = selectedMonthStr.split('-').map(Number);
-                        
-                        const diffMonths = (tY - sY) * 12 + (tM - sM);
+                        const nowObj = new Date();
+                        const diffMonths = (tY - nowObj.getFullYear()) * 12 + (tM - (nowObj.getMonth() + 1));
                         if (diffMonths > 0) {
                             let monthlyShare = remaining / diffMonths;
                             totalSparzielDeductions += monthlyShare;
@@ -1987,4 +1983,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
