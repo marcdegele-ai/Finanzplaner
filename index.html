@@ -951,6 +951,7 @@
         function getMonthDataOrFallback(m) {
             const sortedKeys = Object.keys(entries).sort();
             const prevKey = sortedKeys.reverse().find(k => k < m);
+            
             let inheritedItems = [];
             if (prevKey && entries[prevKey] && entries[prevKey].items) {
                 inheritedItems = entries[prevKey].items.filter(i => {
@@ -962,9 +963,8 @@
 
             if (entries[m]) {
                 let existingItems = entries[m].items || [];
-                let existingNames = new Set(existingItems.map(i => i.name));
                 inheritedItems.forEach(inh => {
-                    if (!existingNames.has(inh.name)) {
+                    if (!existingItems.some(i => i.name === inh.name)) {
                         existingItems.push(JSON.parse(JSON.stringify(inh)));
                     }
                 });
@@ -1353,8 +1353,30 @@
 
         function deleteExpenseItem(index) {
             const deletedItem = currentMonthItems[index];
+            if (!deletedItem) return;
+
+            const isDauer = deletedItem.type === 'dauer';
+            let deleteAll = false;
+
+            if (isDauer) {
+                deleteAll = confirm(`Möchtest du den Dauerauftrag "${deletedItem.name}" komplett aus ALLEN Folgemonaten löschen?\n\n[OK] = Überall löschen\n[Abbrechen] = Nur für diesen Monat löschen`);
+            } else {
+                if (!confirm(`Ausgabe "${deletedItem.name}" wirklich löschen?`)) return;
+            }
+
             currentMonthItems.splice(index, 1);
-            if(deletedItem) currentMonthPausedItems = currentMonthPausedItems.filter(n => n !== deletedItem.name);
+            currentMonthPausedItems = currentMonthPausedItems.filter(n => n !== deletedItem.name);
+
+            if (isDauer && deleteAll) {
+                const currentM = getSelectedMonthKey();
+                Object.keys(entries).forEach(mKey => {
+                    if (mKey >= currentM && entries[mKey] && entries[mKey].items) {
+                        entries[mKey].items = entries[mKey].items.filter(i => i.name !== deletedItem.name);
+                    }
+                });
+            }
+
+            saveLocally();
             renderExpenseItemsModal();
         }
 
