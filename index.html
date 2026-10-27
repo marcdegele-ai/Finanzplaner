@@ -763,6 +763,22 @@
         document.getElementById('selectYear').value = new Date().getFullYear();
         document.getElementById('HHDate').valueAsDate = new Date();
 
+        function cleanForFirestore(obj) {
+            if (obj === undefined) return null;
+            if (obj === null || typeof obj !== 'object') return obj;
+            if (Array.isArray(obj)) {
+                return obj.map(cleanForFirestore).filter(v => v !== undefined);
+            }
+            const cleaned = {};
+            for (const key of Object.keys(obj)) {
+                const val = cleanForFirestore(obj[key]);
+                if (val !== undefined) {
+                    cleaned[key] = val;
+                }
+            }
+            return cleaned;
+        }
+
         function updateHHKategorien() {
             const type = document.getElementById('HHType').value;
             const select = document.getElementById('HHKategorie');
@@ -936,7 +952,7 @@
             if (!window.currentUser) return;
             try {
                 const userDocId = "user_" + window.currentUser.uid;
-                await window.FirestoreSdk.setDoc(window.FirestoreSdk.doc(window.db, "finanzdaten", userDocId), {
+                const payload = cleanForFirestore({
                     entries: entries,
                     goals: goals,
                     urlaubeList: urlaubeList,
@@ -944,6 +960,7 @@
                     cashBreakdown: cashBreakdown,
                     haushaltItems: haushaltItems
                 });
+                await window.FirestoreSdk.setDoc(window.FirestoreSdk.doc(window.db, "finanzdaten", userDocId), payload);
                 document.getElementById('cloudStatus').innerText = "☁️ Synchronisiert ✅";
             } catch (err) {
                 console.error("Speicher-Fehler:", err);
