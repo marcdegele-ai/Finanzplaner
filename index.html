@@ -469,11 +469,21 @@
             </div>
 
             <div class="card">
-                <div class="card-title">🏦 Kontostand (Gebuchte Ersparnisse)</div>
-                <div class="stat-row"><span>Notfallkonto Stand:</span><span id="totalNotfall" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row"><span>FreizeitKonto Stand:</span><span id="totalFreizeit" class="val-orange">0,00 €</span></div>
+                <div class="card-title">🏦 Kontostand (Gebuchte Ersparnisse & Hochrechnung)</div>
+                <div class="stat-row"><span>Notfallkonto Stand (Gebucht):</span><span id="totalNotfall" class="val-highlight">0,00 €</span></div>
+                <div class="stat-row sub-row"><span>↳ Inkl. offener Monate (Prognose):</span><span id="projNotfall" class="val-highlight" style="font-weight:bold;">0,00 €</span></div>
+                
+                <div class="stat-row"><span>FreizeitKonto Stand (Gebucht):</span><span id="totalFreizeit" class="val-orange">0,00 €</span></div>
+                <div class="stat-row sub-row"><span>↳ Inkl. offener Monate (Prognose):</span><span id="projFreizeit" class="val-orange" style="font-weight:bold;">0,00 €</span></div>
+                
                 <div class="stat-row"><span>Bargeld-Kassette:</span><span id="totalKassette" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
-                <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Gesamte Ersparnisse:</span><span id="totalErsparnisse">0,00 €</span></div>
+                <div class="stat-row sub-row"><span>↳ Inkl. offener Monate (Prognose):</span><span id="projKassette" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
+                
+                <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Gesamte Ersparnisse (Gebucht):</span><span id="totalErsparnisse">0,00 €</span></div>
+                <div class="stat-row" style="font-weight: bold; font-size: 0.95rem; background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 4px;">
+                    <span style="color:#15803d;">🚀 Gesamtersparnisse (Inkl. Hochrechnung):</span>
+                    <span id="projGesamtErsparnisse" class="val-highlight" style="font-size:1rem;">0,00 €</span>
+                </div>
             </div>
 
             <div class="card">
@@ -1738,42 +1748,50 @@
             const sortedKeys = Object.keys(entries).sort();
             const goal = goals.find(g => g.id === goalId);
             let runningSum = goalId === 'kassette' ? parseFloat(goal?.manualCurrent || 0) : parseFloat(goal?.manualOffset || 0);
+            
+            // Hochrechnung (inklusive offener Monate)
+            let projectedSum = runningSum;
             let breakdown = [];
-            sortedKeys.forEach(key => {
-                const itemData = entries[key];
-                if (itemData && itemData.booked) {
-                    const calc = calculateValuesFor(itemData);
-                    let val = goalId === 'notfall' ? calc.notfallSparen : (goalId === 'freizeit' ? calc.freizeitSparen : (goalId === 'kassette' ? calc.bargeldSparen : 0));
-                    
-                    let extraThisMonth = 0;
-                    if (itemData.extraTransfers) {
-                        itemData.extraTransfers.forEach(tr => {
-                            if (tr.targetId === goalId) {
-                                extraThisMonth += tr.amount;
-                            }
-                        });
-                    }
 
-                    let totalMonthAdd = val + extraThisMonth;
-                    if (totalMonthAdd > 0) {
-                        runningSum += totalMonthAdd;
-                        let labelText = key;
-                        if (extraThisMonth > 0 && val > 0) labelText += " (inkl. " + extraThisMonth.toFixed(2) + "€ Extra)";
-                        else if (extraThisMonth > 0 && val === 0) labelText += " (Extra-Überweisung)";
-                        breakdown.push({ month: labelText, amount: totalMonthAdd, totalSoFar: runningSum });
-                    }
-                } else if (itemData && itemData.extraTransfers) {
-                    let extraOnly = 0;
+            // Alle bekannten Monate (sowohl gebucht als auch offen/fallback) durchgehen
+            // Wir nehmen hier alle in 'entries' gespeicherten Schlüssel + standardmäßig alle Monate aus der Vorschau oder generieren sie fortlaufend
+            // Für eine saubere Hochrechnung holen wir alle Schlüssel aus entries, oder simulieren bis zu einem gewissen Horizont (z.B. 12 Monate ab heute)
+            let allMonthsToCheck = new Set(sortedKeys);
+            // Füge die nächsten 12 Monate ab Start hinzu, falls sie nicht in entries sind
+            let baseKey = document.getElementById('monthInput').value || "2026-11";
+            let simKey = baseKey;
+            for(let i=0; i<12; i++) {
+                allMonthsToCheck.add(simKey);
+                simKey = getNextMonthKey(simKey);
+            }
+            let sortedAllMonths = Array.from(allMonthsToCheck).sort();
+
+            sortedAllMonths.forEach(key => {
+                const itemData = getMonthDataOrFallback(key);
+                const calc = calculateValuesFor(itemData);
+                let val = goalId === 'notfall' ? calc.notfallSparen : (goalId === 'freizeit' ? calc.freizeitSparen : (goalId === 'kassette' ? calc.bargeldSparen : 0));
+                
+                let extraThisMonth = 0;
+                if (itemData.extraTransfers) {
                     itemData.extraTransfers.forEach(tr => {
-                        if (tr.targetId === goalId) extraOnly += tr.amount;
+                        if (tr.targetId === goalId) {
+                            extraThisMonth += tr.amount;
+                        }
                     });
-                    if (extraOnly > 0) {
-                        runningSum += extraOnly;
-                        breakdown.push({ month: key + " (Extra)", amount: extraOnly, totalSoFar: runningSum });
+                }
+
+                let totalMonthAdd = val + extraThisMonth;
+                if (totalMonthAdd > 0) {
+                    projectedSum += totalMonthAdd;
+                    if (itemData.booked) {
+                        runningSum += totalMonthAdd;
                     }
+                    let labelText = key + (itemData.booked ? "" : " (Prognose)");
+                    if (extraThisMonth > 0 && val > 0) labelText += " (inkl. " + extraThisMonth.toFixed(2) + "€ Extra)";
+                    breakdown.push({ month: labelText, amount: totalMonthAdd, totalSoFar: runningSum, projectedSoFar: projectedSum });
                 }
             });
-            return { total: runningSum, breakdown };
+            return { total: runningSum, projectedTotal: projectedSum, breakdown };
         }
 
         function getSavedAmountForGoal(goal) {
@@ -1784,55 +1802,93 @@
             return parseFloat(goal.manualCurrent || 0);
         }
 
+        function getProjectedAmountForGoal(goalId) {
+            if(['notfall', 'freizeit', 'kassette'].includes(goalId)) {
+                return getGoalData(goalId).projectedTotal;
+            }
+            const goal = goals.find(g => g.id === goalId);
+            return parseFloat(goal?.manualCurrent || 0);
+        }
+
         function renderHistory() {
             const list = document.getElementById('historyList');
             list.innerHTML = '';
+            
             let runningNotfall = parseFloat(goals.find(g => g.id === 'notfall')?.manualOffset || 0);
             let runningFreizeit = parseFloat(goals.find(g => g.id === 'freizeit')?.manualOffset || 0);
             let runningKassette = parseFloat(goals.find(g => g.id === 'kassette')?.manualCurrent || 0);
 
             const tableBody = document.getElementById('monthSavingsTableBody');
             tableBody.innerHTML = '';
-            const sortedKeys = Object.keys(entries).sort();
+            
+            // Generiere eine saubere Liste von Monaten (gespeicherte + Vorschau-Monate)
+            let baseKey = document.getElementById('monthInput').value || "2026-11";
+            let allMonthKeysSet = new Set(Object.keys(entries).sort());
+            let tempK = baseKey;
+            for(let i=0; i<12; i++) {
+                allMonthKeysSet.add(tempK);
+                tempK = getNextMonthKey(tempK);
+            }
+            let sortedKeys = Array.from(allMonthKeysSet).sort();
 
-            if (sortedKeys.length === 0) tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-sub);">Keine gespeicherten Monate.</td></tr>';
+            let projRunningNotfall = runningNotfall;
+            let projRunningFreizeit = runningFreizeit;
+            let projRunningKassette = runningKassette;
 
             sortedKeys.forEach(key => {
-                const itemData = entries[key];
+                const itemData = getMonthDataOrFallback(key);
                 const calc = calculateValuesFor(itemData);
+                
+                let extraNotfall = 0, extraFreizeit = 0, extraKassette = 0;
+                if(itemData.extraTransfers) {
+                    itemData.extraTransfers.forEach(tr => { 
+                        if(tr.targetId === 'notfall') extraNotfall += tr.amount;
+                        if(tr.targetId === 'freizeit') extraFreizeit += tr.amount;
+                        if(tr.targetId === 'kassette') extraKassette += tr.amount;
+                    });
+                }
+
                 if (itemData.booked) {
-                    let extraNotfall = 0;
-                    let extraFreizeit = 0;
-                    let extraKassette = 0;
-                    if(itemData.extraTransfers) {
-                        itemData.extraTransfers.forEach(tr => { 
-                            if(tr.targetId === 'notfall') extraNotfall += tr.amount;
-                            if(tr.targetId === 'freizeit') extraFreizeit += tr.amount;
-                            if(tr.targetId === 'kassette') extraKassette += tr.amount;
-                        });
-                    }
                     runningNotfall += (calc.notfallSparen + extraNotfall);
                     runningFreizeit += (calc.freizeitSparen + extraFreizeit);
                     runningKassette += (calc.bargeldSparen + extraKassette);
                 }
-                const totalMonthStand = runningNotfall + runningFreizeit + runningKassette;
+
+                projRunningNotfall += (calc.notfallSparen + extraNotfall);
+                projRunningFreizeit += (calc.freizeitSparen + extraFreizeit);
+                projRunningKassette += (calc.bargeldSparen + extraKassette);
+
+                const totalMonthStand = itemData.booked ? (runningNotfall + runningFreizeit + runningKassette) : (projRunningNotfall + projRunningFreizeit + projRunningKassette);
+                
                 const tr = document.createElement('tr');
                 tr.onclick = () => selectMonthAndEdit(key);
                 tr.innerHTML = `
                     <td><strong style="color:var(--accent);">${key}</strong></td>
-                    <td>${itemData.booked ? '<span class="badge badge-booked">Aktiv ✅</span>' : '<span class="badge badge-once">Offen ⏳</span>'}</td>
+                    <td>${itemData.booked ? '<span class="badge badge-booked">Aktiv ✅</span>' : '<span class="badge badge-once">Offen (Plan) ⏳</span>'}</td>
                     <td style="font-weight:bold; color:var(--accent-green);">+${calc.gesamtSparen.toFixed(2)} €</td>
-                    <td class="val-highlight">${runningNotfall.toFixed(2)} €</td>
-                    <td class="val-orange">${runningFreizeit.toFixed(2)} €</td>
+                    <td class="val-highlight">${(itemData.booked ? runningNotfall : projRunningNotfall).toFixed(2)} €</td>
+                    <td class="val-orange">${(itemData.booked ? runningFreizeit : projRunningFreizeit).toFixed(2)} €</td>
                     <td style="font-weight:bold; color:var(--text-main);">${totalMonthStand.toFixed(2)} €</td>
                 `;
                 tableBody.appendChild(tr);
             });
 
+            // Kontostand Box Werte setzen (Gebucht vs Hochrechnung)
             document.getElementById('totalNotfall').innerText = runningNotfall.toFixed(2) + ' €';
+            document.getElementById('projNotfall').innerText = projRunningNotfall.toFixed(2) + ' €';
+
             document.getElementById('totalFreizeit').innerText = runningFreizeit.toFixed(2) + ' €';
+            document.getElementById('projFreizeit').innerText = projRunningFreizeit.toFixed(2) + ' €';
+
             document.getElementById('totalKassette').innerText = runningKassette.toFixed(2) + ' €';
-            document.getElementById('totalErsparnisse').innerText = (runningNotfall + runningFreizeit + runningKassette).toFixed(2) + ' €';
+            document.getElementById('projKassette').innerText = projRunningKassette.toFixed(2) + ' €';
+
+            const totalGebucht = runningNotfall + runningFreizeit + runningKassette;
+            const totalProj = projRunningNotfall + projRunningFreizeit + projRunningKassette;
+
+            document.getElementById('totalErsparnisse').innerText = totalGebucht.toFixed(2) + ' €';
+            document.getElementById('projGesamtErsparnisse').innerText = totalProj.toFixed(2) + ' €';
+
             renderGoals();
         }
 
@@ -1847,36 +1903,32 @@
 
             for(let m = 1; m <= 12; m++) {
                 const monthKey = `${selectedYear}-${String(m).padStart(2, '0')}`;
-                const item = entries[monthKey];
-                if (item && item.booked) {
-                    const calc = calculateValuesFor(item);
-                    const fix = getTotalFixForMonthData(item);
-                    const einnahmen = (parseFloat(item.gehalt) || 0) + (parseFloat(item.bargeldEinnahme) || 0);
-                    
-                    // Haushaltsausgaben für diesen Monat ermitteln
-                    let hhSpent = 0;
-                    let hhIncome = 0;
-                    (haushaltItems || []).forEach(hi => {
-                        if (hi.date && hi.date.startsWith(monthKey)) {
-                            if (hi.type === 'income') hhIncome += parseFloat(hi.amount || 0);
-                            else hhSpent += parseFloat(hi.amount || 0);
-                        }
-                    });
+                const item = getMonthDataOrFallback(monthKey);
+                const calc = calculateValuesFor(item);
+                const fix = getTotalFixForMonthData(item);
+                const einnahmen = (parseFloat(item.gehalt) || 0) + (parseFloat(item.bargeldEinnahme) || 0);
+                
+                let hhSpent = 0;
+                let hhIncome = 0;
+                (haushaltItems || []).forEach(hi => {
+                    if (hi.date && hi.date.startsWith(monthKey)) {
+                        if (hi.type === 'income') hhIncome += parseFloat(hi.amount || 0);
+                        else hhSpent += parseFloat(hi.amount || 0);
+                    }
+                });
 
-                    totalEinnahmen += einnahmen + hhIncome;
-                    totalFix += fix;
-                    totalSparen += calc.gesamtSparen;
-                    totalHaushaltAusgaben += hhSpent;
+                totalEinnahmen += einnahmen + hhIncome;
+                totalFix += fix;
+                totalSparen += calc.gesamtSparen;
+                totalHaushaltAusgaben += hhSpent;
 
-                    // Echtes Sparen = Brutto-Sparen abzüglich echter Haushaltsausgaben (bzw. echtes Netto nach allen Kosten)
-                    let echtesSparenMonat = calc.gesamtSparen - hhSpent;
-                    totalEchtesSparen += echtesSparenMonat;
+                let echtesSparenMonat = calc.gesamtSparen - hhSpent;
+                totalEchtesSparen += echtesSparenMonat;
 
-                    if (calc.gesamtSparen > maxSavingMonth) maxSavingMonth = calc.gesamtSparen;
-                    if (echtesSparenMonat > maxSavingMonth) maxSavingMonth = echtesSparenMonat;
+                if (calc.gesamtSparen > maxSavingMonth) maxSavingMonth = calc.gesamtSparen;
+                if (echtesSparenMonat > maxSavingMonth) maxSavingMonth = echtesSparenMonat;
 
-                    monthlyDataList.push({ name: monthNames[m-1], saving: calc.gesamtSparen, realSaving: echtesSparenMonat });
-                }
+                monthlyDataList.push({ name: monthNames[m-1], saving: calc.gesamtSparen, realSaving: echtesSparenMonat, booked: !!item.booked });
             }
 
             document.getElementById('jahrEinnahmen').innerText = totalEinnahmen.toFixed(2) + ' €';
@@ -1891,11 +1943,6 @@
             document.getElementById('jahrSparquote').innerText = avgSparquote.toFixed(1) + '%';
             document.getElementById('jahrEchteSparquote').innerText = avgEchteSparquote.toFixed(1) + '%';
 
-            if (monthlyDataList.length === 0) {
-                chartContainer.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine gebuchten Monate für ' + selectedYear + ' vorhanden.</div>';
-                return;
-            }
-
             monthlyDataList.forEach(d => {
                 let percent = (d.saving / maxSavingMonth) * 100;
                 if(percent > 100) percent = 100;
@@ -1906,7 +1953,7 @@
                 const row = document.createElement('div');
                 row.className = 'chart-bar-row';
                 row.innerHTML = `
-                    <div class="chart-label-line"><span>${d.name}</span><span>Plan: <strong style="color:var(--accent);">+${d.saving.toFixed(2)} €</strong> | <strong style="color:var(--accent-green);">Real: +${d.realSaving.toFixed(2)} €</strong></span></div>
+                    <div class="chart-label-line"><span>${d.name} ${d.booked ? '✅' : '⏳ (Plan)'}</span><span>Plan: <strong style="color:var(--accent);">+${d.saving.toFixed(2)} €</strong> | <strong style="color:var(--accent-green);">Real: +${d.realSaving.toFixed(2)} €</strong></span></div>
                     <div class="progress-bar-container" style="margin-bottom:3px;"><div class="progress-bar-fill" style="width: ${percent}%; background: var(--accent);"></div></div>
                     <div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${realPercent}%; background: var(--accent-green);"></div></div>
                 `;
