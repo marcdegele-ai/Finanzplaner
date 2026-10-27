@@ -743,7 +743,7 @@
             <button class="btn-add" onclick="saveModalChanges()" style="margin-bottom: 10px;">Änderungen speichern</button>
             <button class="btn-add" onclick="deleteCurrentModalGoal()" style="background:#ef4444; color:#ffffff; margin-bottom: 14px;">🗑️ Sparziel löschen</button>
             
-            <div style="font-weight: 600; margin-bottom: 6px; font-size: 0.8rem; color: var(--accent);">Monatliche Einzahlungen bis jetzt:</div>
+            <div style="font-weight: 600; margin-bottom: 6px; font-size: 0.8rem; color: var(--accent);">📅 Geplante monatliche Zuweisung & Hochrechnung bis zum Ziel:</div>
             <div class="history-list" id="modalHistoryList"></div>
             
             <button class="btn-add" onclick="closeModal()" style="background: var(--border); color: var(--text-main); margin-top: 14px;">Schließen</button>
@@ -1744,6 +1744,7 @@
             }
         }
 
+        // HIER AKTUALISIERT: MONATLICHE PLANUNGS-AUFSCHLÜSLUNG FÜR DAS SPARZIEL-MODAL
         function getGoalData(goalId) {
             const sortedKeys = Object.keys(entries).sort();
             const goal = goals.find(g => g.id === goalId);
@@ -1752,20 +1753,49 @@
             let projectedSum = runningSum;
             let breakdown = [];
 
-            let allMonthsToCheck = new Set(sortedKeys);
             let baseKey = document.getElementById('monthInput').value || "2026-11";
+            let targetDateLimit = goal && goal.targetDate ? goal.targetDate : "2028-12";
+            
+            // Generiere alle Monate von baseKey bis zur Ziel-Frist (mindestens aber die nächsten 12 Monate)
+            let allMonthsToCheck = new Set(sortedKeys);
             let simKey = baseKey;
-            for(let i=0; i<12; i++) {
+            for(let i=0; i<36; i++) {
                 allMonthsToCheck.add(simKey);
+                if(simKey >= targetDateLimit && i >= 12) break;
                 simKey = getNextMonthKey(simKey);
             }
             let sortedAllMonths = Array.from(allMonthsToCheck).sort();
 
             sortedAllMonths.forEach(key => {
+                // Wenn ein Ziel ein Enddatum hat, nach dem Ziel-Monat aufhören
+                if(goal && goal.targetDate && key > goal.targetDate && !['notfall', 'freizeit', 'kassette'].includes(goal.id)) return;
+
                 const itemData = getMonthDataOrFallback(key);
                 const calc = calculateValuesFor(itemData);
-                let val = goalId === 'notfall' ? calc.notfallSparen : (goalId === 'freizeit' ? calc.freizeitSparen : (goalId === 'kassette' ? calc.bargeldSparen : 0));
                 
+                let regularMonthAdd = 0;
+                if(goalId === 'notfall') {
+                    regularMonthAdd = calc.notfallSparen;
+                } else if(goalId === 'freizeit') {
+                    regularMonthAdd = calc.freizeitSparen;
+                } else if(goalId === 'kassette') {
+                    regularMonthAdd = calc.bargeldSparen;
+                } else {
+                    // Benutzerdefiniertes Ziel: Berechne den geplanten monatlichen Anteil gemäß Logik
+                    let currentValEval = runningSum;
+                    let remaining = goal.target - currentValEval;
+                    if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
+                        regularMonthAdd = parseFloat(goal.fixedMonthly);
+                    } else if (goal.targetDate && remaining > 0) {
+                        let [tY, tM] = goal.targetDate.split('-').map(Number);
+                        let [mY, mM] = key.split('-').map(Number);
+                        let diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
+                        if (diffMonths > 0) {
+                            regularMonthAdd = Math.round((remaining / diffMonths) * 100) / 100;
+                        }
+                    }
+                }
+
                 let extraThisMonth = 0;
                 if (itemData.extraTransfers) {
                     itemData.extraTransfers.forEach(tr => {
@@ -1775,15 +1805,21 @@
                     });
                 }
 
-                let totalMonthAdd = val + extraThisMonth;
-                if (totalMonthAdd > 0) {
+                let totalMonthAdd = regularMonthAdd + extraThisMonth;
+                if (totalMonthAdd > 0 || itemData.booked || key <= baseKey) {
                     projectedSum += totalMonthAdd;
                     if (itemData.booked) {
                         runningSum += totalMonthAdd;
                     }
-                    let labelText = key + (itemData.booked ? "" : " (Prognose)");
-                    if (extraThisMonth > 0 && val > 0) labelText += " (inkl. " + extraThisMonth.toFixed(2) + "€ Extra)";
-                    breakdown.push({ month: labelText, amount: totalMonthAdd, totalSoFar: runningSum, projectedSoFar: projectedSum });
+                    let statusLabel = itemData.booked ? "Gebucht ✅" : "Geplant (Plan) ⏳";
+                    if (extraThisMonth > 0) statusLabel += ` (inkl. ${extraThisMonth.toFixed(2)}€ Extra)`;
+                    
+                    breakdown.push({ 
+                        month: key, 
+                        status: statusLabel,
+                        amount: totalMonthAdd, 
+                        totalSoFar: projectedSum 
+                    });
                 }
             });
             return { total: runningSum, projectedTotal: projectedSum, breakdown };
@@ -1844,7 +1880,6 @@
                     });
                 }
 
-                // Berechnung des monatlichen Sparziel-Abzugs für diesen Monat
                 let monthSparzielDeductions = 0;
                 goals.forEach(goal => {
                     if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
@@ -1865,7 +1900,6 @@
                     }
                 });
 
-                // KORREKTUR: Auch in der Tabelle jetzt exakt die monatlichen Sparziele UND die Extra-Transfers abziehen!
                 let freiVerfubarMonat = Math.max(0, calc.freizeitSparen - monthSparzielDeductions - extraTransfersMonthSum);
 
                 if (itemData.booked) {
@@ -2350,12 +2384,20 @@
             histList.innerHTML = '';
             
             const data = getGoalData(goal.id);
-            if (data.breakdown.length === 0) histList.innerHTML = '<div style="color:var(--text-sub); text-align:center; font-size:0.75rem;">Keine gebuchten Einzahlungen.</div>';
-            else {
+            if (data.breakdown.length === 0) {
+                histList.innerHTML = '<div style="color:var(--text-sub); text-align:center; font-size:0.75rem;">Keine Zuweisungen geplant.</div>';
+            } else {
                 data.breakdown.forEach(item => {
                     const row = document.createElement('div');
                     row.className = 'history-item';
-                    row.innerHTML = `<div><div class="history-date">${item.month}</div><div class="history-sub">Stand: ${item.totalSoFar.toFixed(2)} €</div></div><div style="text-align:right;"><div class="val-highlight">+${item.amount.toFixed(2)} €</div></div>`;
+                    row.innerHTML = `
+                        <div>
+                            <div class="history-date">${item.month} <span class="badge badge-once" style="font-size:0.6rem;">${item.status}</span></div>
+                            <div class="history-sub">Kumulierter Stand: ${item.totalSoFar.toFixed(2)} €</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="val-highlight" style="font-size:0.9rem;">+${item.amount.toFixed(2)} €</div>
+                        </div>`;
                     histList.appendChild(row);
                 });
             }
@@ -2464,7 +2506,7 @@
             const fixedMonthly = parseFloat(document.getElementById('zielFixedMonthly').value) || 0;
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
             let targetDate = document.getElementById('zielDatum').value;
-            const goalType = document.getElementById('zielTypeSelect').value;
+            const goalType = document.getElementById('zielTypeSelect'.value);
 
             if(urlaubLinkId) {
                 let u = urlaubeList.find(x => x.id === urlaubLinkId);
