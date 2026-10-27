@@ -237,6 +237,7 @@
         .chart-label-line { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
         
         .receipt-btn { font-size: 0.7rem; background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-weight: 600; }
+        .storno-btn { font-size: 0.68rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 1px 5px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-left: 6px; }
     </style>
 </head>
 <body>
@@ -1027,11 +1028,44 @@
                 };
             }
             if(!entries[m].extraTransfers) entries[m].extraTransfers = [];
-            entries[m].extraTransfers.push({ targetId: goal.id, targetName: goal.name, amount: amount });
+            const transferId = Date.now();
+            entries[m].extraTransfers.push({ id: transferId, targetId: goal.id, targetName: goal.name, amount: amount });
 
             await saveToCloud();
             document.getElementById('extraTransferAmount').value = '';
             alert(`Erfolgreich ${amount.toFixed(2)} € auf "${goal.name}" übertragen und im Monat ${m} vermerkt! 🚀`);
+            renderGoals();
+            renderHistory();
+            liveCalc();
+        }
+
+        async function cancelExtraTransfer(transferId) {
+            const m = getSelectedMonthKey();
+            if(!entries[m] || !entries[m].extraTransfers) return;
+            
+            const trIndex = entries[m].extraTransfers.findIndex(t => t.id === transferId);
+            if(trIndex === -1) return;
+
+            const tr = entries[m].extraTransfers[trIndex];
+            if(!confirm(`Möchtest du die Extra-Überweisung von ${tr.amount.toFixed(2)} € an "${tr.targetName}" wirklich stornieren?`)) return;
+
+            // Vom Ziel wieder abziehen
+            let goal = goals.find(g => g.id === tr.targetId);
+            if(goal) {
+                if(['notfall', 'freizeit'].includes(goal.id)) {
+                    goal.manualOffset = (parseFloat(goal.manualOffset) || 0) - tr.amount;
+                } else if(goal.id === 'kassette') {
+                    goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) - tr.amount;
+                } else {
+                    goal.manualCurrent = (parseFloat(goal.manualCurrent) || 0) - tr.amount;
+                }
+            }
+
+            // Aus der Liste entfernen
+            entries[m].extraTransfers.splice(trIndex, 1);
+
+            await saveToCloud();
+            alert('Überweisung storniert! Das Geld ist wieder in deinem Rest-Freizeitgeld. ↩️');
             renderGoals();
             renderHistory();
             liveCalc();
@@ -1305,13 +1339,13 @@
                 }
             });
 
-            // Extra-Überweisungen als Zeilen anzeigen
+            // Extra-Überweisungen als Zeilen anzeigen + Storno-Button
             if(monthData.extraTransfers) {
                 monthData.extraTransfers.forEach(tr => {
                     const row = document.createElement('div');
                     row.className = 'stat-row sub-row';
                     row.innerHTML = `
-                        <span>⚡ Extra-Überweisung: <strong>${tr.targetName}</strong></span>
+                        <span>⚡ Extra: <strong>${tr.targetName}</strong> <button class="storno-btn" onclick="cancelExtraTransfer(${tr.id})">🗑️ Storno</button></span>
                         <span class="val-red">-${tr.amount.toFixed(2)} €</span>
                     `;
                     container.appendChild(row);
@@ -2004,7 +2038,7 @@
             let target = parseFloat(document.getElementById('zielBetrag').value) || 0;
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
             let targetDate = document.getElementById('zielDatum').value;
-            const goalType = document.getElementById('zielTypeSelect'.value);
+            const goalType = document.getElementById('zielTypeSelect').value;
 
             if(urlaubLinkId) {
                 let u = urlaubeList.find(x => x.id === urlaubLinkId);
