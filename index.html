@@ -74,6 +74,11 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); justify-content: center; align-items: center; z-index: 100; padding: 14px; }
         .modal.active { display: flex; }
         .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 18px; border-radius: 12px; width: 100%; max-width: 460px; max-height: 85vh; overflow-y: auto; }
+
+        .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+        .month-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 520px; }
+        .month-table th { text-align: left; padding: 9px 8px; background: #e2e8f0; color: var(--accent); border-bottom: 1px solid var(--border); white-space: nowrap; }
+        .month-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); color: var(--text-main); white-space: nowrap; }
     </style>
 </head>
 <body>
@@ -85,15 +90,20 @@
             <div class="user-bar">
                 <span>👤 Status: <strong style="color:var(--accent-green);">Aktiv</strong></span>
                 <span id="cloudStatusBadge" class="cloud-status">☁️ JSONBin Sync...</span>
-                <div style="display:flex; gap:4px;">
-                    <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="loadFromCloud()">🔄 Laden</button>
-                    <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="saveToCloud()">💾 Speichern</button>
+                <div style="display:flex; gap:3px; flex-wrap:wrap;">
+                    <button class="btn-secondary" style="padding: 2px 5px; font-size:0.65rem;" onclick="loadFromCloud()">🔄 Lade</button>
+                    <button class="btn-secondary" style="padding: 2px 5px; font-size:0.65rem;" onclick="saveToCloud()">💾 Save</button>
+                    <button class="btn-secondary" style="padding: 2px 5px; font-size:0.65rem;" onclick="exportJSONBackup()">📥 Backup</button>
+                    <label class="btn-secondary" style="padding: 2px 5px; font-size:0.65rem; cursor:pointer; margin:0; display:inline-block;">
+                        📂 Laden <input type="file" id="importFile" style="display:none;" onchange="importJSONBackup(event)">
+                    </label>
                 </div>
             </div>
             <div class="tab-bar">
                 <button class="tab-btn active" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
                 <button class="tab-btn" onclick="switchTab('haushalt-view', this)">🏠 Haushalt</button>
                 <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
+                <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres-Check</button>
                 <button class="tab-btn" onclick="switchTab('urlaub-view', this)">✈️ Urlaub</button>
                 <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
             </div>
@@ -104,7 +114,7 @@
             <div class="card">
                 <div class="card-title"><span>Monat erfassen</span></div>
                 <div class="grid">
-                    <div class="input-group full"><label>Monat wählen</label><input type="month" id="monthInput" value="2026-11"></div>
+                    <div class="input-group full"><label>Monat wählen</label><input type="month" id="monthInput" value="2026-11" onchange="autoSaveLive()"></div>
                     <div class="input-group"><label>Einnahmen Gehalt (€)</label><input type="number" id="gehaltInput" placeholder="0" oninput="autoSaveLive()"></div>
                     <div class="input-group"><label>Bargeld / Extra (€)</label><input type="number" id="bargeldEinnahmeInput" placeholder="0" oninput="autoSaveLive()"></div>
                     <div class="input-group full"><label>Fixkosten (€)</label><input type="number" id="fixkostenInput" placeholder="0" oninput="autoSaveLive()"></div>
@@ -142,13 +152,31 @@
         <!-- TAB 3: PROGNOSE -->
         <div id="uebersicht-view" class="view-section">
             <div class="card">
-                <div class="card-title">🏦 Kontostände</div>
+                <div class="card-title">🏦 Kontostände & Vorschau</div>
                 <div class="stat-row"><span>Notfallkonto:</span><span id="totalNotfall" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>Freizeitkonto:</span><span id="totalFreizeit" class="val-orange">0,00 €</span></div>
             </div>
+            <div class="card">
+                <div class="card-title">📈 Monatsübersicht</div>
+                <div class="table-wrapper">
+                    <table class="month-table">
+                        <thead><tr><th>Monat</th><th>Netto</th><th>Notfall</th><th>Freizeit</th></tr></thead>
+                        <tbody id="monthSavingsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
-        <!-- TAB 4: URLAUB -->
+        <!-- TAB 4: JAHRES-CHECK -->
+        <div id="jahres-view" class="view-section">
+            <div class="card">
+                <div class="card-title">📈 Jahres-Auswertung</div>
+                <div class="stat-row"><span>Gesamteinnahmen:</span><span id="jahrEinnahmen" class="val-highlight">0,00 €</span></div>
+                <div class="stat-row"><span>Gesamte Fixkosten:</span><span id="jahrFix" class="val-red">0,00 €</span></div>
+            </div>
+        </div>
+
+        <!-- TAB 5: URLAUB -->
         <div id="urlaub-view" class="view-section">
             <div class="card">
                 <div class="card-title">✈️ Urlaubsbudget</div>
@@ -156,7 +184,7 @@
             </div>
         </div>
 
-        <!-- TAB 5: ZIELE -->
+        <!-- TAB 6: ZIELE -->
         <div id="ziele-view" class="view-section">
             <div class="card">
                 <div class="card-title">🎯 Sparziele</div>
@@ -165,10 +193,12 @@
         </div>
     </div>
 
-    <!-- MODAL FÜR GEPLANET ENTNAHMEN (Z.B. MÄRZ) -->
+    <!-- MODAL FÜR GEPLANTE ENTNAHMEN / ZIELE -->
     <div id="goalModal" class="modal">
         <div class="modal-content">
-            <div class="card-title">📅 Entnahme für Sparziel verwalten</div>
+            <div class="card-title" id="modalTitle">📅 Entnahme für Sparziel verwalten</div>
+            <div class="input-group" style="margin-bottom: 8px;"><label>Zielbetrag (€):</label><input type="number" id="modalTargetInput"></div>
+            <div class="input-group" style="margin-bottom: 8px;"><label>Aktueller Stand (€):</label><input type="number" id="modalCurrentInput"></div>
             <div style="background:var(--card-sub); border:1px solid #ef4444; padding:10px; border-radius:8px; margin-bottom:12px;">
                 <label style="color:#ef4444; font-weight:bold;">Entnahme für Monat (z.B. März 2027) buchen</label>
                 <div style="display:flex; gap:6px; margin-top:6px;">
@@ -182,16 +212,17 @@
     </div>
 
     <script>
-        // 🔑 HIER SIND DIE ANFÜHRUNGSZEICHEN JETZT KORREKT GESETZT:
+        // 🔑 DEINE JSONBIN ZUGANGSDATEN:
         const JSONBIN_BIN_ID = "6ae1bb6cffd5d160539242a4"; 
         const JSONBIN_MASTER_KEY = "$2a$10$4eiGPqBALPGWcRBtpwC2k.vouBuocGQMbElg6En4g.jCqTTMorj.O";
 
         let entries = JSON.parse(localStorage.getItem('finanz_entries_local')) || {};
         let haushalt = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || [];
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
-            { id: "notfall", name: "Notfallpuffer", target: 3000 },
-            { id: "freizeit", name: "Urlaub & Freizeit", target: 2000 }
+            { id: "notfall", name: "Notfallpuffer", target: 3000, withdrawals: {} },
+            { id: "freizeit", name: "Urlaub & Freizeit", target: 2000, withdrawals: {} }
         ];
+        let currentModalGoalId = null;
 
         // --- JSONBIN CLOUD SYNC LOGIK ---
         async function saveToCloud() {
@@ -246,10 +277,43 @@
                         localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
 
                         if(badge) { badge.innerText = "⚡ Cloud Live ✅"; badge.classList.add('synced'); }
-                        calc(); renderHH(); renderGoals();
+                        updateUI();
                     }
                 }
             } catch(e) { console.log(e); }
+        }
+
+        // --- BACKUP EXPORT & IMPORT ---
+        function exportJSONBackup() {
+            const backupData = { entries, haushalt, goals, version: "2.0", date: new Date().toISOString() };
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `finanzplan_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importJSONBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.entries) entries = imported.entries;
+                    if (imported.haushalt) haushalt = imported.haushalt;
+                    if (imported.goals) goals = imported.goals;
+                    
+                    saveToCloud(); // Direkt in Cloud sichern
+                    updateUI();
+                    alert("Backup erfolgreich wiederhergestellt! 📂✅");
+                } catch(err) {
+                    alert("Fehler beim Lesen der Backup-Datei!");
+                }
+            };
+            reader.readAsText(file);
         }
 
         function autoSaveLive() {
@@ -306,29 +370,50 @@
             goals.forEach(g => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
-                div.onclick = () => document.getElementById('goalModal').classList.add('active');
+                div.onclick = () => openGoalModal(g.id);
                 div.innerHTML = `<div><div class="history-date">${g.name}</div></div><div class="val-highlight">Ziel: ${g.target} €</div>`;
                 list.appendChild(div);
             });
         }
 
-        function addFutureWithdrawal() {
-            const m = document.getElementById('futureWithdrawMonth').value;
-            const amt = parseFloat(document.getElementById('futureWithdrawAmount').value) || 0;
-            if(amt > 0) {
-                alert(`Entnahme von ${amt.toFixed(2)} € für ${m} gebucht!`);
-                closeModal();
-                saveToCloud();
+        function openGoalModal(id) {
+            currentModalGoalId = id;
+            const g = goals.find(item => item.id === id);
+            if(g) {
+                document.getElementById('modalTitle').innerText = `Ziel: ${g.name}`;
+                document.getElementById('modalTargetInput').value = g.target;
+                document.getElementById('goalModal').classList.add('active');
             }
         }
 
-        function closeModal() { document.getElementById('goalModal').classList.remove('active'); }
+        function addFutureWithdrawal() {
+            const m = document.getElementById('futureWithdrawMonth').value;
+            const amt = parseFloat(document.getElementById('futureWithdrawAmount').value) || 0;
+            if(amt > 0 && currentModalGoalId) {
+                const g = goals.find(item => item.id === currentModalGoalId);
+                if(g) {
+                    if(!g.withdrawals) g.withdrawals = {};
+                    g.withdrawals[m] = amt;
+                    alert(`Entnahme von ${amt.toFixed(2)} € für ${m} gebucht!`);
+                    closeModal();
+                    saveToCloud();
+                }
+            }
+        }
+
+        function closeModal() { document.getElementById('goalModal').classList.add('active'); }
 
         function switchTab(viewId, btnEl) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active');
             btnEl.classList.add('active');
+        }
+
+        function updateUI() {
+            calc();
+            renderHH();
+            renderGoals();
         }
 
         window.addEventListener('DOMContentLoaded', () => {
