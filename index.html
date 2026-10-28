@@ -348,6 +348,7 @@
 
             <div class="card">
                 <div class="card-title">📊 Ausgaben & Einnahmen im Monat (<span id="HHMonthDisplay">-</span>)</div>
+                <div class="stat-row"><span>Fixkosten-Anteil am Gehalt:</span><span id="fixQuoteDisplay" class="val-red">0.0%</span></div>
                 <div class="stat-row"><span>Gesamtausgaben Haushalt:</span><span id="HHTotalDisplay" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Gesamteinnahmen Haushalt (extra):</span><span id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</span></div>
                 <div class="stat-row"><span>Verfügbares Taschengeld-Budget (Basis):</span><span id="HHBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></div>
@@ -522,12 +523,12 @@
                 <div class="grid">
                     <div class="input-group full"><label>Bezeichnung des Ziels</label><input type="text" id="zielName" placeholder="z.B. Urlaub Köln, Neues Bike..."></div>
                     <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="zielBetrag" placeholder="z.B. 2000"></div>
-                    <div class="input-group"><label>Fixer monatlicher Betrag (€) (optional)</label><input type="number" id="zielFixedMonthly" placeholder="z.B. 100"></div>
+                    <div class="input-group"><label>Fixer monatlicher Dauerauftrag (€)</label><input type="number" id="zielFixedMonthly" placeholder="z.B. 50"></div>
                     <div class="input-group"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0"></div>
                     <div class="input-group full">
                         <label>Konto-Verknüpfung / Typ</label>
                         <select id="zielTypeSelect">
-                            <option value="custom">⚙️ Manuelles Sparziel</option>
+                            <option value="custom">⚙️ Manuelles Sparziel (Dauerauftrag vom Freizeitkonto)</option>
                             <option value="notfall">🛡️ Verknüpft mit Notfallkonto</option>
                             <option value="freizeit">🎉 Verknüpft mit Freizeitkonto</option>
                             <option value="kassette">🪙 Verknüpft mit Bargeld-Kassette</option>
@@ -539,7 +540,7 @@
                             <option value="">Keine Urlaubs-Verknüpfung</option>
                         </select>
                     </div>
-                    <div class="input-group full"><label>Ziel-Datum (Frist)</label><input type="month" id="zielDatum"></div>
+                    <div class="input-group full"><label>Ziel-Datum (Frist für automatische Rückwärts-Berechnung)</label><input type="month" id="zielDatum" onchange="calcAutoMonthlyOnCreate()"></div>
                 </div>
                 <button class="btn-add" onclick="saveGoal()">Sparziel Hinzufügen</button>
             </div>
@@ -627,8 +628,8 @@
         <div class="modal-content">
             <div class="card-title" id="modalTitle">Ziel-Details</div>
             
-            <div class="input-group" style="margin-bottom: 8px;"><label>Zielbetrag anpassen (€):</label><input type="number" id="modalTargetInput"></div>
-            <div class="input-group" style="margin-bottom: 8px;"><label>Fixer monatlicher Betrag (€) (optional):</label><input type="number" id="modalFixedMonthlyInput" placeholder="z.B. 100"></div>
+            <div class="input-group" style="margin-bottom: 8px;"><label>Zielbetrag anpassen (€):</label><input type="number" id="modalTargetInput" oninput="calcAutoMonthlyOnModal()"></div>
+            <div class="input-group" style="margin-bottom: 8px;"><label>Fixer monatlicher Dauerauftrag (€):</label><input type="number" id="modalFixedMonthlyInput" placeholder="z.B. 50"></div>
             <div class="input-group" style="margin-bottom: 8px;"><label>Aktueller Stand / Grund-Guthaben (€):</label><input type="number" id="modalCurrentInput"></div>
 
             <div class="input-group" style="margin-bottom: 12px;">
@@ -636,21 +637,6 @@
                 <select id="modalUrlaubLinkSelect">
                     <option value="">Keine Urlaubs-Verknüpfung</option>
                 </select>
-            </div>
-
-            <!-- HOCHRECHNUNG & SIMULATOR -->
-            <div style="background:var(--card-sub); border:1px solid var(--accent); padding:10px; border-radius:8px; margin-bottom:12px;">
-                <label style="color:var(--accent); font-weight:bold;">📈 Zukunfts-Hochrechnung & Simulator</label>
-                <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Teste, wo du landest (z.B. wenn du statt 100 € mal 50 € einzahlst).</div>
-                <div style="display:flex; gap:6px; margin-bottom:8px;">
-                    <input type="number" id="simMonthlyInput" placeholder="Monatsbetrag zum Testen" style="flex:1;" oninput="updateGoalSimulation()">
-                    <select id="simMonthsCount" style="width:105px;" onchange="updateGoalSimulation()">
-                        <option value="6">6 Monate</option>
-                        <option value="12" selected>12 Monate</option>
-                        <option value="24">24 Monate</option>
-                    </select>
-                </div>
-                <div id="simResultBox" style="font-size:0.8rem; background:#fff; padding:8px; border-radius:6px; border:1px solid var(--border); color:var(--text-main); line-height:1.4;"></div>
             </div>
 
             <!-- Manuell Einzahlen -->
@@ -682,12 +668,12 @@
                 </div>
             </div>
 
-            <div class="input-group" style="margin-bottom: 12px;" id="modalDateGroup"><label>Ziel-Datum anpassen:</label><input type="month" id="modalDateInput"></div>
+            <div class="input-group" style="margin-bottom: 12px;" id="modalDateGroup"><label>Ziel-Datum anpassen (für automatische Rückwärts-Berechnung):</label><input type="month" id="modalDateInput" onchange="calcAutoMonthlyOnModal()"></div>
 
             <button class="btn-add" onclick="saveModalChanges()" style="margin-bottom: 10px;">Änderungen speichern</button>
             <button class="btn-add" onclick="deleteCurrentModalGoal()" style="background:#ef4444; color:#ffffff; margin-bottom: 14px;">🗑️ Sparziel löschen</button>
             
-            <div style="font-weight: 600; margin-bottom: 6px; font-size: 0.8rem; color: var(--accent);">📅 Geplante monatliche Zuweisung & Hochrechnung bis zum Ziel:</div>
+            <div style="font-weight: 600; margin-bottom: 6px; font-size: 0.8rem; color: var(--accent);">📅 Geplante monatliche Zuweisung vom Freizeitkonto:</div>
             <div class="history-list" id="modalHistoryList"></div>
             
             <button class="btn-add" onclick="closeModal()" style="background: var(--border); color: var(--text-main); margin-top: 14px;">Schließen</button>
@@ -939,7 +925,6 @@
             liveCalc();
         }
 
-        // KORRIGIERTE BACKUP- & LADEN-FUNKTIONEN
         function exportBackupJSON() {
             const data = {
                 entries: entries,
@@ -1332,21 +1317,8 @@
 
             goals.forEach(goal => {
                 if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
-                    let currentVal = getSavedAmountForGoal(goal);
-                    let remaining = goal.target - currentVal;
-                    
-                    if (currentVal >= goal.target && goal.target > 0) return;
-                    if (goal.targetDate && goal.targetDate < m) return;
-
                     if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                         totalSparzielDeductions += parseFloat(goal.fixedMonthly);
-                    } else if (goal.targetDate && remaining > 0) {
-                        const [tY, tM] = goal.targetDate.split('-').map(Number);
-                        const [mY, mM] = m.split('-').map(Number);
-                        const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
-                        if (diffMonths > 0) {
-                            totalSparzielDeductions += Math.round((remaining / diffMonths) * 100) / 100;
-                        }
                     }
                 }
             });
@@ -1446,6 +1418,11 @@
             if(filtered.length === 0 && (!monthData || !monthData.extraTransfers || monthData.extraTransfers.length === 0)) {
                 list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine Haushalts-Buchungen für ' + selectedM + ' eingetragen.</div>';
             }
+
+            const totalFixVal = parseFloat(document.getElementById('fixkostenInput').value) || 0;
+            const gehaltVal = parseFloat(document.getElementById('gehaltInput').value) || 0;
+            const fixQuote = gehaltVal > 0 ? (totalFixVal / gehaltVal) * 100 : 0;
+            document.getElementById('fixQuoteDisplay').innerText = fixQuote.toFixed(1) + '% (' + totalFixVal.toFixed(2) + ' €)';
 
             document.getElementById('HHTotalDisplay').innerText = totalSpent.toFixed(2) + ' €';
             document.getElementById('HHIncomeTotalDisplay').innerText = '+' + totalIncome.toFixed(2) + ' €';
@@ -1631,30 +1608,13 @@
 
             goals.forEach(goal => {
                 if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
-                    let currentVal = getSavedAmountForGoal(goal);
-                    let remaining = goal.target - currentVal;
-                    let monthlyShare = 0;
-
-                    if (currentVal >= goal.target && goal.target > 0) return;
-                    if (goal.targetDate && goal.targetDate < m) return;
-
                     if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
-                        monthlyShare = parseFloat(goal.fixedMonthly);
-                    } else if (goal.targetDate && remaining > 0) {
-                        const [tY, tM] = goal.targetDate.split('-').map(Number);
-                        const [mY, mM] = m.split('-').map(Number);
-                        const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
-                        if (diffMonths > 0) {
-                            monthlyShare = Math.round((remaining / diffMonths) * 100) / 100;
-                        }
-                    }
-
-                    if (monthlyShare > 0) {
+                        let monthlyShare = parseFloat(goal.fixedMonthly);
                         totalSparzielDeductions += monthlyShare;
                         const row = document.createElement('div');
                         row.className = 'stat-row sub-row';
                         row.innerHTML = `
-                            <span>↳ Abzug Sparziel: <strong>${goal.name}</strong></span>
+                            <span>↳ Dauerauftrag Sparziel: <strong>${goal.name}</strong></span>
                             <span class="val-red">-${monthlyShare.toFixed(2)} €</span>
                         `;
                         container.appendChild(row);
@@ -1790,8 +1750,6 @@
             let sortedAllMonths = Array.from(allMonthsToCheck).sort();
 
             sortedAllMonths.forEach(key => {
-                if(goal && goal.targetDate && key > goal.targetDate && !['notfall', 'freizeit', 'kassette'].includes(goal.id)) return;
-
                 const itemData = getMonthDataOrFallback(key);
                 const calc = calculateValuesFor(itemData);
                 
@@ -1803,17 +1761,8 @@
                 } else if(goalId === 'kassette') {
                     regularMonthAdd = calc.bargeldSparen;
                 } else {
-                    let currentValEval = runningSum;
-                    let remaining = goal.target - currentValEval;
                     if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                         regularMonthAdd = parseFloat(goal.fixedMonthly);
-                    } else if (goal.targetDate && remaining > 0) {
-                        let [tY, tM] = goal.targetDate.split('-').map(Number);
-                        let [mY, mM] = key.split('-').map(Number);
-                        let diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
-                        if (diffMonths > 0) {
-                            regularMonthAdd = Math.round((remaining / diffMonths) * 100) / 100;
-                        }
                     }
                 }
 
@@ -1906,19 +1855,8 @@
                 let monthSparzielDeductions = 0;
                 goals.forEach(goal => {
                     if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
-                        let currentVal = getSavedAmountForGoal(goal);
-                        let remaining = goal.target - currentVal;
-                        if (!(currentVal >= goal.target && goal.target > 0) && !(goal.targetDate && goal.targetDate < key)) {
-                            if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
-                                monthSparzielDeductions += parseFloat(goal.fixedMonthly);
-                            } else if (goal.targetDate && remaining > 0) {
-                                const [tY, tM] = goal.targetDate.split('-').map(Number);
-                                const [mY, mM] = key.split('-').map(Number);
-                                const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
-                                if (diffMonths > 0) {
-                                    monthSparzielDeductions += Math.round((remaining / diffMonths) * 100) / 100;
-                                }
-                            }
+                        if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
+                            monthSparzielDeductions += parseFloat(goal.fixedMonthly);
                         }
                     }
                 });
@@ -2320,6 +2258,42 @@
             });
         }
 
+        function calcAutoMonthlyOnCreate() {
+            const target = parseFloat(document.getElementById('zielBetrag').value) || 0;
+            const targetDate = document.getElementById('zielDatum').value;
+            const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
+            const remaining = target - startVal;
+
+            if(targetDate && remaining > 0) {
+                const m = getSelectedMonthKey();
+                const [tY, tM] = targetDate.split('-').map(Number);
+                const [mY, mM] = m.split('-').map(Number);
+                const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
+                if(diffMonths > 0) {
+                    const autoVal = Math.ceil(remaining / diffMonths);
+                    document.getElementById('zielFixedMonthly').value = autoVal;
+                }
+            }
+        }
+
+        function calcAutoMonthlyOnModal() {
+            const target = parseFloat(document.getElementById('modalTargetInput').value) || 0;
+            const targetDate = document.getElementById('modalDateInput').value;
+            const currentVal = parseFloat(document.getElementById('modalCurrentInput').value) || 0;
+            const remaining = target - currentVal;
+
+            if(targetDate && remaining > 0) {
+                const m = getSelectedMonthKey();
+                const [tY, tM] = targetDate.split('-').map(Number);
+                const [mY, mM] = m.split('-').map(Number);
+                const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
+                if(diffMonths > 0) {
+                    const autoVal = Math.ceil(remaining / diffMonths);
+                    document.getElementById('modalFixedMonthlyInput').value = autoVal;
+                }
+            }
+        }
+
         function renderGoals() {
             populateUrlaubLinkOptions('zielUrlaubLinkSelect');
             populateExtraTransferSelect();
@@ -2338,14 +2312,16 @@
                 let monthlyNeededText = "";
                 
                 if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
-                    monthlyNeededText = `Fix: ${parseFloat(goal.fixedMonthly).toFixed(2)} €/M.`;
+                    monthlyNeededText = `Dauerauftrag: ${parseFloat(goal.fixedMonthly).toFixed(2)} €/Mo.`;
                 } else if (goal.targetDate && remaining > 0) {
                     const m = getSelectedMonthKey();
                     const [tY, tM] = goal.targetDate.split('-').map(Number);
                     const [mY, mM] = m.split('-').map(Number);
                     const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
-                    if (diffMonths > 0) monthlyNeededText = `Ø ${Math.round(remaining / diffMonths)} €/M. bis ${goal.targetDate}`;
-                    else monthlyNeededText = `⚠️ Frist erreicht`;
+                    if (diffMonths > 0) {
+                        const autoCalc = Math.ceil(remaining / diffMonths);
+                        monthlyNeededText = `Rückwärts: ca. ${autoCalc} €/Mo. bis ${goal.targetDate}`;
+                    }
                 }
 
                 let badgeGamification = '';
@@ -2394,18 +2370,6 @@
             document.getElementById('modalDateInput').value = goal.targetDate || '';
             document.getElementById('manualDepositAmount').value = '';
             document.getElementById('manualWithdrawAmount').value = '';
-            
-            let defaultMonthly = goal.fixedMonthly || 100;
-            if(!goal.fixedMonthly && goal.targetDate) {
-                const m = getSelectedMonthKey();
-                const [tY, tM] = goal.targetDate.split('-').map(Number);
-                const [mY, mM] = m.split('-').map(Number);
-                const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
-                let rem = goal.target - getSavedAmountForGoal(goal);
-                if(diffMonths > 0 && rem > 0) defaultMonthly = Math.round(rem / diffMonths);
-            }
-            document.getElementById('simMonthlyInput').value = defaultMonthly;
-            updateGoalSimulation();
 
             document.getElementById('cashTransferBox').style.display = (goal.id === 'freizeit') ? 'block' : 'none';
             document.getElementById('modalCurrentInput').value = ['notfall', 'freizeit'].includes(goal.id) ? (goal.manualOffset || 0) : (goal.manualCurrent || 0);
@@ -2432,25 +2396,6 @@
                 });
             }
             document.getElementById('goalModal').classList.add('active');
-        }
-
-        function updateGoalSimulation() {
-            const goal = goals.find(g => g.id === currentModalGoalId);
-            if(!goal) return;
-            const currentVal = getSavedAmountForGoal(goal);
-            const monthlyInput = parseFloat(document.getElementById('simMonthlyInput').value) || 0;
-            const monthsCount = parseInt(document.getElementById('simMonthsCount').value) || 12;
-
-            let projectedSum = currentVal + (monthlyInput * monthsCount);
-            let target = goal.target || 0;
-            let percent = target > 0 ? Math.min(100, (projectedSum / target) * 100) : 0;
-            
-            let html = `Stand heute: <strong>${currentVal.toFixed(2)} €</strong><br>`;
-            html += `In ${monthsCount} Monaten (bei ${monthlyInput.toFixed(2)} €/Mo.): <strong style="color:var(--accent-green);">${projectedSum.toFixed(2)} €</strong>`;
-            if(target > 0) {
-                html += ` (${percent.toFixed(1)}% vom Ziel erreicht)`;
-            }
-            document.getElementById('simResultBox').innerHTML = html;
         }
 
         function addManualDepositToGoal() {
