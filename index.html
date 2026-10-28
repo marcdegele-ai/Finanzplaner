@@ -27,97 +27,38 @@
             --border: #cbd5e1;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding: 12px;
-            max-width: 600px;
-            margin: 0 auto;
-            padding-bottom: 90px;
-        }
-
-        header {
-            text-align: center;
-            padding: 10px 0 14px 0;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 14px;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; max-width: 600px; margin: 0 auto; padding-bottom: 90px; }
+        header { text-align: center; padding: 10px 0 14px 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
         header h1 { font-size: 1.2rem; color: var(--accent); margin-bottom: 2px; font-weight: 700; }
         .app-creator-sub { font-size: 0.72rem; color: var(--text-sub); margin-bottom: 6px; }
 
         .user-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: var(--text-sub);
-            margin-bottom: 8px;
-            background: var(--card-bg);
-            padding: 6px 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 6px;
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-sub);
+            margin-bottom: 8px; background: var(--card-bg); padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border);
+            flex-wrap: wrap; gap: 6px;
         }
 
         .cloud-status { color: var(--accent-orange); font-weight: 600; }
         .cloud-status.synced { color: var(--accent-green); }
 
-        .tab-bar {
-            display: flex;
-            background: #e2e8f0;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 4px;
-            gap: 3px;
-            overflow-x: auto;
-            margin-top: 10px;
-        }
-
-        .tab-btn {
-            flex: 1; padding: 8px 4px; border: none; border-radius: 8px;
-            background: transparent; color: var(--text-sub); font-weight: 600; font-size: 0.70rem;
-            cursor: pointer; white-space: nowrap; transition: all 0.2s ease;
-        }
-
+        .tab-bar { display: flex; background: #e2e8f0; border: 1px solid var(--border); border-radius: 10px; padding: 4px; gap: 3px; overflow-x: auto; margin-top: 10px; }
+        .tab-btn { flex: 1; padding: 8px 4px; border: none; border-radius: 8px; background: transparent; color: var(--text-sub); font-weight: 600; font-size: 0.70rem; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
         .tab-btn.active { background: #ffffff; color: var(--accent); border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
         .view-section { display: none; }
         .view-section.active { display: block; }
 
-        .card {
-            background: var(--card-bg); border-radius: 12px; padding: 14px;
-            margin-bottom: 14px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
-        .card-title {
-            font-size: 1rem; font-weight: 700; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center; color: var(--text-main);
-        }
-
+        .card { background: var(--card-bg); border-radius: 12px; padding: 14px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+        .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .input-group { display: flex; flex-direction: column; gap: 5px; text-align: left; margin-bottom: 10px; }
         .input-group.full { grid-column: span 2; }
 
         label { font-size: 0.8rem; color: var(--text-sub); font-weight: 600; }
-        input, select {
-            background: var(--card-sub); border: 1px solid var(--border); color: var(--text-main);
-            padding: 10px 11px; border-radius: 8px; font-size: 0.9rem; outline: none; width: 100%;
-        }
-        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15); }
+        input, select { background: var(--card-sub); border: 1px solid var(--border); color: var(--text-main); padding: 10px 11px; border-radius: 8px; font-size: 0.9rem; outline: none; width: 100%; }
 
-        .checkbox-container {
-            display: flex; align-items: center; gap: 10px; background: var(--card-sub);
-            padding: 10px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; text-align: left;
-        }
+        .checkbox-container { display: flex; align-items: center; gap: 10px; background: var(--card-sub); padding: 10px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; text-align: left; }
         .checkbox-container input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-green); cursor: pointer; }
 
         .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; color: var(--text-main); }
@@ -129,30 +70,17 @@
         .val-red { font-weight: bold; color: var(--accent-red); }
 
         .btn-add { background: var(--accent); color: #ffffff; font-weight: 700; border: none; padding: 11px; border-radius: 8px; width: 100%; font-size: 0.9rem; cursor: pointer; margin-top: 6px; }
-        .btn-secondary { background: #e2e8f0; color: var(--text-main); font-weight: 600; border: 1px solid var(--border); padding: 8px 10px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; }
-
-        .quick-btn-row { display: flex; gap: 6px; margin-bottom: 6px; }
-        .quick-btn { flex: 1; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 6px; padding: 5px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; }
-        .quick-btn:hover { background: #bae6fd; }
+        .btn-secondary { background: #e2e8f0; color: var(--text-main); font-weight: 600; border: 1px solid var(--border); padding: 8px 10px; border-radius: 8px; font-size: 0.80rem; cursor: pointer; }
 
         .history-list { display: flex; flex-direction: column; gap: 8px; }
         .history-item { background: var(--card-sub); padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); color: var(--text-main); }
 
         .badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; display: inline-block; margin-left: 4px; }
-        .badge-dauer { background: #e0f2fe; color: #0369a1; }
-        .badge-paused { background: #fee2e2; color: #991b1b; }
-        .badge-once { background: #f1f5f9; color: #475569; }
         .badge-booked { background: #dcfce7; color: #166534; }
-        .badge-kategorie { background: #f3e8ff; color: #7e22ce; }
-        .badge-income { background: #dcfce7; color: #15803d; }
-        .badge-urlaub { background: #fef3c7; color: #b45309; }
-        .badge-gamification { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
+        .badge-once { background: #f1f5f9; color: #475569; }
 
-        .goal-card-box { background: var(--card-sub); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; cursor: pointer; }
+        .goal-card-box { background: var(--card-sub); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; }
         .goal-card-box:hover { border-color: var(--accent); }
-
-        .history-date { font-weight: bold; font-size: 0.88rem; color: var(--accent); }
-        .history-sub { font-size: 0.75rem; color: var(--text-sub); margin-top: 2px; line-height: 1.3; }
 
         .progress-bar-container { background: #e2e8f0; border-radius: 6px; height: 8px; width: 100%; margin-top: 7px; overflow: hidden; border: 1px solid var(--border); }
         .progress-bar-fill { background: var(--accent-green); height: 100%; width: 0%; transition: width 0.3s ease; }
@@ -160,8 +88,6 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); justify-content: center; align-items: center; z-index: 100; padding: 14px; }
         .modal.active { display: flex; }
         .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 18px; border-radius: 12px; width: 100%; max-width: 460px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-
-        .action-link { font-size: 0.72rem; cursor: pointer; padding: 3px 6px; border-radius: 4px; background: #e2e8f0; color: var(--text-main); text-decoration: none; display: inline-block; }
 
         .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
         .month-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 520px; }
@@ -175,12 +101,6 @@
         .coin-badge-img { width: 22px; height: 22px; object-fit: contain; border-radius: 50%; margin: 0 auto 2px auto; display: block; border: 1px solid #facc15; background: #f59e0b; }
         .cash-box label { font-size: 0.7rem; display: block; margin-bottom: 3px; color: #b45309; font-weight: bold; cursor: pointer; }
         .cash-box input { width: 100%; text-align: center; padding: 5px; font-size: 0.85rem; cursor: pointer; }
-
-        .chart-container { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .chart-bar-row { background: var(--card-sub); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); }
-        .chart-label-line { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; margin-bottom: 4px; }
-        
-        .receipt-btn { font-size: 0.7rem; background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-weight: 600; }
         .storno-btn { font-size: 0.68rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 1px 5px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-left: 6px; }
     </style>
 </head>
@@ -264,10 +184,7 @@
                 <div class="stat-row"><span>Netto nach Ausgaben:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>Verfügbarer Überschuss:</span><span id="resUeberschuss">0,00 €</span></div>
                 <div class="stat-row"><span>Notfallkonto Sparen:</span><span id="resNotfall" class="val-highlight">0,00 €</span></div>
-                
                 <div class="stat-row"><span>FreizeitKonto (Brutto):</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
-                
-                <!-- Container für die dynamische Sparziel-Aufschlüsselung -->
                 <div id="sparzieleBreakdownContainer"></div>
 
                 <div class="stat-row" style="background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 4px 0;">
@@ -275,10 +192,8 @@
                     <span id="resFreizeitRest" class="val-highlight" style="font-size:0.95rem;">0,00 €</span>
                 </div>
 
-                <!-- EXTRA-ÜBERWEISUNG VOM REST-FREIZEITGELD -->
                 <div style="background: var(--card-sub); border: 1px solid var(--accent); padding: 10px; border-radius: 8px; margin: 8px 0;">
                     <label style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 4px;">⚡ Extra-Überweisung vom Frei verfügbaren Betrag</label>
-                    <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 6px;">Übertrage Geld direkt von deinem frei verfügbaren Betrag auf ein Sparziel oder die Kasse.</div>
                     <div style="display: flex; gap: 6px; margin-bottom: 6px;">
                         <select id="extraTransferGoalSelect" style="flex: 1; font-size: 0.8rem; padding: 6px;"></select>
                         <input type="number" id="extraTransferAmount" placeholder="Betrag (€)" style="width: 100px; font-size: 0.8rem; padding: 6px;">
@@ -287,17 +202,11 @@
                 </div>
 
                 <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
-                
                 <div class="stat-row" style="background: var(--card-sub); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); margin: 6px 0;">
                     <span>🏦 Gesamt Abzug Sparpakete (Autom. Übertrag):</span>
                     <span id="resSparzieleAbzug" class="val-red">-0,00 €</span>
                 </div>
                 <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Gesamt Sparen im Monat:</span><span id="resGesamtSparen">0,00 €</span></div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">🔮 Vorschau: Nächste 3 Monate</div>
-                <div class="history-list" id="nextThreeList"></div>
             </div>
         </div>
 
@@ -309,15 +218,6 @@
                     <label style="color: var(--accent); font-weight: bold;">📅 Monat im Haushaltsbuch wählen:</label>
                     <input type="month" id="hhMonthInput" min="2026-11" onchange="syncMonthInput(this.value)" style="background:#ffffff; font-weight:bold; color:var(--accent);">
                 </div>
-                
-                <!-- QUICK-BUTTONS SCHNELL-EINGABE -->
-                <div class="quick-btn-row">
-                    <button class="quick-btn" onclick="quickFillHH(10)">+ 10 €</button>
-                    <button class="quick-btn" onclick="quickFillHH(20)">+ 20 €</button>
-                    <button class="quick-btn" onclick="quickFillHH(50)">+ 50 €</button>
-                    <button class="quick-btn" onclick="quickFillHH(100)">+ 100 €</button>
-                </div>
-
                 <div class="grid">
                     <div class="input-group full">
                         <label>Typ der Buchung</label>
@@ -326,46 +226,15 @@
                             <option value="income">🟢 Einnahme / Geld erhalten (z.B. Bar)</option>
                         </select>
                     </div>
-                    <div class="input-group full"><label>Bezeichnung / Wofür?</label><input type="text" id="HHName" placeholder="z.B. Bargeld erhalten, Tanken..."></div>
+                    <div class="input-group full"><label>Bezeichnung / Wofür?</label><input type="text" id="HHName" placeholder="z.B. Tanken..."></div>
                     <div class="input-group"><label>Betrag (€)</label><input type="number" id="HHAmount" placeholder="0.00"></div>
-                    <div class="input-group">
-                        <label>Kategorie</label>
-                        <select id="HHKategorie"></select>
-                    </div>
+                    <div class="input-group"><label>Kategorie</label><select id="HHKategorie"></select></div>
                     <div class="input-group full"><label>Datum</label><input type="date" id="HHDate"></div>
-                    <div class="input-group full">
-                        <label class="checkbox-container">
-                            <input type="checkbox" id="HHRepeatCheckbox">
-                            <div>
-                                <strong>Jeden Monat automatisch wiederholen 🔄</strong>
-                                <div style="font-size:0.72rem; color:var(--text-sub);">Übernimmt diesen Posten im Folgemonat automatisch.</div>
-                            </div>
-                        </label>
-                    </div>
-                    <div class="input-group full">
-                        <label>📸 Beleg knipsen / hochladen (Optional)</label>
-                        <input type="file" id="HHReceiptInput" accept="image/*" capture="environment">
-                    </div>
                 </div>
                 <button class="btn-add" onclick="addHaushaltItem()">Buchung hinzufügen ➕</button>
             </div>
-
             <div class="card">
-                <div class="card-title">📊 Ausgaben & Einnahmen im Monat (<span id="HHMonthDisplay">-</span>)</div>
-                <div class="stat-row"><span>Gesamtausgaben Haushalt:</span><span id="HHTotalDisplay" class="val-red">0,00 €</span></div>
-                <div class="stat-row"><span>Gesamteinnahmen Haushalt (extra):</span><span id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</span></div>
-                <div class="stat-row"><span>Verfügbares Taschengeld-Budget (Basis):</span><span id="HHBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></div>
-                <div class="stat-row" style="font-weight:bold; font-size:0.95rem;"><span>Rest-Budget (inkl. Einnahmen):</span><span id="HHRestDisplay">0,00 €</span></div>
-            </div>
-
-            <!-- KATEGORIE-AUSWERTUNG CHART CONTAINER -->
-            <div class="card" id="categoryChartCard" style="display:none;">
-                <div class="card-title">📊 Ausgaben nach Kategorien</div>
-                <div class="chart-container" id="categoryChartContainer"></div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📋 Alle Buchungen diesen Monat</div>
+                <div class="card-title">📋 Buchungen diesen Monat</div>
                 <div class="history-list" id="HHList"></div>
             </div>
         </div>
@@ -374,24 +243,21 @@
         <div id="uebersicht-view" class="view-section">
             <div class="card" style="border: 1px solid #f59e0b;">
                 <div class="card-title"><span>🪙 Digitale Bargeld-Kassette</span><span id="cashTotalBadge" style="color:#b45309; font-size:1rem;">0,00 €</span></div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">💡 Tipp: Klicke auf ein Feld, um die Anzahl automatisch um 1 zu erhöhen!</div>
-                
                 <div class="cash-grid">
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c100')">100€</div><label onclick="incrementCash('c100')">100 €</label><input type="number" id="c100" min="0" value="0" onclick="incrementCash('c100')" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c50')">50€</div><label onclick="incrementCash('c50')">50 €</label><input type="number" id="c50" min="0" value="0" onclick="incrementCash('c50')" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c20')">20€</div><label onclick="incrementCash('c20')">20 €</label><input type="number" id="c20" min="0" value="0" onclick="incrementCash('c20')" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c10')">10€</div><label onclick="incrementCash('c10')">10 €</label><input type="number" id="c10" min="0" value="0" onclick="incrementCash('c10')" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c5')">5€</div><label onclick="incrementCash('c5')">5 €</label><input type="number" id="c5" min="0" value="0" onclick="incrementCash('c5')" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c2')">2€</div><label onclick="incrementCash('c2')">2 €</label><input type="number" id="c2" min="0" value="0" onclick="incrementCash('c2')" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c1')">1€</div><label onclick="incrementCash('c1')">1 €</label><input type="number" id="c1" min="0" value="0" onclick="incrementCash('c1')" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c050')">50c</div><label onclick="incrementCash('c050')">50 Cent</label><input type="number" id="c050" min="0" value="0" onclick="incrementCash('c050')" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c020')">20c</div><label onclick="incrementCash('c020')">20 Cent</label><input type="number" id="c020" min="0" value="0" onclick="incrementCash('c020')" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><label onclick="incrementCash('c100')">100 €</label><input type="number" id="c100" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><label onclick="incrementCash('c50')">50 €</label><input type="number" id="c50" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><label onclick="incrementCash('c20')">20 €</label><input type="number" id="c20" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><label onclick="incrementCash('c10')">10 €</label><input type="number" id="c10" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><label onclick="incrementCash('c5')">5 €</label><input type="number" id="c5" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><label onclick="incrementCash('c2')">2 €</label><input type="number" id="c2" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><label onclick="incrementCash('c1')">1 €</label><input type="number" id="c1" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><label onclick="incrementCash('c050')">50 Cent</label><input type="number" id="c050" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><label onclick="incrementCash('c020')">20 Cent</label><input type="number" id="c020" min="0" value="0" oninput="calcCashBox()"></div>
                 </div>
-                <button class="btn-secondary" style="width:100%; margin-top:8px; background:#f59e0b; color:#ffffff; font-weight:bold; border:none;" onclick="saveCashBoxLocally()">💾 Stückelung speichern</button>
             </div>
 
             <div class="card">
-                <div class="card-title">🏦 Kontostand (Gebuchte Ersparnisse & Hochrechnung)</div>
+                <div class="card-title">🏦 Kontostand & Hochrechnung</div>
                 <div class="stat-row"><span>Notfallkonto Stand (Gebucht):</span><span id="totalNotfall" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row sub-row"><span>↳ Inkl. offener Monate (Prognose):</span><span id="projNotfall" class="val-highlight" style="font-weight:bold;">0,00 €</span></div>
                 
@@ -401,8 +267,7 @@
                 <div class="stat-row"><span>Bargeld-Kassette:</span><span id="totalKassette" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
                 <div class="stat-row sub-row"><span>↳ Inkl. offener Monate (Prognose):</span><span id="projKassette" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
                 
-                <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Gesamte Ersparnisse (Gebucht):</span><span id="totalErsparnisse">0,00 €</span></div>
-                <div class="stat-row" style="font-weight: bold; font-size: 0.95rem; background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 4px;">
+                <div class="stat-row" style="font-weight: bold; font-size: 0.95rem; background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 6px;">
                     <span style="color:#15803d;">🚀 Gesamtersparnisse (Inkl. Hochrechnung):</span>
                     <span id="projGesamtErsparnisse" class="val-highlight" style="font-size:1rem;">0,00 €</span>
                 </div>
@@ -417,67 +282,40 @@
                     </table>
                 </div>
             </div>
-
-            <div class="card">
-                <div class="card-title">📅 Die nächsten 3 Monate im Detail</div>
-                <div class="history-list" id="historyList"></div>
-            </div>
         </div>
 
         <!-- TAB 4: JAHRES-AUSWERTUNG -->
         <div id="jahres-view" class="view-section">
             <div class="card">
                 <div class="card-title">
-                    <span>📈 Jahres-Auswertung & Visualisierung</span>
+                    <span>📈 Jahres-Auswertung</span>
                     <select id="selectYear" style="width: 110px; padding: 4px 8px; font-size: 0.8rem;" onchange="renderJahresView()">
                         <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
                     </select>
                 </div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Summen, geplante vs. reale Sparquote und Balkendiagramme:</div>
                 <div class="stat-row"><span>Gesamteinnahmen:</span><span id="jahrEinnahmen" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>Gesamte Fixkosten:</span><span id="jahrFix" class="val-red">0,00 €</span></div>
-                <div class="stat-row"><span>Gesamtausgaben Haushalt:</span><span id="jahrHaushaltAusgaben" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Geplante Brutto-Sparsumme:</span><span id="jahrSparen" style="color:var(--accent);">0,00 €</span></div>
-                <div class="stat-row"><span>🔥 Echte Netto-Sparsumme (nach Haushaltsausgaben):</span><span id="jahrEchtesSparen" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Ø Geplante Sparquote (Plan):</span><span id="jahrQuotePlan">0 %</span></div>
-                <div class="stat-row" style="font-weight: bold; font-size: 0.95rem; background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 4px;">
-                    <span style="color:#15803d;">🏆 Echte Sparquote (Real):</span>
-                    <span id="jahrQuoteReal" class="val-highlight" style="font-size:1rem;">0 %</span>
-                </div>
-            </div>
-
-            <!-- JAHRES BALKENDIAGRAMM -->
-            <div class="card">
-                <div class="card-title">📊 Monatliche Sparraten im gewählten Jahr</div>
-                <div class="chart-container" id="jahrChartContainer"></div>
             </div>
         </div>
 
         <!-- TAB 5: URLAUB -->
         <div id="urlaub-view" class="view-section">
             <div class="card">
-                <div class="card-title">
-                    <span>✈️ Urlaubsrechner & Kassensturz</span>
-                    <button class="btn-secondary" onclick="openUrlaubModal(null)">Neuer Urlaub ➕</button>
-                </div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Plane Reisen, Hotel, Bus/Anreise und Ausgaben tageweise:</div>
-                <div class="input-group full">
-                    <label>Aktiven Urlaub wählen</label>
-                    <select id="urlaubSelect" onchange="switchUrlaub(this.value)"></select>
-                </div>
+                <div class="card-title"><span>✈️ Urlaubsrechner</span><button class="btn-secondary" onclick="openUrlaubModal(null)">Neuer Urlaub ➕</button></div>
+                <div class="input-group full"><label>Aktiven Urlaub wählen</label><select id="urlaubSelect" onchange="switchUrlaub(this.value)"></select></div>
             </div>
-
             <div id="activeUrlaubCardContainer"></div>
         </div>
 
-        <!-- TAB 6: ZIELE -->
+        <!-- TAB 6: ZIELE & EIN-/AUSZAHLUNGEN -->
         <div id="ziele-view" class="view-section">
             <div class="card">
                 <div class="card-title">
-                    <span>🎯 Sparziele & Budgets verwalten</span>
+                    <span>🎯 Sparziele & manuelle Ein-/Auszahlung</span>
                     <button class="btn-secondary" onclick="openGoalModal(null)">Ziel hinzufügen ➕</button>
                 </div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Klicke auf ein Ziel, um Betrag, Zieldatum oder Monats-Entnahmen anzupassen:</div>
+                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Hier siehst du den Kontostand der Ziele und kannst direkt Geld einzahlen oder abheben:</div>
                 <div id="goalsListContainer"></div>
             </div>
         </div>
@@ -487,59 +325,42 @@
     <div id="expenseModal" class="modal">
         <div class="modal-content">
             <div class="card-title"><span>✍️ Fixkosten für <span id="modalMonthTitle">-</span> anpassen</span></div>
-            <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:10px;">Füge monatliche Fixkosten (Daueraufträge oder einmalig) hinzu:</div>
-            
             <div class="grid" style="margin-bottom:10px;">
-                <div class="input-group full"><label>Posten-Bezeichnung</label><input type="text" id="modalItemName" placeholder="z.B. Miete, Netflix..."></div>
+                <div class="input-group full"><label>Posten-Bezeichnung</label><input type="text" id="modalItemName" placeholder="z.B. Miete..."></div>
                 <div class="input-group"><label>Betrag (€)</label><input type="number" id="modalItemAmount" placeholder="0.00"></div>
-                <div class="input-group">
-                    <label>Art</label>
-                    <select id="modalItemType">
-                        <option value="dauer">🔄 Dauerauftrag</option>
-                        <option value="einmalig">⚡ Einmalig diesen Monat</option>
-                    </select>
-                </div>
-                <div class="input-group full" id="modalEndDateGroup">
-                    <label>Ende des Dauerauftrags (Monat, optional)</label>
-                    <input type="month" id="modalItemEndDate" placeholder="Leer = läuft dauerhaft">
-                </div>
+                <div class="input-group"><label>Art</label><select id="modalItemType"><option value="dauer">🔄 Dauerauftrag</option><option value="einmalig">⚡ Einmalig</option></select></div>
             </div>
             <button class="btn-add" onclick="addExpenseItemToMonth()">Posten hinzufügen ➕</button>
-
             <div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px;">
-                <label style="font-weight:bold; font-size:0.8rem; margin-bottom:6px; display:block;">📋 Aktuelle Posten diesen Monat:</label>
                 <div class="history-list" id="modalExpenseList"></div>
             </div>
-
             <button class="btn-add" style="background:var(--border); color:#0f172a; margin-top:14px;" onclick="closeExpenseModal()">Fertig & Speichern ✅</button>
         </div>
     </div>
 
-    <!-- MODAL SPARZIEL BEARBEITEN -->
+    <!-- MODAL SPARZIEL & EIN-/AUSZAHLUNG -->
     <div id="goalModal" class="modal">
         <div class="modal-content">
-            <div class="card-title"><span id="goalModalTitle">🎯 Sparziel bearbeiten</span></div>
+            <div class="card-title"><span id="goalModalTitle">🎯 Sparziel verwalten</span></div>
             <div class="grid">
                 <div class="input-group full"><label>Name des Ziels</label><input type="text" id="goalEditName" placeholder="z.B. Malle 2027"></div>
                 <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="goalEditTarget" placeholder="1000"></div>
-                <div class="input-group"><label>Zieldatum (Monat)</label><input type="month" id="goalEditDate"></div>
-                <div class="input-group"><label>Feste monatliche Sparsumme (€)</label><input type="number" id="goalEditMonthly" placeholder="50"></div>
-                <div class="input-group full"><label>Manuell angespart / Offset (€)</label><input type="number" id="goalEditOffset" placeholder="0"></div>
+                <div class="input-group"><label>Monatliche Sparrate (€)</label><input type="number" id="goalEditMonthly" placeholder="50"></div>
+                <div class="input-group full"><label>Manueller Start-Betrag / Offset (€)</label><input type="number" id="goalEditOffset" placeholder="0"></div>
             </div>
 
-            <!-- GEPLANTE ENTNABMEN / AUSZAHLUNGEN FÜR BESTIMMTE MONATE -->
-            <div style="background:var(--card-sub); border:1px solid #fca5a5; padding:10px; border-radius:8px; margin-top:10px; margin-bottom:10px;">
-                <label style="color:#dc2626; font-weight:bold; display:block; margin-bottom:4px;">Geld für bestimmten Monat abziehen / entnehmen (z.B. März)</label>
-                <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Falls in einem Monat (wie März) Geld abgehoben wird, bucht die App das hier automatisch ab.</div>
+            <!-- Manuelle Ein- / Auszahlung für dieses Ziel -->
+            <div style="background:var(--card-sub); border:1px solid var(--accent); padding:10px; border-radius:8px; margin-top:10px;">
+                <label style="color:var(--accent); font-weight:bold; display:block; margin-bottom:4px;">Geld manuell einzahlen oder auszahlen 💵</label>
                 <div style="display:flex; gap:6px; margin-bottom:6px;">
-                    <input type="month" id="goalWithdrawMonth" style="font-size:0.8rem; padding:6px;">
-                    <input type="number" id="goalWithdrawAmount" placeholder="Betrag (€)" style="width:100px; font-size:0.8rem; padding:6px;">
-                    <button class="btn-secondary" style="background:#dc2626; color:#fff; font-weight:bold; padding:6px;" onclick="addGoalWithdrawal()">Hinzufügen ➖</button>
+                    <select id="goalManualType" style="width:110px; font-size:0.8rem;"><option value="in">Einzahlung ➕</option><option value="out">Auszahlung ➖</option></select>
+                    <input type="number" id="goalManualAmount" placeholder="Betrag (€)" style="font-size:0.8rem; padding:6px;">
+                    <button class="btn-secondary" style="background:var(--accent); color:#fff; font-weight:bold;" onclick="executeGoalManualTransaction()">Buchen</button>
                 </div>
-                <div id="goalWithdrawalsList" style="font-size:0.75rem; margin-top:4px;"></div>
+                <div id="goalTransactionsList" style="font-size:0.75rem; margin-top:6px;"></div>
             </div>
 
-            <div style="display:flex; gap:8px; margin-top:10px;">
+            <div style="display:flex; gap:8px; margin-top:12px;">
                 <button class="btn-add" style="background:var(--accent-green); margin-top:0;" onclick="saveGoalModal()">Speichern ✅</button>
                 <button class="btn-add" style="background:var(--accent-red); margin-top:0;" onclick="deleteGoalModal()">Löschen 🗑️</button>
             </div>
@@ -547,60 +368,34 @@
         </div>
     </div>
 
-    <!-- MODAL URLAUB BEARBEITEN -->
+    <!-- MODAL URLAUB -->
     <div id="urlaubModal" class="modal">
         <div class="modal-content">
             <div class="card-title"><span id="urlaubModalTitle">✈️ Urlaub planen</span></div>
             <div class="grid">
-                <div class="input-group full"><label>Urlaubs-Name</label><input type="text" id="urlaubEditName" placeholder="z.B. Mallorca April 2027"></div>
+                <div class="input-group full"><label>Urlaubs-Name</label><input type="text" id="urlaubEditName" placeholder="Mallorca"></div>
                 <div class="input-group"><label>Startdatum</label><input type="date" id="urlaubEditStart"></div>
                 <div class="input-group"><label>Enddatum</label><input type="date" id="urlaubEditEnd"></div>
-                <div class="input-group"><label>Gesamtbudget-Ziel (€)</label><input type="number" id="urlaubEditTarget" placeholder="600"></div>
-                
-                <div class="input-group"><label>Fixkosten: Hotel (€)</label><input type="number" id="urlaubEditFixHotel" placeholder="0"></div>
-                <div class="input-group"><label>Fixkosten: Bus/Flug/Hin (€)</label><input type="number" id="urlaubEditFixBus" placeholder="0"></div>
-                <div class="input-group"><label>Fixkosten: Supermarkt Start (€)</label><input type="number" id="urlaubEditFixSuper" placeholder="0"></div>
-                <div class="input-group"><label>Fixkosten: Kurtaxe/Sonst. (€)</label><input type="number" id="urlaubEditFixKurtaxe" placeholder="0"></div>
-                <div class="input-group full"><label>Fixkosten: Abreise-Puffer (€)</label><input type="number" id="urlaubEditFixPuffer" placeholder="0"></div>
+                <div class="input-group"><label>Budget-Ziel (€)</label><input type="number" id="urlaubEditTarget" placeholder="600"></div>
             </div>
-            <div style="display:flex; gap:8px; margin-top:10px;">
-                <button class="btn-add" style="background:var(--accent-green); margin-top:0;" onclick="saveUrlaubModal()">Speichern ✅</button>
-                <button class="btn-add" style="background:var(--accent-red); margin-top:0;" onclick="deleteUrlaubModal()">Löschen 🗑️</button>
-            </div>
+            <button class="btn-add" style="background:var(--accent-green);" onclick="saveUrlaubModal()">Speichern ✅</button>
             <button class="btn-secondary" style="width:100%; margin-top:8px;" onclick="closeUrlaubModal()">Abbrechen</button>
         </div>
     </div>
 
     <script>
-        // 🔑 JSONBin Cloud Zugangsdaten
         const JSONBIN_BIN_ID = "6ae1bb6cffd5d160539242a4"; 
         const JSONBIN_MASTER_KEY = "$2a$10$4eiGPqBALPGWcRBtpwC2k.vouBuocGQMbElg6En4g.jCqTTMorj.O";
 
-        // Kern-Datenstrukturen
         let entries = JSON.parse(localStorage.getItem('finanz_entries_local')) || {};
         let haushalt = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || [];
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
-            { id: "notfall", name: "Notfall/Sparen", target: 3000, monthly: 200, offset: 0, withdrawals: {} },
-            { id: "malle", name: "Malle 2027", target: 600, monthly: 100, offset: 0, withdrawals: {} },
-            { id: "koeln", name: "Köln", target: 400, monthly: 50, offset: 0, withdrawals: {} }
+            { id: "notfall", name: "Notfall/Sparen", target: 3000, monthly: 200, offset: 0, manualTxs: [], withdrawals: {} },
+            { id: "malle", name: "Malle 2027", target: 600, monthly: 100, offset: 0, manualTxs: [], withdrawals: {} },
+            { id: "koeln", name: "Köln", target: 400, monthly: 50, offset: 0, manualTxs: [], withdrawals: {} }
         ];
-        let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || [
-            {
-                id: "u_1",
-                name: "Mallorca April 2027",
-                startDate: "2027-04-21",
-                endDate: "2027-04-25",
-                target: 600,
-                fixHotel: 0,
-                fixBusHin: 10,
-                fixSupermarkt: 30,
-                fixKurtaxe: 20,
-                fixAbreisePuffer: 0,
-                dayExpenses: [60, null, null, null, null],
-                dayReceipts: [null, null, null, null, null]
-            }
-        ];
-        let currentUrlaubId = localStorage.getItem('finanz_current_urlaub_id') || (urlaubeList[0] ? urlaubeList[0].id : null);
+        let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || [];
+        let currentUrlaubId = localStorage.getItem('finanz_current_urlaub_id') || null;
         let cashBreakdown = JSON.parse(localStorage.getItem('finanz_cash_breakdown')) || { c100:0, c50:0, c20:0, c10:0, c5:0, c2:0, c1:0, c050:0, c020:0 };
 
         let currentActiveMonth = "2026-11";
@@ -608,11 +403,10 @@
         let editingUrlaubId = null;
 
         const kategorienListe = {
-            expense: ["🛒 Lebensmittel", "⛽ Tanken / Auto", "🍽️ Restaurant / Bar", "🛍️ Shopping & Kleidung", "💡 Freizeit & Hobbies", "📦 Sonstiges"],
-            income: ["💵 Bargeld erhalten", "🎁 Geschenk / Extra", "💰 Rückzahlung / Sonstiges"]
+            expense: ["🛒 Lebensmittel", "⛽ Tanken", "🍽️ Restaurant", "🛍️ Shopping", "📦 Sonstiges"],
+            income: ["💵 Bargeld erhalten", "🎁 Extra"]
         };
 
-        // --- JSONBIN CLOUD SYNC LOGIK ---
         async function saveToCloud() {
             localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
             localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushalt));
@@ -629,21 +423,11 @@
             try {
                 const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': JSONBIN_MASTER_KEY
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': JSONBIN_MASTER_KEY },
                     body: JSON.stringify({ entries, haushalt, goals, urlaubeList, currentUrlaubId, cashBreakdown })
                 });
-
-                if (res.ok) {
-                    if(badge) { badge.innerText = "⚡ Cloud Live ✅"; badge.classList.add('synced'); }
-                } else {
-                    if(badge) badge.innerText = "⚠️ Key prüfen";
-                }
-            } catch(e) {
-                if(badge) badge.innerText = "⚠️ Offline";
-            }
+                if (res.ok && badge) { badge.innerText = "⚡ Cloud Live ✅"; badge.classList.add('synced'); }
+            } catch(e) { if(badge) badge.innerText = "⚠️ Offline"; }
         }
 
         async function loadFromCloud() {
@@ -655,7 +439,6 @@
                 const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
                     headers: { 'X-Master-Key': JSONBIN_MASTER_KEY }
                 });
-
                 if (res.ok) {
                     const data = await res.json();
                     if (data.record) {
@@ -665,76 +448,17 @@
                         if (data.record.urlaubeList) urlaubeList = data.record.urlaubeList;
                         if (data.record.currentUrlaubId) currentUrlaubId = data.record.currentUrlaubId;
                         if (data.record.cashBreakdown) cashBreakdown = data.record.cashBreakdown;
-
-                        localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
-                        localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushalt));
-                        localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
-                        localStorage.setItem('finanz_urlaube_local', JSON.stringify(urlaubeList));
-                        localStorage.setItem('finanz_current_urlaub_id', currentUrlaubId);
-                        localStorage.setItem('finanz_cash_breakdown', JSON.stringify(cashBreakdown));
-
                         if(badge) { badge.innerText = "⚡ Cloud Live ✅"; badge.classList.add('synced'); }
                         initApp();
                     }
                 }
-            } catch(e) { console.log(e); }
-        }
-
-        // Automatisches Speichern im localStorage und Cloud-Sync
-        function autoSaveLive() {
-            const m = document.getElementById('monthInput').value;
-            if (!entries[m]) {
-                entries[m] = {
-                    gehalt: 2300,
-                    bargeldEinnahme: 0,
-                    items: [
-                        { name: "Miete", amount: 800, type: "dauer", endDate: "" },
-                        { name: "Stadtwerke Schwabach", amount: 140, type: "dauer", endDate: "" },
-                        { name: "O2", amount: 65, type: "dauer", endDate: "" },
-                        { name: "Deutschlandticket", amount: 63, type: "dauer", endDate: "" },
-                        { name: "Puffer", amount: 40, type: "dauer", endDate: "" }
-                    ],
-                    pausedItems: [],
-                    bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
-                    taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
-                    splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 200,
-                    splitMode: document.getElementById('splitModeSelect').value,
-                    booked: document.getElementById('gehaltBookedInput').checked,
-                    extraTransfers: []
-                };
-            }
-
-            entries[m].gehalt = parseFloat(document.getElementById('gehaltInput').value) || 0;
-            entries[m].bargeldEinnahme = parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0;
-            entries[m].fix = parseFloat(document.getElementById('fixkostenInput').value) || 0;
-            entries[m].taschengeld = parseFloat(document.getElementById('taschengeldInput').value) || 0;
-            entries[m].bargeld = parseFloat(document.getElementById('bargeldInput').value) || 0;
-            entries[m].splitNotfall = parseFloat(document.getElementById('splitNotfallInput').value) || 0;
-            entries[m].splitMode = document.getElementById('splitModeSelect').value;
-            entries[m].booked = document.getElementById('gehaltBookedInput').checked;
-
-            saveToCloud();
-            calcMonth(m);
-            renderAll();
+            } catch(e) {}
         }
 
         function downloadBackupJSON() {
-            const backupData = {
-                entries,
-                haushalt,
-                goals,
-                urlaubeList,
-                currentUrlaubId,
-                cashBreakdown,
-                version: "2.5",
-                date: new Date().toISOString()
-            };
-            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify({ entries, haushalt, goals, urlaubeList, cashBreakdown }, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Finanzplan_Backup_${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
+            const a = document.createElement('a'); a.href = url; a.download = `Finanzplan_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
             URL.revokeObjectURL(url);
         }
 
@@ -749,61 +473,58 @@
                     if (imported.haushalt) haushalt = imported.haushalt;
                     if (imported.goals) goals = imported.goals;
                     if (imported.urlaubeList) urlaubeList = imported.urlaubeList;
-                    if (imported.currentUrlaubId) currentUrlaubId = imported.currentUrlaubId;
                     if (imported.cashBreakdown) cashBreakdown = imported.cashBreakdown;
-
-                    saveToCloud();
-                    initApp();
-                    alert("Backup erfolgreich geladen und in die Cloud synchronisiert! 📂✅");
-                } catch(err) {
-                    alert("Fehler beim Lesen der Backup-Datei!");
-                }
+                    saveToCloud(); initApp(); alert("Backup erfolgreich geladen! 📂✅");
+                } catch(err) { alert("Fehler beim Lesen!"); }
             };
             reader.readAsText(file);
         }
 
-        // Berechnungslogik für Monate und Sparziele
+        function autoSaveLive() {
+            const m = document.getElementById('monthInput').value;
+            if (!entries[m]) {
+                entries[m] = {
+                    gehalt: 2300, bargeldEinnahme: 0, items: [{ name: "Miete", amount: 800, type: "dauer", endDate: "" }],
+                    pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 200, splitMode: 'fixed', booked: false
+                };
+            }
+            entries[m].gehalt = parseFloat(document.getElementById('gehaltInput').value) || 0;
+            entries[m].bargeldEinnahme = parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0;
+            entries[m].fix = parseFloat(document.getElementById('fixkostenInput').value) || 0;
+            entries[m].taschengeld = parseFloat(document.getElementById('taschengeldInput').value) || 0;
+            entries[m].bargeld = parseFloat(document.getElementById('bargeldInput').value) || 0;
+            entries[m].splitNotfall = parseFloat(document.getElementById('splitNotfallInput').value) || 0;
+            entries[m].splitMode = document.getElementById('splitModeSelect').value;
+            entries[m].booked = document.getElementById('gehaltBookedInput').checked;
+
+            saveToCloud();
+            calcMonth(m);
+            renderAll();
+        }
+
         function calcMonth(m) {
             if (!entries[m]) return { netto: 0, ueberschuss: 0, notfall: 0, freizeit: 0, freizeitRest: 0 };
             const data = entries[m];
-            
             let fixSum = 0;
             if (data.items) {
                 data.items.forEach(item => {
                     const isPaused = data.pausedItems && data.pausedItems.includes(item.name);
-                    let ended = false;
-                    if (item.endDate && item.endDate < m) ended = true;
-                    if (!isPaused && !ended) {
-                        fixSum += item.amount;
-                    }
+                    let ended = item.endDate && item.endDate < m;
+                    if (!isPaused && !ended) fixSum += item.amount;
                 });
             }
             data.fix = fixSum;
-
             const netto = (data.gehalt + (data.bargeldEinnahme || 0)) - data.fix;
             const ueberschuss = netto - (data.taschengeld || 0);
-
-            let notfall = 0;
-            if (data.splitMode === 'percent') {
-                notfall = Math.max(0, ueberschuss * ((data.splitNotfall || 0) / 100));
-            } else {
-                notfall = Math.max(0, data.splitNotfall || 0);
-            }
-
+            let notfall = data.splitMode === 'percent' ? Math.max(0, ueberschuss * ((data.splitNotfall || 0) / 100)) : Math.max(0, data.splitNotfall || 0);
             const freizeit = Math.max(0, ueberschuss - notfall);
 
-            // Abzug aller Sparziele für diesen Monat
             let sparzieleSum = 0;
             goals.forEach(g => {
-                if (g.withdrawals && g.withdrawals[m]) {
-                    sparzieleSum += g.withdrawals[m];
-                } else if (g.monthly && g.monthly > 0) {
-                    sparzieleSum += g.monthly;
-                }
+                if (g.withdrawals && g.withdrawals[m]) sparzieleSum += g.withdrawals[m];
+                else if (g.monthly && g.monthly > 0) sparzieleSum += g.monthly;
             });
-
             const freizeitRest = Math.max(0, freizeit - sparzieleSum);
-
             return { netto, ueberschuss, notfall, freizeit, freizeitRest, sparzieleSum, fixSum };
         }
 
@@ -812,28 +533,9 @@
             currentActiveMonth = val;
             document.getElementById('monthInput').value = val;
             document.getElementById('hhMonthInput').value = val;
-            
             if (!entries[val]) {
-                entries[val] = {
-                    gehalt: 2300,
-                    bargeldEinnahme: 0,
-                    items: [
-                        { name: "Miete", amount: 800, type: "dauer", endDate: "" },
-                        { name: "Stadtwerke Schwabach", amount: 140, type: "dauer", endDate: "" },
-                        { name: "O2", amount: 65, type: "dauer", endDate: "" },
-                        { name: "Deutschlandticket", amount: 63, type: "dauer", endDate: "" },
-                        { name: "Puffer", amount: 40, type: "dauer", endDate: "" }
-                    ],
-                    pausedItems: [],
-                    bargeld: 0,
-                    taschengeld: 0,
-                    splitNotfall: 200,
-                    splitMode: 'fixed',
-                    booked: false,
-                    extraTransfers: []
-                };
+                entries[val] = { gehalt: 2300, bargeldEinnahme: 0, items: [{name: "Miete", amount: 800, type: "dauer", endDate: ""}], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 200, splitMode: 'fixed', booked: false };
             }
-
             const d = entries[val];
             document.getElementById('gehaltInput').value = d.gehalt || 0;
             document.getElementById('bargeldEinnahmeInput').value = d.bargeldEinnahme || 0;
@@ -842,18 +544,13 @@
             document.getElementById('splitNotfallInput').value = d.splitNotfall || 200;
             document.getElementById('splitModeSelect').value = d.splitMode || 'fixed';
             document.getElementById('gehaltBookedInput').checked = !!d.booked;
-
             document.getElementById('displayMonth').innerText = val;
-            document.getElementById('HHMonthDisplay').innerText = val;
-
             renderAll();
         }
 
-        // Render-Funktionen
         function renderAll() {
             const m = currentActiveMonth;
             const res = calcMonth(m);
-
             document.getElementById('sumFixDisplay').innerText = res.fixSum.toFixed(2) + ' €';
             document.getElementById('resNetto').innerText = res.netto.toFixed(2) + ' €';
             document.getElementById('resUeberschuss').innerText = res.ueberschuss.toFixed(2) + ' €';
@@ -862,21 +559,8 @@
             document.getElementById('resFreizeitRest').innerText = res.freizeitRest.toFixed(2) + ' €';
             document.getElementById('resBargeld').innerText = (entries[m]?.bargeld || 0).toFixed(2) + ' €';
             document.getElementById('resSparzieleAbzug').innerText = '-' + res.sparzieleSum.toFixed(2) + ' €';
-            
-            const totalSparenMonat = res.notfall + res.sparzieleSum;
-            document.getElementById('resGesamtSparen').innerText = totalSparenMonat.toFixed(2) + ' €';
+            document.getElementById('resGesamtSparen').innerText = (res.notfall + res.sparzieleSum).toFixed(2) + ' €';
 
-            // Sparziele Aufschlüsselung im Aktuell-Tab
-            let breakdownHTML = '';
-            goals.forEach(g => {
-                let amt = (g.withdrawals && g.withdrawals[m]) ? g.withdrawals[m] : (g.monthly || 0);
-                if (amt > 0) {
-                    breakdownHTML += `<div class="stat-row sub-row"><span>↳ Sparziel (${g.name}):</span><span class="val-highlight">-${amt.toFixed(2)} €</span></div>`;
-                }
-            });
-            document.getElementById('sparzieleBreakdownContainer').innerHTML = breakdownHTML;
-
-            // Extra-Überweisung Ziel-Dropdown befüllen
             let selectHTML = '';
             goals.forEach(g => { selectHTML += `<option value="${g.id}">${g.name}</option>`; });
             selectHTML += `<option value="kassette">🪙 Bargeld-Kassette</option>`;
@@ -884,9 +568,6 @@
 
             renderHaushalt();
             renderPrognoseAndStand();
-            renderNextThreeMonths();
-            renderJahresView();
-            renderUrlaubTab();
             renderGoalsTab();
         }
 
@@ -894,387 +575,180 @@
             const m = currentActiveMonth;
             const list = document.getElementById('HHList');
             list.innerHTML = '';
-
-            let totalExp = 0;
-            let totalInc = 0;
-
             haushalt.filter(i => i.date && i.date.startsWith(m)).forEach(i => {
-                if (i.type === 'income') totalInc += i.amount;
-                else totalExp += i.amount;
-
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `
-                    <div>
-                        <div class="history-date">${i.name} <span class="badge badge-kategorie">${i.category}</span></div>
-                        <div class="history-sub">${i.date} ${i.repeat ? '<span class="badge badge-dauer">Wöchentlich/Monatlich</span>' : ''}</div>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <span class="${i.type === 'income' ? 'val-highlight' : 'val-red'}">${i.type === 'income' ? '+' : '-'}${i.amount.toFixed(2)} €</span>
-                        <button class="storno-btn" onclick="deleteHHItem(${i.id})">Löschen</button>
-                    </div>
-                `;
-                list.appendChild(div);
+                list.innerHTML += `<div class="history-item"><div><strong>${i.name}</strong> (${i.category})</div><div class="${i.type==='income'?'val-highlight':'val-red'}">${i.type==='income'?'+':'-'}${i.amount.toFixed(2)} € <button class="storno-btn" onclick="deleteHHItem(${i.id})">Löschen</button></div></div>`;
             });
-
-            document.getElementById('HHTotalDisplay').innerText = totalExp.toFixed(2) + ' €';
-            document.getElementById('HHIncomeTotalDisplay').innerText = '+' + totalInc.toFixed(2) + ' €';
-
-            const baseTaschengeld = entries[m]?.taschengeld || 0;
-            document.getElementById('HHBudgetDisplay').innerText = baseTaschengeld.toFixed(2) + ' €';
-
-            const rest = (baseTaschengeld + totalInc) - totalExp;
-            const restEl = document.getElementById('HHRestDisplay');
-            restEl.innerText = rest.toFixed(2) + ' €';
-            restEl.className = rest >= 0 ? 'val-highlight' : 'val-red';
-
-            renderCategoryChart(m);
-        }
-
-        function renderCategoryChart(m) {
-            const container = document.getElementById('categoryChartContainer');
-            const card = document.getElementById('categoryChartCard');
-            container.innerHTML = '';
-
-            let catSums = {};
-            let totalCatExp = 0;
-
-            haushalt.filter(i => i.date && i.date.startsWith(m) && i.type !== 'income').forEach(i => {
-                catSums[i.category] = (catSums[i.category] || 0) + i.amount;
-                totalCatExp += i.amount;
-            });
-
-            if (totalCatExp === 0) {
-                card.style.display = 'none';
-                return;
-            }
-            card.style.display = 'block';
-
-            for (const [cat, sum] of Object.entries(catSums)) {
-                const percent = Math.round((sum / totalCatExp) * 100);
-                const row = document.createElement('div');
-                row.className = 'chart-bar-row';
-                row.innerHTML = `
-                    <div class="chart-label-line"><span>${cat}</span><span>${sum.toFixed(2)} € (${percent}%)</span></div>
-                    <div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${percent}%; background:var(--accent);"></div></div>
-                `;
-                container.appendChild(row);
-            }
         }
 
         function renderPrognoseAndStand() {
-            let totalNotfallGebucht = 0;
-            let totalFreizeitGebucht = 0;
-            let totalNotfallProj = 0;
-            let totalFreizeitProj = 0;
-
+            let totalNotfallGebucht = 0, totalFreizeitGebucht = 0, totalNotfallProj = 0, totalFreizeitProj = 0;
             for (const [m, data] of Object.entries(entries)) {
                 const res = calcMonth(m);
-                totalNotfallProj += res.notfall;
-                totalFreizeitProj += res.freizeitRest;
-
-                if (data.booked) {
-                    totalNotfallGebucht += res.notfall;
-                    totalFreizeitGebucht += res.freizeitRest;
-                }
+                totalNotfallProj += res.notfall; totalFreizeitProj += res.freizeitRest;
+                if (data.booked) { totalNotfallGebucht += res.notfall; totalFreizeitGebucht += res.freizeitRest; }
             }
-
             const kassetteVal = calcCashBoxTotal();
-
             document.getElementById('totalNotfall').innerText = totalNotfallGebucht.toFixed(2) + ' €';
             document.getElementById('projNotfall').innerText = totalNotfallProj.toFixed(2) + ' €';
-
             document.getElementById('totalFreizeit').innerText = totalFreizeitGebucht.toFixed(2) + ' €';
             document.getElementById('projFreizeit').innerText = totalFreizeitProj.toFixed(2) + ' €';
-
             document.getElementById('totalKassette').innerText = kassetteVal.toFixed(2) + ' €';
             document.getElementById('projKassette').innerText = kassetteVal.toFixed(2) + ' €';
-
-            const gesamtGebucht = totalNotfallGebucht + totalFreizeitGebucht + kassetteVal;
-            const gesamtProj = totalNotfallProj + totalFreizeitProj + kassetteVal;
-
-            document.getElementById('totalErsparnisse').innerText = gesamtGebucht.toFixed(2) + ' €';
-            document.getElementById('projGesamtErsparnisse').innerText = gesamtProj.toFixed(2) + ' €';
+            document.getElementById('projGesamtErsparnisse').innerText = (totalNotfallProj + totalFreizeitProj + kassetteVal).toFixed(2) + ' €';
 
             const tableBody = document.getElementById('monthSavingsTableBody');
             tableBody.innerHTML = '';
-
             let runningSum = 0;
-            const sortedMonths = Object.keys(entries).sort();
-
-            sortedMonths.forEach(m => {
-                const res = calcMonth(m);
-                const d = entries[m];
-                const sumMonat = res.notfall + res.freizeitRest;
-                runningSum += sumMonat;
-
-                const tr = document.createElement('tr');
-                tr.onclick = () => { syncMonthInput(m); switchTab('aktuel-view', document.querySelector('.tab-btn')); };
-                tr.innerHTML = `
-                    <td><strong>${m}</strong></td>
-                    <td>${d.booked ? '<span class="badge badge-booked">Gebucht ✅</span>' : '<span class="badge badge-once">Offen ⏳</span>'}</td>
-                    <td>${(res.notfall + res.sparzieleSum).toFixed(2)} €</td>
-                    <td class="val-highlight">${res.notfall.toFixed(2)} €</td>
-                    <td class="val-orange">${res.freizeit.toFixed(2)} €</td>
-                    <td class="val-highlight">${res.freizeitRest.toFixed(2)} €</td>
-                    <td><strong>${runningSum.toFixed(2)} €</strong></td>
-                `;
-                tableBody.appendChild(tr);
+            Object.keys(entries).sort().forEach(m => {
+                const res = calcMonth(m); const d = entries[m]; runningSum += (res.notfall + res.freizeitRest);
+                tableBody.innerHTML += `<tr onclick="syncMonthInput('${m}'); switchTab('aktuel-view', document.querySelector('.tab-btn'));"><td><strong>${m}</strong></td><td>${d.booked?'<span class="badge badge-booked">Gebucht</span>':'<span class="badge badge-once">Offen</span>'}</td><td>${(res.notfall+res.sparzieleSum).toFixed(2)} €</td><td class="val-highlight">${res.notfall.toFixed(2)} €</td><td class="val-orange">${res.freizeit.toFixed(2)} €</td><td class="val-highlight">${res.freizeitRest.toFixed(2)} €</td><td><strong>${runningSum.toFixed(2)} €</strong></td></tr>`;
             });
         }
 
-        function renderNextThreeMonths() {
-            const list = document.getElementById('nextThreeList');
-            list.innerHTML = '';
-
-            const current = new Date(currentActiveMonth + '-01');
-            for (let i = 1; i <= 3; i++) {
-                current.setMonth(current.getMonth() + 1);
-                const mStr = current.toISOString().slice(0,7);
-                const res = calcMonth(mStr);
-
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `
-                    <div>
-                        <div class="history-date">${mStr}</div>
-                        <div class="history-sub">Netto: ${res.netto.toFixed(2)} € | Fix: ${res.fixSum.toFixed(2)} €</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <span class="val-highlight">+${res.notfall.toFixed(2)} € Notfall</span>
-                        <div style="font-size:0.7rem; color:var(--text-sub);">Frei: ${res.freizeitRest.toFixed(2)} €</div>
-                    </div>
-                `;
-                list.appendChild(div);
-            }
-        }
-
         function renderJahresView() {
+            let einnahmen = 0, fix = 0, sparen = 0;
             const year = document.getElementById('selectYear').value;
-            let einnahmen = 0;
-            let fix = 0;
-            let haushaltAusgaben = 0;
-            let sparenPlan = 0;
-            let sparenReal = 0;
-
-            let monthRates = [];
-
             for (const [m, d] of Object.entries(entries)) {
                 if (m.startsWith(year)) {
                     const res = calcMonth(m);
                     einnahmen += (d.gehalt + (d.bargeldEinnahme || 0));
-                    fix += res.fixSum;
-                    sparenPlan += (res.notfall + res.sparzieleSum);
-
-                    let hhExpMonth = 0;
-                    haushalt.filter(i => i.date && i.date.startsWith(m) && i.type !== 'income').forEach(i => { hhExpMonth += i.amount; });
-                    haushaltAusgaben += hhExpMonth;
-
-                    sparenReal += Math.max(0, (res.notfall + res.sparzieleSum) - hhExpMonth);
-
-                    monthRates.push({ month: m, rate: (res.notfall + res.sparzieleSum) });
+                    fix += res.fixSum; sparen += (res.notfall + res.sparzieleSum);
                 }
             }
-
-            const echteEchteSparen = Math.max(0, sparenPlan - haushaltAusgaben);
-            const quotePlan = einnahmen > 0 ? Math.round((sparenPlan / einnahmen) * 100) : 0;
-            const quoteReal = einnahmen > 0 ? Math.round((echteEchteSparen / einnahmen) * 100) : 0;
-
             document.getElementById('jahrEinnahmen').innerText = einnahmen.toFixed(2) + ' €';
             document.getElementById('jahrFix').innerText = fix.toFixed(2) + ' €';
-            document.getElementById('jahrHaushaltAusgaben').innerText = haushaltAusgaben.toFixed(2) + ' €';
-            document.getElementById('jahrSparen').innerText = sparenPlan.toFixed(2) + ' €';
-            document.getElementById('jahrEchtesSparen').innerText = echteEchteSparen.toFixed(2) + ' €';
-            document.getElementById('jahrQuotePlan').innerText = quotePlan + ' %';
-            document.getElementById('jahrQuoteReal').innerText = quoteReal + ' %';
-
-            const chartContainer = document.getElementById('jahrChartContainer');
-            chartContainer.innerHTML = '';
-            monthRates.forEach(mr => {
-                const maxVal = 500;
-                const pct = Math.min(100, Math.round((mr.rate / maxVal) * 100));
-                const row = document.createElement('div');
-                row.className = 'chart-bar-row';
-                row.innerHTML = `
-                    <div class="chart-label-line"><span>${mr.month}</span><span>${mr.rate.toFixed(2)} €</span></div>
-                    <div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${pct}%;"></div></div>
-                `;
-                chartContainer.appendChild(row);
-            });
+            document.getElementById('jahrSparen').innerText = sparen.toFixed(2) + ' €';
         }
 
-        function renderUrlaubTab() {
-            let selectHTML = '';
-            urlaubeList.forEach(u => {
-                selectHTML += `<option value="${u.id}" ${u.id === currentUrlaubId ? 'selected' : ''}>${u.name}</option>`;
-            });
-            document.getElementById('urlaubSelect').innerHTML = selectHTML;
-
-            const u = urlaubeList.find(item => item.id === currentUrlaubId);
-            const container = document.getElementById('activeUrlaubCardContainer');
-            if (!u) {
-                container.innerHTML = '<div class="card">Kein Urlaub vorhanden.</div>';
-                return;
-            }
-
-            let totalFix = (u.fixHotel || 0) + (u.fixBusHin || 0) + (u.fixSupermarkt || 0) + (u.fixKurtaxe || 0) + (u.fixAbreisePuffer || 0);
-            let totalTageExp = 0;
-            if (u.dayExpenses) {
-                u.dayExpenses.forEach(val => { if (val) totalTageExp += val; });
-            }
-            const gesamtkosten = totalFix + totalTageExp;
-            const diff = u.target - gesamtkosten;
-
-            let daysHTML = '';
-            if (u.startDate && u.endDate) {
-                const start = new Date(u.startDate);
-                const end = new Date(u.endDate);
-                const diffTime = Math.abs(end - start);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-
-                for (let i = 0; i < diffDays; i++) {
-                    const dayDate = new Date(start);
-                    dayDate.setDate(dayDate.getDate() + i);
-                    const dateStr = dayDate.toISOString().slice(0,10);
-                    const valExp = (u.dayExpenses && u.dayExpenses[i]) !== undefined ? u.dayExpenses[i] : '';
-
-                    daysHTML += `
-                        <div class="stat-row" style="align-items:center;">
-                            <span><strong>Tag ${i+1}</strong> (${dateStr})</span>
-                            <div style="display:flex; gap:6px; align-items:center;">
-                                <input type="number" placeholder="Ausgabe (€)" value="${valExp}" style="width:90px; padding:4px;" oninput="updateUrlaubDay(${i}, this.value)">
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-
-            container.innerHTML = `
-                <div class="card">
-                    <div class="card-title"><span>✈️ ${u.name}</span><button class="btn-secondary" onclick="openUrlaubModal('${u.id}')">Bearbeiten ✍️</button></div>
-                    <div class="stat-row"><span>Zeitraum:</span><span>${u.startDate || '-'} bis ${u.endDate || '-'}</span></div>
-                    <div class="stat-row"><span>Urlaubsbudget-Ziel:</span><span class="val-highlight">${u.target.toFixed(2)} €</span></div>
-                    <div class="stat-row"><span>Summe Fixkosten (Hotel, Anreise etc.):</span><span class="val-red">${totalFix.toFixed(2)} €</span></div>
-                    <div class="stat-row"><span>Summe Tägliche Ausgaben:</span><span class="val-red">${totalTageExp.toFixed(2)} €</span></div>
-                    <div class="stat-row" style="font-weight:bold; font-size:0.95rem;"><span>Gesamtkosten Urlaub:</span><span>${gesamtkosten.toFixed(2)} €</span></div>
-                    <div class="stat-row" style="font-weight:bold; font-size:0.95rem; background:${diff >= 0 ? '#f0fdf4' : '#fef2f2'}; padding:8px; border-radius:8px; margin-top:6px;">
-                        <span>Rest vom Budget:</span>
-                        <span class="${diff >= 0 ? 'val-highlight' : 'val-red'}">${diff.toFixed(2)} €</span>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-title">📅 Täglicher Kassensturz vor Ort</div>
-                    ${daysHTML}
-                </div>
-            `;
-        }
-
-        function updateUrlaubDay(dayIndex, val) {
-            const u = urlaubeList.find(item => item.id === currentUrlaubId);
-            if (!u) return;
-            if (!u.dayExpenses) u.dayExpenses = [];
-            u.dayExpenses[dayIndex] = val === '' ? null : parseFloat(val);
-            saveToCloud();
-            renderUrlaubTab();
-        }
-
-        function switchUrlaub(id) {
-            currentUrlaubId = id;
-            saveToCloud();
-            renderUrlaubTab();
-        }
-
+        // Sparziele & Manuelle Ein-/Auszahlung Render
         function renderGoalsTab() {
             const container = document.getElementById('goalsListContainer');
             container.innerHTML = '';
-
             goals.forEach(g => {
                 let currentSaved = g.offset || 0;
                 for (const [m, data] of Object.entries(entries)) {
-                    if (g.withdrawals && g.withdrawals[m]) {
-                        currentSaved -= g.withdrawals[m];
-                    } else if (g.monthly && g.monthly > 0) {
-                        currentSaved += g.monthly;
-                    }
+                    if (g.withdrawals && g.withdrawals[m]) currentSaved -= g.withdrawals[m];
+                    else if (g.monthly && g.monthly > 0) currentSaved += g.monthly;
                 }
-
+                if (g.manualTxs) {
+                    g.manualTxs.forEach(tx => {
+                        if (tx.type === 'in') currentSaved += tx.amount;
+                        else currentSaved -= tx.amount;
+                    });
+                }
                 const pct = g.target > 0 ? Math.min(100, Math.round((currentSaved / g.target) * 100)) : 0;
-
-                const box = document.createElement('div');
-                box.className = 'goal-card-box';
-                box.onclick = () => openGoalModal(g.id);
-                box.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <strong>${g.name}</strong>
-                        <span class="val-highlight">${currentSaved.toFixed(2)} € / ${g.target.toFixed(2)} € (${pct}%)</span>
+                container.innerHTML += `
+                    <div class="goal-card-box" onclick="openGoalModal('${g.id}')">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <strong>${g.name}</strong>
+                            <span class="val-highlight">${currentSaved.toFixed(2)} € / ${g.target.toFixed(2)} € (${pct}%)</span>
+                        </div>
+                        <div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div>
                     </div>
-                    <div style="font-size:0.72rem; color:var(--text-sub); margin-top:2px;">Monatliche Sparrate: ${g.monthly || 0} € | Zieldatum: ${g.targetDate || 'Offen'}</div>
-                    <div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div>
                 `;
-                container.appendChild(box);
             });
+        }
+
+        function openGoalModal(id) {
+            editingGoalId = id;
+            if (id) {
+                const g = goals.find(item => item.id === id);
+                document.getElementById('goalModalTitle').innerText = `Ziel verwalten: ${g.name}`;
+                document.getElementById('goalEditName').value = g.name;
+                document.getElementById('goalEditTarget').value = g.target;
+                document.getElementById('goalEditMonthly').value = g.monthly || 0;
+                document.getElementById('goalEditOffset').value = g.offset || 0;
+                renderGoalManualTxsList(g);
+            } else {
+                document.getElementById('goalModalTitle').innerText = "Neues Sparziel";
+                document.getElementById('goalEditName').value = ''; document.getElementById('goalEditTarget').value = '';
+                document.getElementById('goalEditMonthly').value = ''; document.getElementById('goalEditOffset').value = '';
+                document.getElementById('goalTransactionsList').innerHTML = '';
+            }
+            document.getElementById('goalModal').classList.add('active');
+        }
+
+        function closeGoalModal() { document.getElementById('goalModal').classList.remove('active'); }
+
+        function renderGoalManualTxsList(g) {
+            const listContainer = document.getElementById('goalTransactionsList');
+            listContainer.innerHTML = '';
+            if (!g.manualTxs) g.manualTxs = [];
+            g.manualTxs.forEach((tx, idx) => {
+                listContainer.innerHTML += `<div>${tx.type === 'in' ? '+' : '-'}${tx.amount.toFixed(2)} € (${tx.date}) <button class="storno-btn" onclick="removeGoalManualTx('${g.id}', ${idx})">Löschen</button></div>`;
+            });
+        }
+
+        function executeGoalManualTransaction() {
+            const type = document.getElementById('goalManualType').value;
+            const amount = parseFloat(document.getElementById('goalManualAmount').value) || 0;
+            if (amount <= 0 || !editingGoalId) return;
+            const g = goals.find(item => item.id === editingGoalId);
+            if (g) {
+                if (!g.manualTxs) g.manualTxs = [];
+                g.manualTxs.push({ type, amount, date: new Date().toISOString().slice(0,10) });
+                saveToCloud();
+                renderGoalManualTxsList(g);
+                document.getElementById('goalManualAmount').value = '';
+            }
+        }
+
+        function removeGoalManualTx(gId, idx) {
+            const g = goals.find(item => item.id === gId);
+            if (g && g.manualTxs) {
+                g.manualTxs.splice(idx, 1);
+                saveToCloud();
+                renderGoalManualTxsList(g);
+            }
+        }
+
+        function saveGoalModal() {
+            const name = document.getElementById('goalEditName').value;
+            const target = parseFloat(document.getElementById('goalEditTarget').value) || 0;
+            const monthly = parseFloat(document.getElementById('goalEditMonthly').value) || 0;
+            const offset = parseFloat(document.getElementById('goalEditOffset').value) || 0;
+            if (!name) return;
+
+            if (editingGoalId) {
+                const g = goals.find(item => item.id === editingGoalId);
+                g.name = name; g.target = target; g.monthly = monthly; g.offset = offset;
+            } else {
+                goals.push({ id: 'goal_' + Date.now(), name, target, monthly, offset, manualTxs: [], withdrawals: {} });
+            }
+            saveToCloud(); closeGoalModal(); renderAll();
+        }
+
+        function deleteGoalModal() {
+            if (!editingGoalId) return;
+            goals = goals.filter(item => item.id !== editingGoalId);
+            saveToCloud(); closeGoalModal(); renderAll();
         }
 
         function calcCashBoxTotal() {
             let sum = 0;
-            sum += (parseInt(document.getElementById('c100').value) || 0) * 100;
-            sum += (parseInt(document.getElementById('c50').value) || 0) * 50;
-            sum += (parseInt(document.getElementById('c20').value) || 0) * 20;
-            sum += (parseInt(document.getElementById('c10').value) || 0) * 10;
-            sum += (parseInt(document.getElementById('c5').value) || 0) * 5;
-            sum += (parseInt(document.getElementById('c2').value) || 0) * 2;
-            sum += (parseInt(document.getElementById('c1').value) || 0) * 1;
-            sum += (parseInt(document.getElementById('c050').value) || 0) * 0.50;
-            sum += (parseInt(document.getElementById('c020').value) || 0) * 0.20;
+            ['c100','c50','c20','c10','c5','c2','c1','c050','c020'].forEach(id => {
+                const val = parseInt(document.getElementById(id)?.value) || 0;
+                const multiplier = id === 'c050' ? 0.5 : id === 'c020' ? 0.2 : parseInt(id.replace('c',''));
+                sum += val * multiplier;
+            });
             return sum;
         }
 
         function calcCashBox() {
             const sum = calcCashBoxTotal();
             document.getElementById('cashTotalBadge').innerText = sum.toFixed(2) + ' €';
-            document.getElementById('totalKassette').innerText = sum.toFixed(2) + ' €';
-            document.getElementById('projKassette').innerText = sum.toFixed(2) + ' €';
             renderPrognoseAndStand();
         }
 
         function incrementCash(id) {
             const el = document.getElementById(id);
-            el.value = (parseInt(el.value) || 0) + 1;
-            calcCashBox();
-            saveCashBoxLocally();
-        }
-
-        function saveCashBoxLocally() {
-            cashBreakdown.c100 = parseInt(document.getElementById('c100').value) || 0;
-            cashBreakdown.c50 = parseInt(document.getElementById('c50').value) || 0;
-            cashBreakdown.c20 = parseInt(document.getElementById('c20').value) || 0;
-            cashBreakdown.c10 = parseInt(document.getElementById('c10').value) || 0;
-            cashBreakdown.c5 = parseInt(document.getElementById('c5').value) || 0;
-            cashBreakdown.c2 = parseInt(document.getElementById('c2').value) || 0;
-            cashBreakdown.c1 = parseInt(document.getElementById('c1').value) || 0;
-            cashBreakdown.c050 = parseInt(document.getElementById('c050').value) || 0;
-            cashBreakdown.c020 = parseInt(document.getElementById('c020').value) || 0;
-            saveToCloud();
-        }
-
-        function loadCashBoxToInputs() {
-            document.getElementById('c100').value = cashBreakdown.c100 || 0;
-            document.getElementById('c50').value = cashBreakdown.c50 || 0;
-            document.getElementById('c20').value = cashBreakdown.c20 || 0;
-            document.getElementById('c10').value = cashBreakdown.c10 || 0;
-            document.getElementById('c5').value = cashBreakdown.c5 || 0;
-            document.getElementById('c2').value = cashBreakdown.c2 || 0;
-            document.getElementById('c1').value = cashBreakdown.c1 || 0;
-            document.getElementById('c050').value = cashBreakdown.c050 || 0;
-            document.getElementById('c020').value = cashBreakdown.c020 || 0;
-            calcCashBox();
+            if (el) { el.value = (parseInt(el.value) || 0) + 1; calcCashBox(); saveToCloud(); }
         }
 
         function executeExtraTransfer() {
             const goalId = document.getElementById('extraTransferGoalSelect').value;
             const amt = parseFloat(document.getElementById('extraTransferAmount').value) || 0;
             if (amt <= 0) return;
-
             const m = currentActiveMonth;
             if (goalId === 'kassette') {
                 if (!entries[m]) autoSaveLive();
@@ -1287,100 +761,45 @@
                 }
             }
             document.getElementById('extraTransferAmount').value = '';
-            saveToCloud();
-            renderAll();
-            alert(`Überweisung von ${amt.toFixed(2)} € erfolgreich gebucht! 🚀`);
+            saveToCloud(); renderAll(); alert("Überweisung gebucht! 🚀");
         }
 
         function openExpenseModal() {
-            const m = currentActiveMonth;
-            document.getElementById('modalMonthTitle').innerText = m;
-            renderModalExpenseList();
+            document.getElementById('modalMonthTitle').innerText = currentActiveMonth;
+            const list = document.getElementById('modalExpenseList');
+            list.innerHTML = '';
+            if (entries[currentActiveMonth]?.items) {
+                entries[currentActiveMonth].items.forEach((item, idx) => {
+                    list.innerHTML += `<div class="history-item"><div>${item.name} (${item.amount.toFixed(2)} €)</div><button class="storno-btn" onclick="deleteExpenseItem(${idx})">Löschen</button></div>`;
+                });
+            }
             document.getElementById('expenseModal').classList.add('active');
         }
 
-        function closeExpenseModal() {
-            document.getElementById('expenseModal').classList.remove('active');
-            autoSaveLive();
-        }
-
-        function renderModalExpenseList() {
-            const m = currentActiveMonth;
-            const list = document.getElementById('modalExpenseList');
-            list.innerHTML = '';
-            if (!entries[m] || !entries[m].items) return;
-
-            entries[m].items.forEach((item, idx) => {
-                const isPaused = entries[m].pausedItems && entries[m].pausedItems.includes(item.name);
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `
-                    <div>
-                        <div class="history-date">${item.name} (${item.amount.toFixed(2)} €)</div>
-                        <div class="history-sub">Art: ${item.type} ${isPaused ? '<span class="badge badge-paused">Pausiert</span>' : ''}</div>
-                    </div>
-                    <div style="display:flex; gap:6px;">
-                        <button class="btn-secondary" style="padding:2px 6px; font-size:0.7rem;" onclick="togglePauseExpense(${idx})">${isPaused ? 'Aktivieren' : 'Pausieren'}</button>
-                        <button class="storno-btn" onclick="deleteExpenseItem(${idx})">Löschen</button>
-                    </div>
-                `;
-                list.appendChild(div);
-            });
-        }
+        function closeExpenseModal() { document.getElementById('expenseModal').classList.remove('active'); autoSaveLive(); }
 
         function addExpenseItemToMonth() {
-            const m = currentActiveMonth;
             const name = document.getElementById('modalItemName').value;
             const amount = parseFloat(document.getElementById('modalItemAmount').value) || 0;
             const type = document.getElementById('modalItemType').value;
-            const endDate = document.getElementById('modalItemEndDate').value;
-
             if (!name || amount <= 0) return;
-            if (!entries[m]) autoSaveLive();
-            if (!entries[m].items) entries[m].items = [];
-
-            entries[m].items.push({ name, amount, type, endDate });
-            document.getElementById('modalItemName').value = '';
-            document.getElementById('modalItemAmount').value = '';
-            saveToCloud();
-            renderModalExpenseList();
-            autoSaveLive();
-        }
-
-        function togglePauseExpense(idx) {
-            const m = currentActiveMonth;
-            const item = entries[m].items[idx];
-            if (!entries[m].pausedItems) entries[m].pausedItems = [];
-            const pIdx = entries[m].pausedItems.indexOf(item.name);
-            if (pIdx > -1) entries[m].pausedItems.splice(pIdx, 1);
-            else entries[m].pausedItems.push(item.name);
-            saveToCloud();
-            renderModalExpenseList();
-            autoSaveLive();
+            if (!entries[currentActiveMonth]) autoSaveLive();
+            if (!entries[currentActiveMonth].items) entries[currentActiveMonth].items = [];
+            entries[currentActiveMonth].items.push({ name, amount, type, endDate: "" });
+            document.getElementById('modalItemName').value = ''; document.getElementById('modalItemAmount').value = '';
+            saveToCloud(); openExpenseModal(); autoSaveLive();
         }
 
         function deleteExpenseItem(idx) {
-            const m = currentActiveMonth;
-            entries[m].items.splice(idx, 1);
-            saveToCloud();
-            renderModalExpenseList();
-            autoSaveLive();
+            entries[currentActiveMonth].items.splice(idx, 1);
+            saveToCloud(); openExpenseModal(); autoSaveLive();
         }
 
         function updateHHKategorien() {
             const type = document.getElementById('HHType').value;
             const select = document.getElementById('HHKategorie');
             select.innerHTML = '';
-            kategorienListe[type].forEach(kat => {
-                const opt = document.createElement('option');
-                opt.value = kat;
-                opt.innerText = kat;
-                select.appendChild(opt);
-            });
-        }
-
-        function quickFillHH(amt) {
-            document.getElementById('HHAmount').value = amt;
+            kategorienListe[type].forEach(kat => { select.innerHTML += `<option value="${kat}">${kat}</option>`; });
         }
 
         function addHaushaltItem() {
@@ -1389,211 +808,12 @@
             const type = document.getElementById('HHType').value;
             const category = document.getElementById('HHKategorie').value;
             const date = document.getElementById('HHDate').value || new Date().toISOString().slice(0,10);
-            const repeat = document.getElementById('HHRepeatCheckbox').checked;
-
             if (!name || amount <= 0) return;
-
-            haushalt.push({ id: Date.now(), name, amount, type, category, date, repeat });
-            saveToCloud();
-
-            document.getElementById('HHName').value = '';
-            document.getElementById('HHAmount').value = '';
-            renderAll();
+            haushalt.push({ id: Date.now(), name, amount, type, category, date });
+            saveToCloud(); document.getElementById('HHName').value = ''; document.getElementById('HHAmount').value = ''; renderAll();
         }
 
-        function deleteHHItem(id) {
-            haushalt = haushalt.filter(i => i.id !== id);
-            saveToCloud();
-            renderAll();
-        }
-
-        function openGoalModal(id) {
-            editingGoalId = id;
-            if (id) {
-                const g = goals.find(item => item.id === id);
-                document.getElementById('goalModalTitle').innerText = `Ziel bearbeiten: ${g.name}`;
-                document.getElementById('goalEditName').value = g.name;
-                document.getElementById('goalEditTarget').value = g.target;
-                document.getElementById('goalEditDate').value = g.targetDate || '';
-                document.getElementById('goalEditMonthly').value = g.monthly || 0;
-                document.getElementById('goalEditOffset').value = g.offset || 0;
-                renderGoalWithdrawalsList(g);
-            } else {
-                document.getElementById('goalModalTitle').innerText = "Neues Sparziel hinzufügen";
-                document.getElementById('goalEditName').value = '';
-                document.getElementById('goalEditTarget').value = '';
-                document.getElementById('goalEditDate').value = '';
-                document.getElementById('goalEditMonthly').value = '';
-                document.getElementById('goalEditOffset').value = '';
-                document.getElementById('goalWithdrawalsList').innerHTML = '';
-            }
-            document.getElementById('goalModal').classList.add('active');
-        }
-
-        function closeGoalModal() { document.getElementById('goalModal').classList.remove('active'); }
-
-        function renderGoalWithdrawalsList(g) {
-            const container = document.getElementById('goalWithdrawalsList');
-            container.innerHTML = '';
-            if (!g.withdrawals) return;
-            for (const [m, amt] of Object.entries(g.withdrawals)) {
-                container.innerHTML += `<div>Monat ${m}: -${amt} € <button class="storno-btn" onclick="removeGoalWithdrawal('${g.id}', '${m}')">Entfernen</button></div>`;
-            }
-        }
-
-        function addGoalWithdrawal() {
-            const m = document.getElementById('goalWithdrawMonth').value;
-            const amt = parseFloat(document.getElementById('goalWithdrawAmount').value) || 0;
-            if (!m || amt <= 0 || !editingGoalId) return;
-
-            const g = goals.find(item => item.id === editingGoalId);
-            if (g) {
-                if (!g.withdrawals) g.withdrawals = {};
-                g.withdrawals[m] = amt;
-                saveToCloud();
-                renderGoalWithdrawalsList(g);
-                document.getElementById('goalWithdrawAmount').value = '';
-            }
-        }
-
-        function removeGoalWithdrawal(gId, m) {
-            const g = goals.find(item => item.id === gId);
-            if (g && g.withdrawals) {
-                delete g.withdrawals[m];
-                saveToCloud();
-                renderGoalWithdrawalsList(g);
-            }
-        }
-
-        function saveGoalModal() {
-            const name = document.getElementById('goalEditName').value;
-            const target = parseFloat(document.getElementById('goalEditTarget').value) || 0;
-            const targetDate = document.getElementById('goalEditDate').value;
-            const monthly = parseFloat(document.getElementById('goalEditMonthly').value) || 0;
-            const offset = parseFloat(document.getElementById('goalEditOffset').value) || 0;
-
-            if (!name) return;
-
-            if (editingGoalId) {
-                const g = goals.find(item => item.id === editingGoalId);
-                g.name = name;
-                g.target = target;
-                g.targetDate = targetDate;
-                g.monthly = monthly;
-                g.offset = offset;
-            } else {
-                goals.push({
-                    id: 'goal_' + Date.now(),
-                    name,
-                    target,
-                    targetDate,
-                    monthly,
-                    offset,
-                    withdrawals: {}
-                });
-            }
-
-            saveToCloud();
-            closeGoalModal();
-            renderAll();
-        }
-
-        function deleteGoalModal() {
-            if (!editingGoalId) return;
-            goals = goals.filter(item => item.id !== editingGoalId);
-            saveToCloud();
-            closeGoalModal();
-            renderAll();
-        }
-
-        function openUrlaubModal(id) {
-            editingUrlaubId = id;
-            if (id) {
-                const u = urlaubeList.find(item => item.id === id);
-                document.getElementById('urlaubModalTitle').innerText = `Urlaub bearbeiten: ${u.name}`;
-                document.getElementById('urlaubEditName').value = u.name;
-                document.getElementById('urlaubEditStart').value = u.startDate || '';
-                document.getElementById('urlaubEditEnd').value = u.endDate || '';
-                document.getElementById('urlaubEditTarget').value = u.target || '';
-                document.getElementById('urlaubEditFixHotel').value = u.fixHotel || '';
-                document.getElementById('urlaubEditFixBus').value = u.fixBusHin || '';
-                document.getElementById('urlaubEditFixSuper').value = u.fixSupermarkt || '';
-                document.getElementById('urlaubEditFixKurtaxe').value = u.fixKurtaxe || '';
-                document.getElementById('urlaubEditFixPuffer').value = u.fixAbreisePuffer || '';
-            } else {
-                document.getElementById('urlaubModalTitle').innerText = "Neuen Urlaub planen";
-                document.getElementById('urlaubEditName').value = '';
-                document.getElementById('urlaubEditStart').value = '';
-                document.getElementById('urlaubEditEnd').value = '';
-                document.getElementById('urlaubEditTarget').value = '';
-                document.getElementById('urlaubEditFixHotel').value = '';
-                document.getElementById('urlaubEditFixBus').value = '';
-                document.getElementById('urlaubEditFixSuper').value = '';
-                document.getElementById('urlaubEditFixKurtaxe').value = '';
-                document.getElementById('urlaubEditFixPuffer').value = '';
-            }
-            document.getElementById('urlaubModal').classList.add('active');
-        }
-
-        function closeUrlaubModal() { document.getElementById('urlaubModal').classList.remove('active'); }
-
-        function saveUrlaubModal() {
-            const name = document.getElementById('urlaubEditName').value;
-            const startDate = document.getElementById('urlaubEditStart').value;
-            const endDate = document.getElementById('urlaubEditEnd').value;
-            const target = parseFloat(document.getElementById('urlaubEditTarget').value) || 0;
-            const fixHotel = parseFloat(document.getElementById('urlaubEditFixHotel').value) || 0;
-            const fixBusHin = parseFloat(document.getElementById('urlaubEditFixBus').value) || 0;
-            const fixSupermarkt = parseFloat(document.getElementById('urlaubEditFixSuper').value) || 0;
-            const fixKurtaxe = parseFloat(document.getElementById('urlaubEditFixKurtaxe').value) || 0;
-            const fixAbreisePuffer = parseFloat(document.getElementById('urlaubEditFixPuffer').value) || 0;
-
-            if (!name) return;
-
-            if (editingUrlaubId) {
-                const u = urlaubeList.find(item => item.id === editingUrlaubId);
-                u.name = name;
-                u.startDate = startDate;
-                u.endDate = endDate;
-                u.target = target;
-                u.fixHotel = fixHotel;
-                u.fixBusHin = fixBusHin;
-                u.fixSupermarkt = fixSupermarkt;
-                u.fixKurtaxe = fixKurtaxe;
-                u.fixAbreisePuffer = fixAbreisePuffer;
-            } else {
-                const newId = 'u_' + Date.now();
-                urlaubeList.push({
-                    id: newId,
-                    name,
-                    startDate,
-                    endDate,
-                    target,
-                    fixHotel,
-                    fixBusHin,
-                    fixSupermarkt,
-                    fixKurtaxe,
-                    fixAbreisePuffer,
-                    dayExpenses: [],
-                    dayReceipts: []
-                });
-                currentUrlaubId = newId;
-            }
-
-            saveToCloud();
-            closeUrlaubModal();
-            renderAll();
-        }
-
-        function deleteUrlaubModal() {
-            if (!editingUrlaubId) return;
-            urlaubeList = urlaubeList.filter(item => item.id !== editingUrlaubId);
-            if (urlaubeList.length > 0) currentUrlaubId = urlaubeList[0].id;
-            else currentUrlaubId = null;
-            saveToCloud();
-            closeUrlaubModal();
-            renderAll();
-        }
+        function deleteHHItem(id) { haushalt = haushalt.filter(i => i.id !== id); saveToCloud(); renderAll(); }
 
         function switchTab(viewId, btnEl) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -1605,20 +825,19 @@
         function initApp() {
             const todayStr = new Date().toISOString().slice(0,7);
             currentActiveMonth = todayStr >= "2026-11" ? todayStr : "2026-11";
-            
             document.getElementById('monthInput').min = "2026-11";
             document.getElementById('hhMonthInput').min = "2026-11";
             document.getElementById('HHDate').value = new Date().toISOString().slice(0,10);
-
             syncMonthInput(currentActiveMonth);
             updateHHKategorien();
-            loadCashBoxToInputs();
+            ['c100','c50','c20','c10','c5','c2','c1','c050','c020'].forEach(id => {
+                if (document.getElementById(id)) document.getElementById(id).value = cashBreakdown[id] || 0;
+            });
+            calcCashBox();
             renderAll();
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            loadFromCloud();
-        });
+        window.addEventListener('DOMContentLoaded', () => { loadFromCloud(); });
     </script>
 </body>
 </html>
