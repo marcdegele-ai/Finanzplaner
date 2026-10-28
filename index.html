@@ -1819,7 +1819,7 @@
                         const item = document.createElement('div');
                         item.className = 'history-item';
                         item.innerHTML = `
-                            <div><div class="history-date">✉️ Umschlag: ${goal.name}</div><div class="history-sub">Festes Sparziel</div></div>
+                            <div><div class="history-date">✉️ Umschlag: ${goal.name}</div><div class="history-sub">Festes Sparziel (Bargeld-Umschlag)</div></div>
                             <div><span class="val-orange">+${amt.toFixed(2)} €</span></div>
                         `;
                         envelopeContainer.appendChild(item);
@@ -1827,7 +1827,29 @@
                 }
             });
 
-            document.getElementById('unpackedRestBudgetDisplay').innerText = freizeitRest.toFixed(2) + ' €';
+            const m = getSelectedMonthKey();
+            const monthData = entries[m] || {};
+            if(monthData.extraTransfers) {
+                monthData.extraTransfers.forEach(tr => {
+                    const item = document.createElement('div');
+                    item.className = 'history-item';
+                    item.innerHTML = `
+                        <div><div class="history-date">✉️ Extra-Umschlag: ${tr.targetName}</div><div class="history-sub">Extra Überweisung</div></div>
+                        <div><span class="val-orange">+${tr.amount.toFixed(2)} €</span></div>
+                    `;
+                    envelopeContainer.appendChild(item);
+                });
+            }
+
+            const itemRest = document.createElement('div');
+            itemRest.className = 'history-item';
+            itemRest.style.background = '#f0fdf4';
+            itemRest.style.borderColor = '#bbf7d0';
+            itemRest.innerHTML = `
+                <div><div class="history-date" style="color:#15803d;">🛍️ Umschlag: Unverpacktes Rest-Geld</div><div class="history-sub">Dein freies Monatsbudget zum Ausgeben</div></div>
+                <div><span class="val-highlight">+${freizeitRest.toFixed(2)} €</span></div>
+            `;
+            envelopeContainer.appendChild(itemRest);
         }
 
         function calcATMNotesRecommendation() {
