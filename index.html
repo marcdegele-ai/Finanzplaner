@@ -95,7 +95,7 @@
                     <button class="btn-secondary" style="padding: 2px 5px; font-size:0.65rem;" onclick="saveToCloud()">💾 Save</button>
                     <button class="btn-secondary" style="padding: 2px 5px; font-size:0.65rem;" onclick="exportJSONBackup()">📥 Backup</button>
                     <label class="btn-secondary" style="padding: 2px 5px; font-size:0.65rem; cursor:pointer; margin:0; display:inline-block;">
-                        📂 Laden <input type="file" id="importFile" style="display:none;" onchange="importJSONBackup(event)">
+                        📂 Backup laden <input type="file" id="importFile" style="display:none;" onchange="importJSONBackup(event)">
                     </label>
                 </div>
             </div>
@@ -156,15 +156,6 @@
                 <div class="stat-row"><span>Notfallkonto:</span><span id="totalNotfall" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>Freizeitkonto:</span><span id="totalFreizeit" class="val-orange">0,00 €</span></div>
             </div>
-            <div class="card">
-                <div class="card-title">📈 Monatsübersicht</div>
-                <div class="table-wrapper">
-                    <table class="month-table">
-                        <thead><tr><th>Monat</th><th>Netto</th><th>Notfall</th><th>Freizeit</th></tr></thead>
-                        <tbody id="monthSavingsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
         </div>
 
         <!-- TAB 4: JAHRES-CHECK -->
@@ -193,24 +184,6 @@
         </div>
     </div>
 
-    <!-- MODAL FÜR GEPLANTE ENTNAHMEN / ZIELE -->
-    <div id="goalModal" class="modal">
-        <div class="modal-content">
-            <div class="card-title" id="modalTitle">📅 Entnahme für Sparziel verwalten</div>
-            <div class="input-group" style="margin-bottom: 8px;"><label>Zielbetrag (€):</label><input type="number" id="modalTargetInput"></div>
-            <div class="input-group" style="margin-bottom: 8px;"><label>Aktueller Stand (€):</label><input type="number" id="modalCurrentInput"></div>
-            <div style="background:var(--card-sub); border:1px solid #ef4444; padding:10px; border-radius:8px; margin-bottom:12px;">
-                <label style="color:#ef4444; font-weight:bold;">Entnahme für Monat (z.B. März 2027) buchen</label>
-                <div style="display:flex; gap:6px; margin-top:6px;">
-                    <input type="month" id="futureWithdrawMonth" value="2027-03">
-                    <input type="number" id="futureWithdrawAmount" placeholder="Betrag (€)">
-                </div>
-                <button class="btn-secondary" style="width:100%; background:#ef4444; color:#fff; margin-top:6px; font-weight:bold;" onclick="addFutureWithdrawal()">Entnahme Einplanen ➖</button>
-            </div>
-            <button class="btn-add" onclick="closeModal()" style="background:var(--border); color:#000;">Schließen</button>
-        </div>
-    </div>
-
     <script>
         // 🔑 DEINE JSONBIN ZUGANGSDATEN:
         const JSONBIN_BIN_ID = "6ae1bb6cffd5d160539242a4"; 
@@ -219,10 +192,9 @@
         let entries = JSON.parse(localStorage.getItem('finanz_entries_local')) || {};
         let haushalt = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || [];
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
-            { id: "notfall", name: "Notfallpuffer", target: 3000, withdrawals: {} },
-            { id: "freizeit", name: "Urlaub & Freizeit", target: 2000, withdrawals: {} }
+            { id: "notfall", name: "Notfallpuffer", target: 3000 },
+            { id: "freizeit", name: "Urlaub & Freizeit", target: 2000 }
         ];
-        let currentModalGoalId = null;
 
         // --- JSONBIN CLOUD SYNC LOGIK ---
         async function saveToCloud() {
@@ -283,7 +255,7 @@
             } catch(e) { console.log(e); }
         }
 
-        // --- BACKUP EXPORT & IMPORT ---
+        // --- BACKUP IMPORT & EXPORT (HIER KLAPPT ES JETZT PER KLICK) ---
         function exportJSONBackup() {
             const backupData = { entries, haushalt, goals, version: "2.0", date: new Date().toISOString() };
             const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
@@ -306,9 +278,13 @@
                     if (imported.haushalt) haushalt = imported.haushalt;
                     if (imported.goals) goals = imported.goals;
                     
-                    saveToCloud(); // Direkt in Cloud sichern
+                    localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
+                    localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushalt));
+                    localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
+
+                    saveToCloud(); // Direkt in JSONBin sichern
                     updateUI();
-                    alert("Backup erfolgreich wiederhergestellt! 📂✅");
+                    alert("Backup erfolgreich geladen und in der Cloud gespeichert! 📂✅");
                 } catch(err) {
                     alert("Fehler beim Lesen der Backup-Datei!");
                 }
@@ -367,41 +343,13 @@
         function renderGoals() {
             const list = document.getElementById('goalsList');
             list.innerHTML = '';
-            goals.forEach(g => {
+            goals.goals.forEach(g => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
-                div.onclick = () => openGoalModal(g.id);
                 div.innerHTML = `<div><div class="history-date">${g.name}</div></div><div class="val-highlight">Ziel: ${g.target} €</div>`;
                 list.appendChild(div);
             });
         }
-
-        function openGoalModal(id) {
-            currentModalGoalId = id;
-            const g = goals.find(item => item.id === id);
-            if(g) {
-                document.getElementById('modalTitle').innerText = `Ziel: ${g.name}`;
-                document.getElementById('modalTargetInput').value = g.target;
-                document.getElementById('goalModal').classList.add('active');
-            }
-        }
-
-        function addFutureWithdrawal() {
-            const m = document.getElementById('futureWithdrawMonth').value;
-            const amt = parseFloat(document.getElementById('futureWithdrawAmount').value) || 0;
-            if(amt > 0 && currentModalGoalId) {
-                const g = goals.find(item => item.id === currentModalGoalId);
-                if(g) {
-                    if(!g.withdrawals) g.withdrawals = {};
-                    g.withdrawals[m] = amt;
-                    alert(`Entnahme von ${amt.toFixed(2)} € für ${m} gebucht!`);
-                    closeModal();
-                    saveToCloud();
-                }
-            }
-        }
-
-        function closeModal() { document.getElementById('goalModal').classList.add('active'); }
 
         function switchTab(viewId, btnEl) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
