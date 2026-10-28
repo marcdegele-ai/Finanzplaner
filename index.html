@@ -10,26 +10,26 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#f1f5f9">
+    <meta name="theme-color" content="#0f172a">
 
     <style>
         :root {
-            --bg-color: #f1f5f9;
-            --card-bg: #ffffff;
-            --card-sub: #f8fafc;
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --card-sub: #0f172a;
             --accent: #0284c7;
-            --accent-green: #16a34a;
-            --accent-orange: #d97706;
-            --accent-red: #dc2626;
-            --text-main: #0f172a;
-            --text-sub: #64748b;
-            --border: #cbd5e1;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border: #334155;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; max-width: 600px; margin: 0 auto; padding-bottom: 90px; }
         header { text-align: center; padding: 10px 0 14px 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
-        header h1 { font-size: 1.2rem; color: var(--accent); margin-bottom: 2px; font-weight: 700; }
+        header h1 { font-size: 1.2rem; color: #38bdf8; margin-bottom: 2px; font-weight: 700; }
         .app-creator-sub { font-size: 0.72rem; color: var(--text-sub); margin-bottom: 6px; }
 
         .user-bar {
@@ -41,14 +41,14 @@
         .cloud-status { color: var(--accent-orange); font-weight: 600; }
         .cloud-status.synced { color: var(--accent-green); }
 
-        .tab-bar { display: flex; background: #e2e8f0; border: 1px solid var(--border); border-radius: 10px; padding: 4px; gap: 3px; overflow-x: auto; margin-top: 10px; }
+        .tab-bar { display: flex; background: #111827; border: 1px solid var(--border); border-radius: 10px; padding: 4px; gap: 3px; overflow-x: auto; margin-top: 10px; }
         .tab-btn { flex: 1; padding: 8px 4px; border: none; border-radius: 8px; background: transparent; color: var(--text-sub); font-weight: 600; font-size: 0.70rem; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
-        .tab-btn.active { background: #ffffff; color: var(--accent); border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .tab-btn.active { background: var(--card-bg); color: #38bdf8; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 
         .view-section { display: none; }
         .view-section.active { display: block; }
 
-        .card { background: var(--card-bg); border-radius: 12px; padding: 14px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+        .card { background: var(--card-bg); border-radius: 12px; padding: 14px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
         .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .input-group { display: flex; flex-direction: column; gap: 5px; text-align: left; margin-bottom: 10px; }
@@ -56,51 +56,52 @@
 
         label { font-size: 0.8rem; color: var(--text-sub); font-weight: 600; }
         input, select { background: var(--card-sub); border: 1px solid var(--border); color: var(--text-main); padding: 10px 11px; border-radius: 8px; font-size: 0.9rem; outline: none; width: 100%; }
+        input:focus, select:focus { border-color: #38bdf8; }
 
         .checkbox-container { display: flex; align-items: center; gap: 10px; background: var(--card-sub); padding: 10px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; text-align: left; }
         .checkbox-container input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-green); cursor: pointer; }
 
         .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; color: var(--text-main); }
         .stat-row:last-child { border-bottom: none; }
-        .stat-row.sub-row { font-size: 0.78rem; padding: 5px 0 5px 12px; border-bottom: 1px dashed #e2e8f0; color: var(--text-sub); }
+        .stat-row.sub-row { font-size: 0.78rem; padding: 5px 0 5px 12px; border-bottom: 1px dashed var(--border); color: var(--text-sub); }
 
         .val-highlight { font-weight: bold; color: var(--accent-green); }
         .val-orange { font-weight: bold; color: var(--accent-orange); }
         .val-red { font-weight: bold; color: var(--accent-red); }
 
         .btn-add { background: var(--accent); color: #ffffff; font-weight: 700; border: none; padding: 11px; border-radius: 8px; width: 100%; font-size: 0.9rem; cursor: pointer; margin-top: 6px; }
-        .btn-secondary { background: #e2e8f0; color: var(--text-main); font-weight: 600; border: 1px solid var(--border); padding: 8px 10px; border-radius: 8px; font-size: 0.80rem; cursor: pointer; }
+        .btn-secondary { background: #334155; color: var(--text-main); font-weight: 600; border: 1px solid var(--border); padding: 8px 10px; border-radius: 8px; font-size: 0.80rem; cursor: pointer; }
 
         .history-list { display: flex; flex-direction: column; gap: 8px; }
         .history-item { background: var(--card-sub); padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); color: var(--text-main); }
 
         .badge { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: 700; display: inline-block; margin-left: 4px; }
-        .badge-booked { background: #dcfce7; color: #166534; }
-        .badge-once { background: #f1f5f9; color: #475569; }
+        .badge-booked { background: #065f46; color: #a7f3d0; }
+        .badge-once { background: #334155; color: #cbd5e1; }
 
-        .goal-card-box { background: var(--card-sub); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; cursor: pointer; }
-        .goal-card-box:hover { border-color: var(--accent); }
+        /* Ziel-Karten im Stil des Screenshots */
+        .goal-card-box { background: var(--card-sub); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; }
+        .goal-badge-auto { background: #0369a1; color: #e0f2fe; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px; }
+        .goal-badge-manual { background: #475569; color: #f1f5f9; font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px; }
 
-        .progress-bar-container { background: #e2e8f0; border-radius: 6px; height: 8px; width: 100%; margin-top: 7px; overflow: hidden; border: 1px solid var(--border); }
+        .progress-bar-container { background: #334155; border-radius: 6px; height: 8px; width: 100%; margin-top: 7px; overflow: hidden; border: 1px solid var(--border); }
         .progress-bar-fill { background: var(--accent-green); height: 100%; width: 0%; transition: width 0.3s ease; }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.5); justify-content: center; align-items: center; z-index: 100; padding: 14px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.8); justify-content: center; align-items: center; z-index: 100; padding: 14px; }
         .modal.active { display: flex; }
-        .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 18px; border-radius: 12px; width: 100%; max-width: 460px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 18px; border-radius: 12px; width: 100%; max-width: 460px; max-height: 85vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
 
         .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
         .month-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 520px; }
-        .month-table th { text-align: left; padding: 9px 8px; background: #e2e8f0; color: var(--accent); border-bottom: 1px solid var(--border); white-space: nowrap; }
+        .month-table th { text-align: left; padding: 9px 8px; background: #111827; color: #38bdf8; border-bottom: 1px solid var(--border); white-space: nowrap; }
         .month-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); color: var(--text-main); white-space: nowrap; }
-        .month-table tr:hover { background: rgba(2, 132, 199, 0.05); cursor: pointer; }
+        .month-table tr:hover { background: rgba(2, 132, 199, 0.1); cursor: pointer; }
 
         .cash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 8px; }
         .cash-box { background: var(--card-sub); border: 1px solid var(--border); border-radius: 8px; padding: 7px; text-align: center; }
-        .cash-badge-img { width: 36px; height: 22px; object-fit: contain; border-radius: 4px; margin: 0 auto 2px auto; display: block; border: 1px solid var(--border); background: #e2e8f0; }
-        .coin-badge-img { width: 22px; height: 22px; object-fit: contain; border-radius: 50%; margin: 0 auto 2px auto; display: block; border: 1px solid #facc15; background: #f59e0b; }
-        .cash-box label { font-size: 0.7rem; display: block; margin-bottom: 3px; color: #b45309; font-weight: bold; cursor: pointer; }
+        .cash-box label { font-size: 0.7rem; display: block; margin-bottom: 3px; color: #f59e0b; font-weight: bold; cursor: pointer; }
         .cash-box input { width: 100%; text-align: center; padding: 5px; font-size: 0.85rem; cursor: pointer; }
-        .storno-btn { font-size: 0.68rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 1px 5px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-left: 6px; }
+        .storno-btn { font-size: 0.68rem; background: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b; padding: 1px 5px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-left: 6px; }
     </style>
 </head>
 <body>
@@ -152,7 +153,7 @@
                     <div class="input-group full">
                         <div style="background: var(--card-sub); border: 1px solid var(--border); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
-                                <label style="color: var(--accent); font-weight: bold;">Ausgaben / Fixkosten</label>
+                                <label style="color: #38bdf8; font-weight: bold;">Ausgaben / Fixkosten</label>
                                 <div style="font-size: 0.85rem; margin-top: 2px;">Summe: <strong id="sumFixDisplay" class="val-red">0,00 €</strong></div>
                             </div>
                             <button class="btn-secondary" onclick="openExpenseModal()">Bearbeiten ✍️</button>
@@ -177,20 +178,20 @@
             </div>
 
             <div class="card">
-                <div class="card-title">Ergebnis für <span id="displayMonth" style="color:var(--accent);">-</span></div>
+                <div class="card-title">Ergebnis für <span id="displayMonth" style="color:#38bdf8;">-</span></div>
                 <div class="stat-row"><span>Netto nach Ausgaben:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>Verfügbarer Überschuss:</span><span id="resUeberschuss">0,00 €</span></div>
                 <div class="stat-row"><span>Notfallkonto Sparen:</span><span id="resNotfall" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>FreizeitKonto (Brutto):</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
                 <div id="sparzieleBreakdownContainer"></div>
 
-                <div class="stat-row" style="background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 4px 0;">
-                    <span style="font-weight:600; color:#15803d;">🎉 Frei verfügbar (Netto-Freizeit):</span>
+                <div class="stat-row" style="background: #064e3b; padding: 8px 10px; border-radius: 8px; border: 1px solid #065f46; margin: 4px 0;">
+                    <span style="font-weight:600; color:#34d399;">🎉 Frei verfügbar (Netto-Freizeit):</span>
                     <span id="resFreizeitRest" class="val-highlight" style="font-size:0.95rem;">0,00 €</span>
                 </div>
 
                 <div style="background: var(--card-sub); border: 1px solid var(--accent); padding: 10px; border-radius: 8px; margin: 8px 0;">
-                    <label style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 4px;">⚡ Extra-Überweisung vom Frei verfügbaren Betrag</label>
+                    <label style="color: #38bdf8; font-weight: bold; display: block; margin-bottom: 4px;">⚡ Extra-Überweisung vom Frei verfügbaren Betrag</label>
                     <div style="display: flex; gap: 6px; margin-bottom: 6px;">
                         <select id="extraTransferGoalSelect" style="flex: 1; font-size: 0.8rem; padding: 6px;"></select>
                         <input type="number" id="extraTransferAmount" placeholder="Betrag (€)" style="width: 100px; font-size: 0.8rem; padding: 6px;">
@@ -198,7 +199,7 @@
                     <button class="btn-secondary" style="width: 100%; background: var(--accent); color: #fff; border: none; font-weight: bold; padding: 6px;" onclick="executeExtraTransfer()">Extra-Betrag überweisen 🚀</button>
                 </div>
 
-                <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
+                <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" style="color:#f59e0b; font-weight:bold;">0,00 €</span></div>
                 <div class="stat-row" style="background: var(--card-sub); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border); margin: 6px 0;">
                     <span>🏦 Gesamt Abzug Sparpakete (Autom. Übertrag):</span>
                     <span id="resSparzieleAbzug" class="val-red">-0,00 €</span>
@@ -211,9 +212,9 @@
         <div id="haushalt-view" class="view-section">
             <div class="card">
                 <div class="card-title">🏠 Haushaltsbuch – Einnahme oder Ausgabe erfassen</div>
-                <div class="input-group full" style="margin-bottom: 12px; background: #e0f2fe; padding: 10px; border-radius: 8px; border: 1px solid #bae6fd;">
-                    <label style="color: var(--accent); font-weight: bold;">📅 Monat im Haushaltsbuch wählen:</label>
-                    <input type="month" id="hhMonthInput" min="2026-11" onchange="syncMonthInput(this.value)" style="background:#ffffff; font-weight:bold; color:var(--accent);">
+                <div class="input-group full" style="margin-bottom: 12px; background: #0c4a6e; padding: 10px; border-radius: 8px; border: 1px solid #0284c7;">
+                    <label style="color: #38bdf8; font-weight: bold;">📅 Monat im Haushaltsbuch wählen:</label>
+                    <input type="month" id="hhMonthInput" min="2026-11" onchange="syncMonthInput(this.value)" style="background:#1e293b; font-weight:bold; color:#38bdf8;">
                 </div>
                 <div class="grid">
                     <div class="input-group full">
@@ -239,7 +240,7 @@
         <!-- TAB 3: PROGNOSE & STAND -->
         <div id="uebersicht-view" class="view-section">
             <div class="card" style="border: 1px solid #f59e0b;">
-                <div class="card-title"><span>🪙 Digitale Bargeld-Kassette</span><span id="cashTotalBadge" style="color:#b45309; font-size:1rem;">0,00 €</span></div>
+                <div class="card-title"><span>🪙 Digitale Bargeld-Kassette</span><span id="cashTotalBadge" style="color:#f59e0b; font-size:1rem;">0,00 €</span></div>
                 <div class="cash-grid">
                     <div class="cash-box"><label onclick="incrementCash('c100')">100 €</label><input type="number" id="c100" min="0" value="0" oninput="calcCashBox()"></div>
                     <div class="cash-box"><label onclick="incrementCash('c50')">50 €</label><input type="number" id="c50" min="0" value="0" oninput="calcCashBox()"></div>
@@ -261,11 +262,11 @@
                 <div class="stat-row"><span>FreizeitKonto Stand (Gebucht):</span><span id="totalFreizeit" class="val-orange">0,00 €</span></div>
                 <div class="stat-row sub-row"><span>↳ Inkl. offener Monate (Prognose):</span><span id="projFreizeit" class="val-orange" style="font-weight:bold;">0,00 €</span></div>
                 
-                <div class="stat-row"><span>Bargeld-Kassette:</span><span id="totalKassette" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
-                <div class="stat-row sub-row"><span>↳ Inkl. offener Monate (Prognose):</span><span id="projKassette" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
+                <div class="stat-row"><span>Bargeld-Kassette:</span><span id="totalKassette" style="color:#f59e0b; font-weight:bold;">0,00 €</span></div>
+                <div class="stat-row sub-row"><span>↳ Inkl. offener Monate (Prognose):</span><span id="projKassette" style="color:#f59e0b; font-weight:bold;">0,00 €</span></div>
                 
-                <div class="stat-row" style="font-weight: bold; font-size: 0.95rem; background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 6px;">
-                    <span style="color:#15803d;">🚀 Gesamtersparnisse (Inkl. Hochrechnung):</span>
+                <div class="stat-row" style="font-weight: bold; font-size: 0.95rem; background: #064e3b; padding: 8px 10px; border-radius: 8px; border: 1px solid #065f46; margin-top: 6px;">
+                    <span style="color:#34d399;">🚀 Gesamtersparnisse (Inkl. Hochrechnung):</span>
                     <span id="projGesamtErsparnisse" class="val-highlight" style="font-size:1rem;">0,00 €</span>
                 </div>
             </div>
@@ -292,18 +293,18 @@
                 </div>
                 <div class="stat-row"><span>Gesamteinnahmen:</span><span id="jahrEinnahmen" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>Gesamte Fixkosten:</span><span id="jahrFix" class="val-red">0,00 €</span></div>
-                <div class="stat-row"><span>Geplante Brutto-Sparsumme:</span><span id="jahrSparen" style="color:var(--accent);">0,00 €</span></div>
+                <div class="stat-row"><span>Geplante Brutto-Sparsumme:</span><span id="jahrSparen" style="color:#38bdf8;">0,00 €</span></div>
             </div>
         </div>
 
-        <!-- TAB 5: URLAUB -->
+        <!-- TAB 5: URLAUB (Nach Mallorca Excel-Logik) -->
         <div id="urlaub-view" class="view-section">
             <div class="card">
                 <div class="card-title">
-                    <span>✈️ Urlaubsrechner & Kassensturz</span>
+                    <span>✈️ Mallorca Budgetplaner & Kassensturz</span>
                     <button class="btn-secondary" onclick="openUrlaubModal(null)">Neuer Urlaub ➕</button>
                 </div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Plane Reisen, Hotel, Bus/Anreise und Ausgaben tageweise:</div>
+                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Plane Hotel, Anreise, Supermarkt & tageweise Ausgaben:</div>
                 <div class="input-group full">
                     <label>Aktiven Urlaub wählen</label>
                     <select id="urlaubSelect" onchange="switchUrlaub(this.value)"></select>
@@ -312,14 +313,40 @@
             <div id="activeUrlaubCardContainer"></div>
         </div>
 
-        <!-- TAB 6: ZIELE -->
+        <!-- TAB 6: ZIELE (Im exakten Stil deines Screenshots) -->
         <div id="ziele-view" class="view-section">
-            <div class="card">
-                <div class="card-title">
-                    <span>🎯 Sparziele, Monats-Entnahmen & manuelle Buchungen</span>
-                    <button class="btn-secondary" onclick="openGoalModal(null)">Ziel hinzufügen ➕</button>
+            <div class="card" style="border: 1px solid var(--accent);">
+                <div class="card-title"><span>🎯 Neues Sparziel anlegen</span></div>
+                <div class="grid">
+                    <div class="input-group full">
+                        <label>Bezeichnung des Ziels</label>
+                        <input type="text" id="goalNewName" placeholder="z.B. Urlaub, Neues Bike...">
+                    </div>
+                    <div class="input-group">
+                        <label>Zielbetrag (€)</label>
+                        <input type="number" id="goalNewTarget" placeholder="z.B. 2000">
+                    </div>
+                    <div class="input-group">
+                        <label>Start-Guthaben (€)</label>
+                        <input type="number" id="goalNewOffset" placeholder="0">
+                    </div>
+                    <div class="input-group full">
+                        <label>Konto-Verknüpfung / Ziel-Typ</label>
+                        <select id="goalNewType">
+                            <option value="auto">⚙️ Automatisches Sparziel (Monatlicher Abzug)</option>
+                            <option value="manual">❄️ Manuelles Sparziel (Ohne monatl. Pflicht)</option>
+                        </select>
+                    </div>
+                    <div class="input-group full">
+                        <label>Ziel-Datum (Bis wann brauchst du das Geld?)</label>
+                        <input type="date" id="goalNewDate">
+                    </div>
                 </div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Klicke auf ein Ziel, um Beträge oder Monats-Auszahlungen (z.B. März) anzupassen:</div>
+                <button class="btn-add" onclick="addNewGoalFromScreen()">Sparziel Hinzufügen ➕</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span>📋 Meine Sparziele & Fortschritt</span></div>
                 <div id="goalsListContainer"></div>
             </div>
         </div>
@@ -338,49 +365,7 @@
             <div style="margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px;">
                 <div class="history-list" id="modalExpenseList"></div>
             </div>
-            <button class="btn-add" style="background:var(--border); color:#0f172a; margin-top:14px;" onclick="closeExpenseModal()">Fertig & Speichern ✅</button>
-        </div>
-    </div>
-
-    <!-- MODAL SPARZIEL & MONATS-ENTNAHMEN -->
-    <div id="goalModal" class="modal">
-        <div class="modal-content">
-            <div class="card-title"><span id="goalModalTitle">🎯 Sparziel verwalten</span></div>
-            <div class="grid">
-                <div class="input-group full"><label>Name des Ziels</label><input type="text" id="goalEditName" placeholder="z.B. Malle 2027"></div>
-                <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="goalEditTarget" placeholder="1000"></div>
-                <div class="input-group"><label>Monatliche Sparrate (€)</label><input type="number" id="goalEditMonthly" placeholder="50"></div>
-                <div class="input-group full"><label>Manueller Start-Betrag / Offset (€)</label><input type="number" id="goalEditOffset" placeholder="0"></div>
-            </div>
-
-            <!-- GEPLANTE ENTNABMEN / AUSZAHLUNGEN FÜR BESTIMMTE MONATE (z.B. März) -->
-            <div style="background:var(--card-sub); border:1px solid #fca5a5; padding:10px; border-radius:8px; margin-top:10px; margin-bottom:10px;">
-                <label style="color:#dc2626; font-weight:bold; display:block; margin-bottom:4px;">Geld für bestimmten Monat abziehen / entnehmen (z.B. März)</label>
-                <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Falls in einem Monat (wie März) Geld abgehoben wird, bucht die App das hier automatisch ab.</div>
-                <div style="display:flex; gap:6px; margin-bottom:6px;">
-                    <input type="month" id="goalWithdrawMonth" style="font-size:0.8rem; padding:6px;">
-                    <input type="number" id="goalWithdrawAmount" placeholder="Betrag (€)" style="width:100px; font-size:0.8rem; padding:6px;">
-                    <button class="btn-secondary" style="background:#dc2626; color:#fff; font-weight:bold; padding:6px;" onclick="addGoalWithdrawal()">Hinzufügen ➖</button>
-                </div>
-                <div id="goalWithdrawalsList" style="font-size:0.75rem; margin-top:4px;"></div>
-            </div>
-
-            <!-- Manuelle Ein- / Auszahlung -->
-            <div style="background:var(--card-sub); border:1px solid var(--accent); padding:10px; border-radius:8px; margin-top:10px;">
-                <label style="color:var(--accent); font-weight:bold; display:block; margin-bottom:4px;">Geld manuell einzahlen oder auszahlen 💵</label>
-                <div style="display:flex; gap:6px; margin-bottom:6px;">
-                    <select id="goalManualType" style="width:110px; font-size:0.8rem;"><option value="in">Einzahlung ➕</option><option value="out">Auszahlung ➖</option></select>
-                    <input type="number" id="goalManualAmount" placeholder="Betrag (€)" style="font-size:0.8rem; padding:6px;">
-                    <button class="btn-secondary" style="background:var(--accent); color:#fff; font-weight:bold;" onclick="executeGoalManualTransaction()">Buchen</button>
-                </div>
-                <div id="goalTransactionsList" style="font-size:0.75rem; margin-top:6px;"></div>
-            </div>
-
-            <div style="display:flex; gap:8px; margin-top:12px;">
-                <button class="btn-add" style="background:var(--accent-green); margin-top:0;" onclick="saveGoalModal()">Speichern ✅</button>
-                <button class="btn-add" style="background:var(--accent-red); margin-top:0;" onclick="deleteGoalModal()">Löschen 🗑️</button>
-            </div>
-            <button class="btn-secondary" style="width:100%; margin-top:8px;" onclick="closeGoalModal()">Abbrechen</button>
+            <button class="btn-add" style="background:#334155; color:#fff; margin-top:14px;" onclick="closeExpenseModal()">Fertig & Speichern ✅</button>
         </div>
     </div>
 
@@ -411,9 +396,9 @@
         let entries = JSON.parse(localStorage.getItem('finanz_entries_local')) || {};
         let haushalt = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || [];
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
-            { id: "notfall", name: "Notfall/Sparen", target: 3000, monthly: 200, offset: 0, manualTxs: [], withdrawals: {} },
-            { id: "malle", name: "Malle 2027", target: 600, monthly: 100, offset: 0, manualTxs: [], withdrawals: {} },
-            { id: "koeln", name: "Köln", target: 400, monthly: 50, offset: 0, manualTxs: [], withdrawals: {} }
+            { id: "notfall", name: "Notfallpuffer", target: 1000, monthly: 167, offset: 0, type: "auto", targetDate: "2027-04" },
+            { id: "urlaub", name: "Urlaub & Freizeit", target: 600, monthly: 100, offset: 0, type: "auto", targetDate: "2027-01" },
+            { id: "koeln", name: "Köln", target: 400, monthly: 40, offset: 0, type: "manual", targetDate: "2027-08" }
         ];
         let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || [
             {
@@ -425,7 +410,6 @@
         let cashBreakdown = JSON.parse(localStorage.getItem('finanz_cash_breakdown')) || { c100:0, c50:0, c20:0, c10:0, c5:0, c2:0, c1:0, c050:0, c020:0 };
 
         let currentActiveMonth = "2026-11";
-        let editingGoalId = null;
         let editingUrlaubId = null;
 
         const kategorienListe = {
@@ -548,8 +532,7 @@
 
             let sparzieleSum = 0;
             goals.forEach(g => {
-                if (g.withdrawals && g.withdrawals[m]) sparzieleSum += g.withdrawals[m];
-                else if (g.monthly && g.monthly > 0) sparzieleSum += g.monthly;
+                if (g.type === 'auto') sparzieleSum += (g.monthly || 0);
             });
             const freizeitRest = Math.max(0, freizeit - sparzieleSum);
             return { netto, ueberschuss, notfall, freizeit, freizeitRest, sparzieleSum, fixSum };
@@ -590,8 +573,9 @@
 
             let breakdownHTML = '';
             goals.forEach(g => {
-                let amt = (g.withdrawals && g.withdrawals[m]) ? g.withdrawals[m] : (g.monthly || 0);
-                if (amt > 0) breakdownHTML += `<div class="stat-row sub-row"><span>↳ Sparziel (${g.name}):</span><span class="val-highlight">-${amt.toFixed(2)} €</span></div>`;
+                if (g.type === 'auto' && g.monthly > 0) {
+                    breakdownHTML += `<div class="stat-row sub-row"><span>↳ Sparziel (${g.name}):</span><span class="val-highlight">-${g.monthly.toFixed(2)} €</span></div>`;
+                }
             });
             document.getElementById('sparzieleBreakdownContainer').innerHTML = breakdownHTML;
 
@@ -691,7 +675,7 @@
                     <div class="stat-row"><span>Fixkosten (Hotel, Anreise etc.):</span><span class="val-red">${totalFix.toFixed(2)} €</span></div>
                     <div class="stat-row"><span>Tägliche Ausgaben:</span><span class="val-red">${totalTageExp.toFixed(2)} €</span></div>
                     <div class="stat-row" style="font-weight:bold;"><span>Gesamtkosten:</span><span>${gesamtkosten.toFixed(2)} €</span></div>
-                    <div class="stat-row" style="background:${diff>=0?'#f0fdf4':'#fef2f2'}; padding:8px; border-radius:8px; margin-top:6px;"><span>Rest Budget:</span><span class="${diff>=0?'val-highlight':'val-red'}">${diff.toFixed(2)} €</span></div>
+                    <div class="stat-row" style="background:${diff>=0?'#064e3b':'#7f1d1d'}; padding:8px; border-radius:8px; margin-top:6px;"><span>Rest Budget:</span><span class="${diff>=0?'val-highlight':'val-red'}">${diff.toFixed(2)} €</span></div>
                 </div>
                 <div class="card"><div class="card-title">📅 Täglicher Kassensturz</div>${daysHTML}</div>
             `;
@@ -707,129 +691,81 @@
 
         function switchUrlaub(id) { currentUrlaubId = id; saveToCloud(); renderUrlaubTab(); }
 
-        // Sparziele & Monats-Entnahmen Render
+        // SPARZIELE IM EXAKTEN STIL DEINES SCREENSHOTS
         function renderGoalsTab() {
             const container = document.getElementById('goalsListContainer');
             container.innerHTML = '';
             goals.forEach(g => {
                 let currentSaved = g.offset || 0;
                 for (const [m, data] of Object.entries(entries)) {
-                    if (g.withdrawals && g.withdrawals[m]) currentSaved -= g.withdrawals[m];
-                    else if (g.monthly && g.monthly > 0) currentSaved += g.monthly;
-                }
-                if (g.manualTxs) {
-                    g.manualTxs.forEach(tx => { if (tx.type === 'in') currentSaved += tx.amount; else currentSaved -= tx.amount; });
+                    if (g.type === 'auto') currentSaved += (g.monthly || 0);
                 }
                 const pct = g.target > 0 ? Math.min(100, Math.round((currentSaved / g.target) * 100)) : 0;
+                const remaining = Math.max(0, g.target - currentSaved);
+                const badgeHTML = g.type === 'auto' ? '<span class="goal-badge-auto">Automatisch</span>' : '<span class="goal-badge-manual">Manuell</span>';
+                
+                // Berechnung der Monate bis zur Frist für ø X € / Monat
+                let monthlyInfo = '';
+                if (g.targetDate) {
+                    const now = new Date();
+                    const targetD = new Date(g.targetDate + "-01");
+                    const diffMonths = Math.max(1, (targetD.getFullYear() - now.getFullYear()) * 12 + (targetD.getMonth() - now.getMonth()));
+                    const perMonth = Math.round(remaining / diffMonths);
+                    monthlyInfo = `| ø ${perMonth} €/Monat bis ${g.targetDate}`;
+                }
+
                 container.innerHTML += `
-                    <div class="goal-card-box" onclick="openGoalModal('${g.id}')">
+                    <div class="goal-card-box">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <strong>${g.name}</strong>
-                            <span class="val-highlight">${currentSaved.toFixed(2)} € / ${g.target.toFixed(2)} € (${pct}%)</span>
+                            <div><strong>${g.name}</strong> ${badgeHTML}</div>
+                            <span class="val-highlight">${pct.toFixed(1)}%</span>
                         </div>
-                        <div style="font-size:0.72rem; color:var(--text-sub); margin-top:2px;">Monatlich: ${g.monthly || 0} €</div>
+                        <div style="font-size:0.8rem; color:var(--text-sub); margin-top:4px;">
+                            Stand: ${currentSaved.toFixed(2)} € / ${g.target.toFixed(2)} € (Frist: ${g.targetDate || 'Offen'}) 
+                            <button class="storno-btn" style="float:right;" onclick="deleteGoal('${g.id}')">Löschen</button>
+                        </div>
                         <div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div>
+                        <div style="font-size:0.75rem; color:var(--text-sub); margin-top:5px; display:flex; justify-content:space-between;">
+                            <span>Verbleibend: ${remaining.toFixed(2)} €</span>
+                            <span>${monthlyInfo}</span>
+                        </div>
                     </div>
                 `;
             });
         }
 
-        function openGoalModal(id) {
-            editingGoalId = id;
-            if (id) {
-                const g = goals.find(item => item.id === id);
-                document.getElementById('goalModalTitle').innerText = `Ziel verwalten: ${g.name}`;
-                document.getElementById('goalEditName').value = g.name;
-                document.getElementById('goalEditTarget').value = g.target;
-                document.getElementById('goalEditMonthly').value = g.monthly || 0;
-                document.getElementById('goalEditOffset').value = g.offset || 0;
-                renderGoalWithdrawalsList(g);
-                renderGoalManualTxsList(g);
-            } else {
-                document.getElementById('goalModalTitle').innerText = "Neues Sparziel";
-                document.getElementById('goalEditName').value = ''; document.getElementById('goalEditTarget').value = '';
-                document.getElementById('goalEditMonthly').value = ''; document.getElementById('goalEditOffset').value = '';
-                document.getElementById('goalWithdrawalsList').innerHTML = ''; document.getElementById('goalTransactionsList').innerHTML = '';
+        function addNewGoalFromScreen() {
+            const name = document.getElementById('goalNewName').value;
+            const target = parseFloat(document.getElementById('goalNewTarget').value) || 0;
+            const offset = parseFloat(document.getElementById('goalNewOffset').value) || 0;
+            const type = document.getElementById('goalNewType').value;
+            const targetDate = document.getElementById('goalNewDate').value;
+            if (!name || target <= 0) { alert("Bitte Bezeichnung und Zielbetrag angeben!"); return; }
+
+            // Monatsrate automatisch errechnen basierend auf Ziel-Datum
+            let monthly = 50;
+            if (targetDate) {
+                const now = new Date();
+                const targetD = new Date(targetDate);
+                const diffMonths = Math.max(1, (targetD.getFullYear() - now.getFullYear()) * 12 + (targetD.getMonth() - now.getMonth()));
+                monthly = Math.round((target - offset) / diffMonths);
             }
-            document.getElementById('goalModal').classList.add('active');
+
+            goals.push({ id: 'goal_' + Date.now(), name, target, monthly: Math.max(0, monthly), offset, type, targetDate: targetDate ? targetDate.slice(0,7) : '2027-12' });
+            
+            document.getElementById('goalNewName').value = '';
+            document.getElementById('goalNewTarget').value = '';
+            document.getElementById('goalNewOffset').value = '';
+            document.getElementById('goalNewDate').value = '';
+
+            saveToCloud();
+            renderAll();
+            alert("Sparziel erfolgreich hinzugefügt! 🎯");
         }
 
-        function closeGoalModal() { document.getElementById('goalModal').classList.remove('active'); }
-
-        function renderGoalWithdrawalsList(g) {
-            const container = document.getElementById('goalWithdrawalsList');
-            container.innerHTML = '';
-            if (!g.withdrawals) return;
-            for (const [m, amt] of Object.entries(g.withdrawals)) {
-                container.innerHTML += `<div>Monat ${m}: -${amt} € <button class="storno-btn" onclick="removeGoalWithdrawal('${g.id}', '${m}')">Entfernen</button></div>`;
-            }
-        }
-
-        function addGoalWithdrawal() {
-            const m = document.getElementById('goalWithdrawMonth').value;
-            const amt = parseFloat(document.getElementById('goalWithdrawAmount').value) || 0;
-            if (!m || amt <= 0 || !editingGoalId) return;
-            const g = goals.find(item => item.id === editingGoalId);
-            if (g) {
-                if (!g.withdrawals) g.withdrawals = {};
-                g.withdrawals[m] = amt;
-                saveToCloud(); renderGoalWithdrawalsList(g);
-                document.getElementById('goalWithdrawAmount').value = '';
-            }
-        }
-
-        function removeGoalWithdrawal(gId, m) {
-            const g = goals.find(item => item.id === gId);
-            if (g && g.withdrawals) { delete g.withdrawals[m]; saveToCloud(); renderGoalWithdrawalsList(g); }
-        }
-
-        function renderGoalManualTxsList(g) {
-            const listContainer = document.getElementById('goalTransactionsList');
-            listContainer.innerHTML = '';
-            if (!g.manualTxs) g.manualTxs = [];
-            g.manualTxs.forEach((tx, idx) => {
-                listContainer.innerHTML += `<div>${tx.type === 'in' ? '+' : '-'}${tx.amount.toFixed(2)} € (${tx.date}) <button class="storno-btn" onclick="removeGoalManualTx('${g.id}', ${idx})">Löschen</button></div>`;
-            });
-        }
-
-        function executeGoalManualTransaction() {
-            const type = document.getElementById('goalManualType').value;
-            const amount = parseFloat(document.getElementById('goalManualAmount').value) || 0;
-            if (amount <= 0 || !editingGoalId) return;
-            const g = goals.find(item => item.id === editingGoalId);
-            if (g) {
-                if (!g.manualTxs) g.manualTxs = [];
-                g.manualTxs.push({ type, amount, date: new Date().toISOString().slice(0,10) });
-                saveToCloud(); renderGoalManualTxsList(g);
-                document.getElementById('goalManualAmount').value = '';
-            }
-        }
-
-        function removeGoalManualTx(gId, idx) {
-            const g = goals.find(item => item.id === gId);
-            if (g && g.manualTxs) { g.manualTxs.splice(idx, 1); saveToCloud(); renderGoalManualTxsList(g); }
-        }
-
-        function saveGoalModal() {
-            const name = document.getElementById('goalEditName').value;
-            const target = parseFloat(document.getElementById('goalEditTarget').value) || 0;
-            const monthly = parseFloat(document.getElementById('goalEditMonthly').value) || 0;
-            const offset = parseFloat(document.getElementById('goalEditOffset').value) || 0;
-            if (!name) return;
-
-            if (editingGoalId) {
-                const g = goals.find(item => item.id === editingGoalId);
-                g.name = name; g.target = target; g.monthly = monthly; g.offset = offset;
-            } else {
-                goals.push({ id: 'goal_' + Date.now(), name, target, monthly, offset, manualTxs: [], withdrawals: {} });
-            }
-            saveToCloud(); closeGoalModal(); renderAll();
-        }
-
-        function deleteGoalModal() {
-            if (!editingGoalId) return;
-            goals = goals.filter(item => item.id !== editingGoalId);
-            saveToCloud(); closeGoalModal(); renderAll();
+        function deleteGoal(id) {
+            goals = goals.filter(item => item.id !== id);
+            saveToCloud(); renderAll();
         }
 
         // Urlaub Modal
@@ -917,8 +853,7 @@
             } else {
                 const g = goals.find(item => item.id === goalId);
                 if (g) {
-                    if (!g.withdrawals) g.withdrawals = {};
-                    g.withdrawals[m] = (g.withdrawals[m] || (g.monthly || 0)) + amt;
+                    g.offset = (g.offset || 0) + amt;
                 }
             }
             document.getElementById('extraTransferAmount').value = '';
