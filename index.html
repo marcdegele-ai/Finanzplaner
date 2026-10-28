@@ -6,7 +6,6 @@
     <title>Mein Dynamischer Finanzplan – Marc Degele</title>
     <meta name="author" content="Marc Degele">
     
-    <!-- PWA App-Modus Meta-Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -79,7 +78,7 @@
         .badge-booked { background: #dcfce7; color: #166534; }
         .badge-once { background: #f1f5f9; color: #475569; }
 
-        .goal-card-box { background: var(--card-sub); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; }
+        .goal-card-box { background: var(--card-sub); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 10px; cursor: pointer; }
         .goal-card-box:hover { border-color: var(--accent); }
 
         .progress-bar-container { background: #e2e8f0; border-radius: 6px; height: 8px; width: 100%; margin-top: 7px; overflow: hidden; border: 1px solid var(--border); }
@@ -174,8 +173,6 @@
                         </div>
                         <input type="number" id="splitNotfallInput" min="0" placeholder="z.B. 15 oder 150" oninput="autoSaveLive()">
                     </div>
-
-                    <div class="input-group full" style="margin-top: 6px;"><button class="btn-add" style="background: var(--accent-green);" onclick="saveToCloud()">💾 Manuell in Cloud Sichern</button></div>
                 </div>
             </div>
 
@@ -302,20 +299,27 @@
         <!-- TAB 5: URLAUB -->
         <div id="urlaub-view" class="view-section">
             <div class="card">
-                <div class="card-title"><span>✈️ Urlaubsrechner</span><button class="btn-secondary" onclick="openUrlaubModal(null)">Neuer Urlaub ➕</button></div>
-                <div class="input-group full"><label>Aktiven Urlaub wählen</label><select id="urlaubSelect" onchange="switchUrlaub(this.value)"></select></div>
+                <div class="card-title">
+                    <span>✈️ Urlaubsrechner & Kassensturz</span>
+                    <button class="btn-secondary" onclick="openUrlaubModal(null)">Neuer Urlaub ➕</button>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Plane Reisen, Hotel, Bus/Anreise und Ausgaben tageweise:</div>
+                <div class="input-group full">
+                    <label>Aktiven Urlaub wählen</label>
+                    <select id="urlaubSelect" onchange="switchUrlaub(this.value)"></select>
+                </div>
             </div>
             <div id="activeUrlaubCardContainer"></div>
         </div>
 
-        <!-- TAB 6: ZIELE & EIN-/AUSZAHLUNGEN -->
+        <!-- TAB 6: ZIELE -->
         <div id="ziele-view" class="view-section">
             <div class="card">
                 <div class="card-title">
-                    <span>🎯 Sparziele & manuelle Ein-/Auszahlung</span>
+                    <span>🎯 Sparziele, Monats-Entnahmen & manuelle Buchungen</span>
                     <button class="btn-secondary" onclick="openGoalModal(null)">Ziel hinzufügen ➕</button>
                 </div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Hier siehst du den Kontostand der Ziele und kannst direkt Geld einzahlen oder abheben:</div>
+                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:10px;">Klicke auf ein Ziel, um Beträge oder Monats-Auszahlungen (z.B. März) anzupassen:</div>
                 <div id="goalsListContainer"></div>
             </div>
         </div>
@@ -338,7 +342,7 @@
         </div>
     </div>
 
-    <!-- MODAL SPARZIEL & EIN-/AUSZAHLUNG -->
+    <!-- MODAL SPARZIEL & MONATS-ENTNAHMEN -->
     <div id="goalModal" class="modal">
         <div class="modal-content">
             <div class="card-title"><span id="goalModalTitle">🎯 Sparziel verwalten</span></div>
@@ -349,7 +353,19 @@
                 <div class="input-group full"><label>Manueller Start-Betrag / Offset (€)</label><input type="number" id="goalEditOffset" placeholder="0"></div>
             </div>
 
-            <!-- Manuelle Ein- / Auszahlung für dieses Ziel -->
+            <!-- GEPLANTE ENTNABMEN / AUSZAHLUNGEN FÜR BESTIMMTE MONATE (z.B. März) -->
+            <div style="background:var(--card-sub); border:1px solid #fca5a5; padding:10px; border-radius:8px; margin-top:10px; margin-bottom:10px;">
+                <label style="color:#dc2626; font-weight:bold; display:block; margin-bottom:4px;">Geld für bestimmten Monat abziehen / entnehmen (z.B. März)</label>
+                <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Falls in einem Monat (wie März) Geld abgehoben wird, bucht die App das hier automatisch ab.</div>
+                <div style="display:flex; gap:6px; margin-bottom:6px;">
+                    <input type="month" id="goalWithdrawMonth" style="font-size:0.8rem; padding:6px;">
+                    <input type="number" id="goalWithdrawAmount" placeholder="Betrag (€)" style="width:100px; font-size:0.8rem; padding:6px;">
+                    <button class="btn-secondary" style="background:#dc2626; color:#fff; font-weight:bold; padding:6px;" onclick="addGoalWithdrawal()">Hinzufügen ➖</button>
+                </div>
+                <div id="goalWithdrawalsList" style="font-size:0.75rem; margin-top:4px;"></div>
+            </div>
+
+            <!-- Manuelle Ein- / Auszahlung -->
             <div style="background:var(--card-sub); border:1px solid var(--accent); padding:10px; border-radius:8px; margin-top:10px;">
                 <label style="color:var(--accent); font-weight:bold; display:block; margin-bottom:4px;">Geld manuell einzahlen oder auszahlen 💵</label>
                 <div style="display:flex; gap:6px; margin-bottom:6px;">
@@ -373,10 +389,15 @@
         <div class="modal-content">
             <div class="card-title"><span id="urlaubModalTitle">✈️ Urlaub planen</span></div>
             <div class="grid">
-                <div class="input-group full"><label>Urlaubs-Name</label><input type="text" id="urlaubEditName" placeholder="Mallorca"></div>
+                <div class="input-group full"><label>Urlaubs-Name</label><input type="text" id="urlaubEditName" placeholder="Mallorca April 2027"></div>
                 <div class="input-group"><label>Startdatum</label><input type="date" id="urlaubEditStart"></div>
                 <div class="input-group"><label>Enddatum</label><input type="date" id="urlaubEditEnd"></div>
-                <div class="input-group"><label>Budget-Ziel (€)</label><input type="number" id="urlaubEditTarget" placeholder="600"></div>
+                <div class="input-group"><label>Gesamtbudget-Ziel (€)</label><input type="number" id="urlaubEditTarget" placeholder="600"></div>
+                <div class="input-group"><label>Fixkosten: Hotel (€)</label><input type="number" id="urlaubEditFixHotel" placeholder="0"></div>
+                <div class="input-group"><label>Fixkosten: Anreise/Bus (€)</label><input type="number" id="urlaubEditFixBus" placeholder="0"></div>
+                <div class="input-group"><label>Fixkosten: Supermarkt Start (€)</label><input type="number" id="urlaubEditFixSuper" placeholder="0"></div>
+                <div class="input-group"><label>Fixkosten: Kurtaxe/Sonst. (€)</label><input type="number" id="urlaubEditFixKurtaxe" placeholder="0"></div>
+                <div class="input-group full"><label>Fixkosten: Abreise-Puffer (€)</label><input type="number" id="urlaubEditFixPuffer" placeholder="0"></div>
             </div>
             <button class="btn-add" style="background:var(--accent-green);" onclick="saveUrlaubModal()">Speichern ✅</button>
             <button class="btn-secondary" style="width:100%; margin-top:8px;" onclick="closeUrlaubModal()">Abbrechen</button>
@@ -394,8 +415,13 @@
             { id: "malle", name: "Malle 2027", target: 600, monthly: 100, offset: 0, manualTxs: [], withdrawals: {} },
             { id: "koeln", name: "Köln", target: 400, monthly: 50, offset: 0, manualTxs: [], withdrawals: {} }
         ];
-        let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || [];
-        let currentUrlaubId = localStorage.getItem('finanz_current_urlaub_id') || null;
+        let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || [
+            {
+                id: "u_1", name: "Mallorca April 2027", startDate: "2027-04-21", endDate: "2027-04-25",
+                target: 600, fixHotel: 0, fixBusHin: 10, fixSupermarkt: 30, fixKurtaxe: 20, fixAbreisePuffer: 0, dayExpenses: [60, null, null, null, null]
+            }
+        ];
+        let currentUrlaubId = localStorage.getItem('finanz_current_urlaub_id') || (urlaubeList[0] ? urlaubeList[0].id : null);
         let cashBreakdown = JSON.parse(localStorage.getItem('finanz_cash_breakdown')) || { c100:0, c50:0, c20:0, c10:0, c5:0, c2:0, c1:0, c050:0, c020:0 };
 
         let currentActiveMonth = "2026-11";
@@ -456,7 +482,7 @@
         }
 
         function downloadBackupJSON() {
-            const blob = new Blob([JSON.stringify({ entries, haushalt, goals, urlaubeList, cashBreakdown }, null, 2)], { type: 'application/json' });
+            const blob = new Blob([JSON.stringify({ entries, haushalt, goals, urlaubeList, currentUrlaubId, cashBreakdown }, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = `Finanzplan_Backup_${new Date().toISOString().slice(0,10)}.json`; a.click();
             URL.revokeObjectURL(url);
@@ -473,6 +499,7 @@
                     if (imported.haushalt) haushalt = imported.haushalt;
                     if (imported.goals) goals = imported.goals;
                     if (imported.urlaubeList) urlaubeList = imported.urlaubeList;
+                    if (imported.currentUrlaubId) currentUrlaubId = imported.currentUrlaubId;
                     if (imported.cashBreakdown) cashBreakdown = imported.cashBreakdown;
                     saveToCloud(); initApp(); alert("Backup erfolgreich geladen! 📂✅");
                 } catch(err) { alert("Fehler beim Lesen!"); }
@@ -561,6 +588,13 @@
             document.getElementById('resSparzieleAbzug').innerText = '-' + res.sparzieleSum.toFixed(2) + ' €';
             document.getElementById('resGesamtSparen').innerText = (res.notfall + res.sparzieleSum).toFixed(2) + ' €';
 
+            let breakdownHTML = '';
+            goals.forEach(g => {
+                let amt = (g.withdrawals && g.withdrawals[m]) ? g.withdrawals[m] : (g.monthly || 0);
+                if (amt > 0) breakdownHTML += `<div class="stat-row sub-row"><span>↳ Sparziel (${g.name}):</span><span class="val-highlight">-${amt.toFixed(2)} €</span></div>`;
+            });
+            document.getElementById('sparzieleBreakdownContainer').innerHTML = breakdownHTML;
+
             let selectHTML = '';
             goals.forEach(g => { selectHTML += `<option value="${g.id}">${g.name}</option>`; });
             selectHTML += `<option value="kassette">🪙 Bargeld-Kassette</option>`;
@@ -568,6 +602,7 @@
 
             renderHaushalt();
             renderPrognoseAndStand();
+            renderUrlaubTab();
             renderGoalsTab();
         }
 
@@ -620,7 +655,59 @@
             document.getElementById('jahrSparen').innerText = sparen.toFixed(2) + ' €';
         }
 
-        // Sparziele & Manuelle Ein-/Auszahlung Render
+        // Urlaub & Kassensturz Render
+        function renderUrlaubTab() {
+            let selectHTML = '';
+            urlaubeList.forEach(u => { selectHTML += `<option value="${u.id}" ${u.id === currentUrlaubId ? 'selected' : ''}>${u.name}</option>`; });
+            document.getElementById('urlaubSelect').innerHTML = selectHTML;
+
+            const u = urlaubeList.find(item => item.id === currentUrlaubId);
+            const container = document.getElementById('activeUrlaubCardContainer');
+            if (!u) { container.innerHTML = '<div class="card">Kein Urlaub vorhanden.</div>'; return; }
+
+            let totalFix = (u.fixHotel || 0) + (u.fixBusHin || 0) + (u.fixSupermarkt || 0) + (u.fixKurtaxe || 0) + (u.fixAbreisePuffer || 0);
+            let totalTageExp = 0;
+            if (u.dayExpenses) u.dayExpenses.forEach(val => { if (val) totalTageExp += val; });
+            const gesamtkosten = totalFix + totalTageExp;
+            const diff = u.target - gesamtkosten;
+
+            let daysHTML = '';
+            if (u.startDate && u.endDate) {
+                const start = new Date(u.startDate); const end = new Date(u.endDate);
+                const diffDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1;
+                for (let i = 0; i < diffDays; i++) {
+                    const dayDate = new Date(start); dayDate.setDate(dayDate.getDate() + i);
+                    const dateStr = dayDate.toISOString().slice(0,10);
+                    const valExp = (u.dayExpenses && u.dayExpenses[i]) !== undefined ? u.dayExpenses[i] : '';
+                    daysHTML += `<div class="stat-row"><span><strong>Tag ${i+1}</strong> (${dateStr})</span><input type="number" placeholder="Ausgabe (€)" value="${valExp}" style="width:90px; padding:4px;" oninput="updateUrlaubDay(${i}, this.value)"></div>`;
+                }
+            }
+
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-title"><span>✈️ ${u.name}</span><button class="btn-secondary" onclick="openUrlaubModal('${u.id}')">Bearbeiten ✍️</button></div>
+                    <div class="stat-row"><span>Zeitraum:</span><span>${u.startDate || '-'} bis ${u.endDate || '-'}</span></div>
+                    <div class="stat-row"><span>Budget-Ziel:</span><span class="val-highlight">${(u.target||0).toFixed(2)} €</span></div>
+                    <div class="stat-row"><span>Fixkosten (Hotel, Anreise etc.):</span><span class="val-red">${totalFix.toFixed(2)} €</span></div>
+                    <div class="stat-row"><span>Tägliche Ausgaben:</span><span class="val-red">${totalTageExp.toFixed(2)} €</span></div>
+                    <div class="stat-row" style="font-weight:bold;"><span>Gesamtkosten:</span><span>${gesamtkosten.toFixed(2)} €</span></div>
+                    <div class="stat-row" style="background:${diff>=0?'#f0fdf4':'#fef2f2'}; padding:8px; border-radius:8px; margin-top:6px;"><span>Rest Budget:</span><span class="${diff>=0?'val-highlight':'val-red'}">${diff.toFixed(2)} €</span></div>
+                </div>
+                <div class="card"><div class="card-title">📅 Täglicher Kassensturz</div>${daysHTML}</div>
+            `;
+        }
+
+        function updateUrlaubDay(idx, val) {
+            const u = urlaubeList.find(item => item.id === currentUrlaubId);
+            if (!u) return;
+            if (!u.dayExpenses) u.dayExpenses = [];
+            u.dayExpenses[idx] = val === '' ? null : parseFloat(val);
+            saveToCloud(); renderUrlaubTab();
+        }
+
+        function switchUrlaub(id) { currentUrlaubId = id; saveToCloud(); renderUrlaubTab(); }
+
+        // Sparziele & Monats-Entnahmen Render
         function renderGoalsTab() {
             const container = document.getElementById('goalsListContainer');
             container.innerHTML = '';
@@ -631,10 +718,7 @@
                     else if (g.monthly && g.monthly > 0) currentSaved += g.monthly;
                 }
                 if (g.manualTxs) {
-                    g.manualTxs.forEach(tx => {
-                        if (tx.type === 'in') currentSaved += tx.amount;
-                        else currentSaved -= tx.amount;
-                    });
+                    g.manualTxs.forEach(tx => { if (tx.type === 'in') currentSaved += tx.amount; else currentSaved -= tx.amount; });
                 }
                 const pct = g.target > 0 ? Math.min(100, Math.round((currentSaved / g.target) * 100)) : 0;
                 container.innerHTML += `
@@ -643,6 +727,7 @@
                             <strong>${g.name}</strong>
                             <span class="val-highlight">${currentSaved.toFixed(2)} € / ${g.target.toFixed(2)} € (${pct}%)</span>
                         </div>
+                        <div style="font-size:0.72rem; color:var(--text-sub); margin-top:2px;">Monatlich: ${g.monthly || 0} €</div>
                         <div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div>
                     </div>
                 `;
@@ -658,17 +743,45 @@
                 document.getElementById('goalEditTarget').value = g.target;
                 document.getElementById('goalEditMonthly').value = g.monthly || 0;
                 document.getElementById('goalEditOffset').value = g.offset || 0;
+                renderGoalWithdrawalsList(g);
                 renderGoalManualTxsList(g);
             } else {
                 document.getElementById('goalModalTitle').innerText = "Neues Sparziel";
                 document.getElementById('goalEditName').value = ''; document.getElementById('goalEditTarget').value = '';
                 document.getElementById('goalEditMonthly').value = ''; document.getElementById('goalEditOffset').value = '';
-                document.getElementById('goalTransactionsList').innerHTML = '';
+                document.getElementById('goalWithdrawalsList').innerHTML = ''; document.getElementById('goalTransactionsList').innerHTML = '';
             }
             document.getElementById('goalModal').classList.add('active');
         }
 
         function closeGoalModal() { document.getElementById('goalModal').classList.remove('active'); }
+
+        function renderGoalWithdrawalsList(g) {
+            const container = document.getElementById('goalWithdrawalsList');
+            container.innerHTML = '';
+            if (!g.withdrawals) return;
+            for (const [m, amt] of Object.entries(g.withdrawals)) {
+                container.innerHTML += `<div>Monat ${m}: -${amt} € <button class="storno-btn" onclick="removeGoalWithdrawal('${g.id}', '${m}')">Entfernen</button></div>`;
+            }
+        }
+
+        function addGoalWithdrawal() {
+            const m = document.getElementById('goalWithdrawMonth').value;
+            const amt = parseFloat(document.getElementById('goalWithdrawAmount').value) || 0;
+            if (!m || amt <= 0 || !editingGoalId) return;
+            const g = goals.find(item => item.id === editingGoalId);
+            if (g) {
+                if (!g.withdrawals) g.withdrawals = {};
+                g.withdrawals[m] = amt;
+                saveToCloud(); renderGoalWithdrawalsList(g);
+                document.getElementById('goalWithdrawAmount').value = '';
+            }
+        }
+
+        function removeGoalWithdrawal(gId, m) {
+            const g = goals.find(item => item.id === gId);
+            if (g && g.withdrawals) { delete g.withdrawals[m]; saveToCloud(); renderGoalWithdrawalsList(g); }
+        }
 
         function renderGoalManualTxsList(g) {
             const listContainer = document.getElementById('goalTransactionsList');
@@ -687,19 +800,14 @@
             if (g) {
                 if (!g.manualTxs) g.manualTxs = [];
                 g.manualTxs.push({ type, amount, date: new Date().toISOString().slice(0,10) });
-                saveToCloud();
-                renderGoalManualTxsList(g);
+                saveToCloud(); renderGoalManualTxsList(g);
                 document.getElementById('goalManualAmount').value = '';
             }
         }
 
         function removeGoalManualTx(gId, idx) {
             const g = goals.find(item => item.id === gId);
-            if (g && g.manualTxs) {
-                g.manualTxs.splice(idx, 1);
-                saveToCloud();
-                renderGoalManualTxsList(g);
-            }
+            if (g && g.manualTxs) { g.manualTxs.splice(idx, 1); saveToCloud(); renderGoalManualTxsList(g); }
         }
 
         function saveGoalModal() {
@@ -722,6 +830,59 @@
             if (!editingGoalId) return;
             goals = goals.filter(item => item.id !== editingGoalId);
             saveToCloud(); closeGoalModal(); renderAll();
+        }
+
+        // Urlaub Modal
+        function openUrlaubModal(id) {
+            editingUrlaubId = id;
+            if (id) {
+                const u = urlaubeList.find(item => item.id === id);
+                document.getElementById('urlaubEditName').value = u.name;
+                document.getElementById('urlaubEditStart').value = u.startDate || '';
+                document.getElementById('urlaubEditEnd').value = u.endDate || '';
+                document.getElementById('urlaubEditTarget').value = u.target || '';
+                document.getElementById('urlaubEditFixHotel').value = u.fixHotel || '';
+                document.getElementById('urlaubEditFixBus').value = u.fixBusHin || '';
+                document.getElementById('urlaubEditFixSuper').value = u.fixSupermarkt || '';
+                document.getElementById('urlaubEditFixKurtaxe').value = u.fixKurtaxe || '';
+                document.getElementById('urlaubEditFixPuffer').value = u.fixAbreisePuffer || '';
+            } else {
+                document.getElementById('urlaubEditName').value = '';
+                document.getElementById('urlaubEditStart').value = ''; document.getElementById('urlaubEditEnd').value = '';
+                document.getElementById('urlaubEditTarget').value = ''; document.getElementById('urlaubEditFixHotel').value = '';
+                document.getElementById('urlaubEditFixBus').value = ''; document.getElementById('urlaubEditFixSuper').value = '';
+                document.getElementById('urlaubEditFixKurtaxe').value = ''; document.getElementById('urlaubEditFixPuffer').value = '';
+            }
+            document.getElementById('urlaubModal').classList.add('active');
+        }
+
+        function closeUrlaubModal() { document.getElementById('urlaubModal').classList.remove('active'); }
+
+        function saveUrlaubModal() {
+            const name = document.getElementById('urlaubEditName').value;
+            const startDate = document.getElementById('urlaubEditStart').value;
+            const endDate = document.getElementById('urlaubEditEnd').value;
+            const target = parseFloat(document.getElementById('urlaubEditTarget').value) || 0;
+            const fixHotel = parseFloat(document.getElementById('urlaubEditFixHotel').value) || 0;
+            const fixBusHin = parseFloat(document.getElementById('urlaubEditFixBus').value) || 0;
+            const fixSupermarkt = parseFloat(document.getElementById('urlaubEditFixSuper').value) || 0;
+            const fixKurtaxe = parseFloat(document.getElementById('urlaubEditFixKurtaxe').value) || 0;
+            const fixAbreisePuffer = parseFloat(document.getElementById('urlaubEditFixPuffer').value) || 0;
+            if (!name) return;
+
+            if (editingUrlaubId) {
+                const u = urlaubeList.find(item => item.id === editingUrlaubId);
+                u.name = name; u.startDate = startDate; u.endDate = endDate; u.target = target;
+                u.fixHotel = fixHotel; u.fixBusHin = fixBusHin; u.fixSupermarkt = fixSupermarkt;
+                u.fixKurtaxe = fixKurtaxe; u.fixAbreisePuffer = fixAbreisePuffer;
+            } else {
+                const newId = 'u_' + Date.now();
+                urlaubeList.push({
+                    id: newId, name, startDate, endDate, target, fixHotel, fixBusHin, fixSupermarkt, fixKurtaxe, fixAbreisePuffer, dayExpenses: []
+                });
+                currentUrlaubId = newId;
+            }
+            saveToCloud(); closeUrlaubModal(); renderAll();
         }
 
         function calcCashBoxTotal() {
