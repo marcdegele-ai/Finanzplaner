@@ -192,7 +192,7 @@
             <div class="app-creator-sub">Ersteller: Marc Degele</div>
             <div class="user-bar">
                 <span>👤 Status: <strong style="color:var(--accent-green);">Lokal & Bereit ✅</strong></span>
-                <span class="cloud-status" onclick="openCloudModal()" id="cloudStatusLabel">⚡ Cloud-Sync einrichten</span>
+                <span class="cloud-status" onclick="openCloudModal()" id="cloudStatusLabel">⚡ Cloud-Sync aktiv (Konfigurieren)</span>
                 <div style="display:flex; gap:4px;">
                     <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="exportBackupJSON()">💾 Backup</button>
                     <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="document.getElementById('importFile').click()">📂 Laden</button>
@@ -606,19 +606,18 @@
         <div class="modal-content">
             <div class="card-title">☁️ Cloud-Sync Konfiguration</div>
             <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">
-                Trage deine JSONBin.io URL ein (z.B. <code>https://api.jsonbin.io/v3/b/DEINE_ID</code>) und deinen API-Key.
+                Gib hier deinen Cloud-Endpunkt (z.B. JSONBin.io URL oder WebDAV API) ein, um deine Daten geräteübergreifend zu synchronisieren. Wenn leer, läuft alles rein lokal.
             </p>
             <div class="input-group" style="margin-bottom: 8px;">
                 <label>Cloud Sync URL / API-Endpunkt:</label>
-                <input type="text" id="cloudSyncUrlInput" placeholder="https://api.jsonbin.io/v3/b/DEINE_ID">
+                <input type="text" id="cloudSyncUrlInput" placeholder="https://api.jsonbin.io/v3/b/DeinBinId">
             </div>
             <div class="input-group" style="margin-bottom: 12px;">
-                <label>API Key / Master Key:</label>
-                <input type="password" id="cloudSyncKeyInput" placeholder="$2a$10$...">
+                <label>API Key / Secret (optional):</label>
+                <input type="password" id="cloudSyncKeyInput" placeholder="Dein API Key / Master Key">
             </div>
             <button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 8px;">Speichern & Verbinden ☁️</button>
-            <button class="btn-secondary" onclick="pullFromCloudNow()" style="width:100%; margin-bottom: 6px; background:#e0f2fe; color:#0369a1;">Daten aus Cloud laden (Pull) 📥</button>
-            <button class="btn-secondary" onclick="syncWithCloudNow()" style="width:100%; margin-bottom: 8px;">Daten in Cloud speichern (Push) 📤</button>
+            <button class="btn-secondary" onclick="syncWithCloudNow()" style="width:100%; margin-bottom: 8px;">Manuell Synchronisieren (Jetzt) 🔄</button>
             <button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button>
         </div>
     </div>
@@ -765,17 +764,8 @@
 
         updateHHKategorien();
         loadCashBreakdownToUI();
-        
-        // Beim Start direkt versuchen, Daten aus der Cloud zu laden falls konfiguriert
-        if (cloudConfig.url) {
-            pullFromCloudNow(true).then(() => {
-                loadMonthData();
-                updateCloudStatusLabel();
-            });
-        } else {
-            loadMonthData();
-            updateCloudStatusLabel();
-        }
+        loadMonthData();
+        updateCloudStatusLabel();
 
         function saveLocally() {
             localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
@@ -785,6 +775,7 @@
             localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
             localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
             
+            // Auto-Sync zur Cloud falls aktiv
             triggerCloudSyncBackground();
         }
 
@@ -800,8 +791,8 @@
         }
 
         function saveCloudConfig() {
-            cloudConfig.url = document.getElementById('cloudSyncUrlInput'].value.trim();
-            cloudConfig.key = document.getElementById('cloudSyncKeyInput'].value.trim();
+            cloudConfig.url = document.getElementById('cloudSyncUrlInput').value.trim();
+            cloudConfig.key = document.getElementById('cloudSyncKeyInput').value.trim();
             localStorage.setItem('finanz_cloud_config', JSON.stringify(cloudConfig));
             closeCloudModal();
             updateCloudStatusLabel();
@@ -822,6 +813,7 @@
 
         function triggerCloudSyncBackground() {
             if (!cloudConfig.url) return;
+            // Background sync non-blocking
             setTimeout(() => { syncWithCloudNow(true); }, 500);
         }
 
@@ -855,72 +847,13 @@
                 });
 
                 if (response.ok) {
-                    if (!isBackground) alert('Daten erfolgreich in die Cloud gespeichert! 📤☁️');
+                    if (!isBackground) alert('Daten erfolgreich mit der Cloud synchronisiert! ☁️🚀');
                 } else {
-                    const errText = await response.text();
-                    if (!isBackground) alert('Cloud-Fehler (' + response.status + '): ' + errText);
+                    if (!isBackground) alert('Cloud-Sync Hinweis: Server hat mit Status ' + response.status + ' geantwortet.');
                 }
             } catch (err) {
                 console.error("Cloud-Sync Fehler:", err);
-                if (!isBackground) alert('Netzwerkfehler beim Speichern: ' + err.message);
-            }
-        }
-
-        async function pullFromCloudNow(isSilent = false) {
-            if (!cloudConfig.url) {
-                if (!isSilent) openCloudModal();
-                return;
-            }
-
-            try {
-                let headers = {};
-                if (cloudConfig.key) {
-                    headers["X-Master-Key"] = cloudConfig.key;
-                    headers["X-Access-Key"] = cloudConfig.key;
-                }
-
-                const response = await fetch(cloudConfig.url, {
-                    method: 'GET',
-                    headers: headers
-                });
-
-                if (response.ok) {
-                    const jsonRes = await response.json();
-                    // JSONBin v3 speichert die eigentlichen Daten im Feld "record"
-                    const remoteData = jsonRes.record ? jsonRes.record : jsonRes;
-
-                    if (remoteData.entries) {
-                        entries = remoteData.entries;
-                        if(remoteData.goals) goals = remoteData.goals;
-                        if(remoteData.urlaubeList) urlaubeList = remoteData.urlaubeList;
-                        if(remoteData.currentUrlaubId) currentUrlaubId = remoteData.currentUrlaubId;
-                        if(remoteData.cashBreakdown) cashBreakdown = remoteData.cashBreakdown;
-                        if(remoteData.haushaltItems) haushaltItems = remoteData.haushaltItems;
-
-                        // Lokal speichern ohne erneuten Push
-                        localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
-                        localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
-                        localStorage.setItem('finanz_urlaube_local', JSON.stringify(urlaubeList));
-                        localStorage.setItem('finanz_current_urlaub_local', currentUrlaubId);
-                        localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
-                        localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
-
-                        loadMonthData();
-                        renderHistory();
-                        renderGoals();
-                        renderUrlaubView();
-                        renderHaushaltView();
-                        renderJahresView();
-                        loadCashBreakdownToUI();
-
-                        if (!isSilent) alert('Daten erfolgreich aus der Cloud geladen! 📥✨');
-                    }
-                } else {
-                    if (!isSilent) alert('Konnte keine Daten aus der Cloud laden (Status ' + response.status + ')');
-                }
-            } catch (err) {
-                console.error("Cloud Pull Fehler:", err);
-                if (!isSilent) alert('Netzwerkfehler beim Laden: ' + err.message);
+                if (!isBackground) alert('Cloud-Sync Fehler: ' + err.message + '\n(Prüfe deine URL/Netzwerkverbindung)');
             }
         }
 
