@@ -57,7 +57,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             color: var(--text-sub);
             margin-bottom: 8px;
             background: var(--card-bg);
@@ -181,6 +181,14 @@
         
         .receipt-btn { font-size: 0.7rem; background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-weight: 600; }
         .storno-btn { font-size: 0.68rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 1px 5px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-left: 6px; }
+
+        /* Integrierter Taschenrechner Styles */
+        .calc-display { background: #0f172a; color: #38bdf8; font-size: 1.2rem; font-family: monospace; text-align: right; padding: 10px; border-radius: 8px; margin-bottom: 8px; min-height: 42px; word-break: break-all; }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .calc-btn { background: #e2e8f0; border: 1px solid var(--border); padding: 10px; font-size: 0.95rem; font-weight: bold; border-radius: 6px; cursor: pointer; text-align: center; color: var(--text-main); }
+        .calc-btn.op { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+        .calc-btn.eq { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .calc-btn.ac { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
     </style>
 </head>
 <body>
@@ -192,6 +200,7 @@
             <div class="user-bar">
                 <span>👤 Status: <strong style="color:var(--accent-green);">Lokal & Bereit ✅</strong></span>
                 <span class="cloud-status" onclick="openCloudModal()" id="cloudStatusLabel">⚡ Cloud-Sync einrichten</span>
+                <span id="lastUpdateDisplay" style="color:var(--text-sub);">Stand: Nie</span>
                 <div style="display:flex; gap:4px;">
                     <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="exportBackupJSON()">💾 Backup</button>
                     <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="document.getElementById('importFile').click()">📂 Laden</button>
@@ -255,6 +264,32 @@
                 </div>
             </div>
 
+            <!-- INTEGRIERTER SCHNELLER TASCHENRECHNER -->
+            <div class="card" style="border: 1px solid var(--accent);">
+                <div class="card-title" style="color:var(--accent);"><span>🧮 Schneller Taschenrechner</span></div>
+                <div class="calc-display" id="calcDisplay">0</div>
+                <div class="calc-grid">
+                    <button class="calc-btn ac" onclick="calcClear()">AC</button>
+                    <button class="calc-btn op" onclick="calcAppend('/')">÷</button>
+                    <button class="calc-btn op" onclick="calcAppend('*')">×</button>
+                    <button class="calc-btn op" onclick="calcBack()">⌫</button>
+                    <button class="calc-btn" onclick="calcAppend('7')">7</button>
+                    <button class="calc-btn" onclick="calcAppend('8')">8</button>
+                    <button class="calc-btn" onclick="calcAppend('9')">9</button>
+                    <button class="calc-btn op" onclick="calcAppend('-')">-</button>
+                    <button class="calc-btn" onclick="calcAppend('4')">4</button>
+                    <button class="calc-btn" onclick="calcAppend('5')">5</button>
+                    <button class="calc-btn" onclick="calcAppend('6')">6</button>
+                    <button class="calc-btn op" onclick="calcAppend('+')">+</button>
+                    <button class="calc-btn" onclick="calcAppend('1')">1</button>
+                    <button class="calc-btn" onclick="calcAppend('2')">2</button>
+                    <button class="calc-btn" onclick="calcAppend('3')">3</button>
+                    <button class="calc-btn eq" onclick="calcResult()" style="grid-row: span 2; height: 100%;">=</button>
+                    <button class="calc-btn" onclick="calcAppend('0')" style="grid-column: span 2;">0</button>
+                    <button class="calc-btn" onclick="calcAppend('.')">.</button>
+                </div>
+            </div>
+
             <!-- UMSCHLAG-METHODE / CASH-STUFFING RECHNER -->
             <div class="card" style="border: 2px solid var(--accent-orange); background: #fffbf5;">
                 <div class="card-title" style="color: var(--accent-orange);">
@@ -306,7 +341,7 @@
                     <span>🏦 Gesamt Abzug Sparpakete (Autom. Übertrag):</span>
                     <span id="resSparzieleAbzug" class="val-red">-0,00 €</span>
                 </div>
-                <div class="stat-row" style="font-weight: bold; font-size: 0.9rem;"><span>Gesamt Sparen im Monat:</span><span id="resGesamtSparen">0,00 €</span></div>
+                <div class="stat-row" style="font-weight: bold; font-size: 0.9px;"><span>Gesamt Sparen im Monat:</span><span id="resGesamtSparen">0,00 €</span></div>
             </div>
 
             <div class="card">
@@ -641,7 +676,7 @@
     <!-- MODAL: CLOUD-SYNC EINSTELLUNGEN -->
     <div id="cloudModal" class="modal">
         <div class="modal-content">
-            <div class="card-title">☁️ Cloud-Sync & Auto-Backup</div>
+            <div class="card-title">☁️ Cloud-Sync & Einstellungen</div>
             <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">
                 Trage deine JSONBin.io URL ein (z.B. <code>https://api.jsonbin.io/v3/b/DEINE_ID</code>) und deinen API-Key.
             </p>
@@ -656,9 +691,6 @@
             <button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 8px;">Speichern & Verbinden ☁️</button>
             <button class="btn-secondary" onclick="pullFromCloudNow()" style="width:100%; margin-bottom: 6px; background:#e0f2fe; color:#0369a1;">Daten aus Cloud laden (Pull) 📥</button>
             <button class="btn-secondary" onclick="syncWithCloudNow()" style="width:100%; margin-bottom: 8px;">Daten in Cloud speichern (Push) 📤</button>
-            <hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
-            <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:6px;">🛡️ Automatisches Tages-Backup (lokal auf Smartphone):</div>
-            <button class="btn-secondary" onclick="restoreAutoBackup()" style="width:100%; margin-bottom: 8px; background:#fef3c7; color:#b45309;">Automatisches Tages-Backup wiederherstellen 📱</button>
             <button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button>
         </div>
     </div>
@@ -776,6 +808,7 @@
         let haushaltItems = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || [];
         
         let cloudConfig = JSON.parse(localStorage.getItem('finanz_cloud_config')) || { url: '', key: '' };
+        let lastUpdateTime = localStorage.getItem('finanz_last_update_time') || '-';
 
         let currentModalGoalId = null;
         let currentMonthItems = [];
@@ -788,9 +821,7 @@
 
         updateHHKategorien();
         loadCashBreakdownToUI();
-        
-        // 🛡️ AUTOMATISCHES TAGES-BACKUP PRÜFEN & AUSFÜHREN
-        checkAndPerformDailyAutoBackup();
+        updateLastUpdateDisplay();
 
         if (cloudConfig.url) {
             pullFromCloudNow(true).then(() => {
@@ -802,56 +833,15 @@
             updateCloudStatusLabel();
         }
 
-        function checkAndPerformDailyAutoBackup() {
-            const todayStr = new Date().toISOString().slice(0, 10); // Format: YYYY-MM-DD
-            const lastBackupDate = localStorage.getItem('finanz_auto_backup_date');
-
-            if (lastBackupDate !== todayStr) {
-                const fullAppData = {
-                    entries: entries,
-                    goals: goals,
-                    urlaubeList: urlaubeList,
-                    currentUrlaubId: currentUrlaubId,
-                    cashBreakdown: cashBreakdown,
-                    haushaltItems: haushaltItems,
-                    backupDate: todayStr
-                };
-                localStorage.setItem('finanz_auto_backup_data', JSON.stringify(fullAppData));
-                localStorage.setItem('finanz_auto_backup_date', todayStr);
-                console.log("Automatisches Tages-Backup auf dem Smartphone erfolgreich erstellt für: " + todayStr);
-            }
+        function updateLastUpdateDisplay() {
+            document.getElementById('lastUpdateDisplay').innerText = `Stand: ${lastUpdateTime}`;
         }
 
-        function restoreAutoBackup() {
-            const savedDataStr = localStorage.getItem('finanz_auto_backup_data');
-            if(!savedDataStr) {
-                return alert('Kein automatisches Tages-Backup auf diesem Gerät gefunden!');
-            }
-            const backupDate = localStorage.getItem('finanz_auto_backup_date') || 'unbekannt';
-                
-            if(!confirm(`Möchtest du das automatische Tages-Backup vom ${backupDate} auf deinem Smartphone wiederherstellen?`)) return;
-
-            try {
-                const parsed = JSON.parse(savedDataStr);
-                if(parsed.entries) entries = parsed.entries;
-                if(parsed.goals) goals = parsed.goals;
-                if(parsed.urlaubeList) urlaubeList = parsed.urlaubeList;
-                if(parsed.currentUrlaubId) currentUrlaubId = parsed.currentUrlaubId;
-                if(parsed.cashBreakdown) cashBreakdown = parsed.cashBreakdown;
-                if(parsed.haushaltItems) haushaltItems = parsed.haushaltItems;
-
-                saveLocally();
-                alert(`Tages-Backup vom ${backupDate} erfolgreich wiederhergestellt! 📱✨`);
-                loadMonthData();
-                renderHistory();
-                renderGoals();
-                renderUrlaubView();
-                renderHaushaltView();
-                renderJahresView();
-                closeCloudModal();
-            } catch(err) {
-                alert('Fehler beim Wiederherstellen des Backups: ' + err.message);
-            }
+        function setTimestampNow() {
+            const now = new Date();
+            lastUpdateTime = now.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + now.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+            localStorage.setItem('finanz_last_update_time', lastUpdateTime);
+            updateLastUpdateDisplay();
         }
 
         function saveLocally() {
@@ -862,6 +852,7 @@
             localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
             localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
             
+            setTimestampNow();
             triggerCloudSyncBackground();
         }
 
@@ -979,6 +970,7 @@
                         localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
                         localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
 
+                        setTimestampNow();
                         loadMonthData();
                         renderHistory();
                         renderGoals();
@@ -996,6 +988,33 @@
                 console.error("Cloud Pull Fehler:", err);
                 if (!isSilent) alert('Netzwerkfehler beim Laden: ' + err.message);
             }
+        }
+
+        // Taschenrechner Logik
+        let calcVal = "0";
+        function calcDisplayUpdate() {
+            document.getElementById('calcDisplay').innerText = calcVal;
+        }
+        function calcClear() { calcVal = "0"; calcDisplayUpdate(); }
+        function calcAppend(char) {
+            if(calcVal === "0" && char !== '.') calcVal = char;
+            else calcVal += char;
+            calcDisplayUpdate();
+        }
+        function calcBack() {
+            calcVal = calcVal.length > 1 ? calcVal.slice(0, -1) : "0";
+            calcDisplayUpdate();
+        }
+        function calcResult() {
+            try {
+                // Ersetze operator-Anzeigen für Eval falls nötig
+                let sanitized = calcVal.replace(/×/g, '*').replace(/÷/g, '/');
+                let res = eval(sanitized);
+                calcVal = String(Math.round(res * 100) / 100);
+            } catch(e) {
+                calcVal = "Fehler";
+            }
+            calcDisplayUpdate();
         }
 
         function autoSaveLive() {
