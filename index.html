@@ -255,7 +255,7 @@
                 </div>
             </div>
 
-            <!-- NEUER UMSCHLAG-METHODE / CASH-STUFFING RECHNER -->
+            <!-- UMSCHLAG-METHODE / CASH-STUFFING RECHNER -->
             <div class="card" style="border: 2px solid var(--accent-orange); background: #fffbf5;">
                 <div class="card-title" style="color: var(--accent-orange);">
                     <span>✉️ Cash-Stuffing & Umschlag-Verteilung</span>
@@ -421,7 +421,6 @@
                 </div>
             </div>
 
-            <!-- NEUER VERMÖGENS-GESAMTVERLAUF (NET WORTH CHART) -->
             <div class="card">
                 <div class="card-title">📈 Vermögens-Gesamtverlauf (Sparentwicklung)</div>
                 <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">So wächst dein erspartes Vermögen Monat für Monat an:</div>
@@ -642,7 +641,7 @@
     <!-- MODAL: CLOUD-SYNC EINSTELLUNGEN -->
     <div id="cloudModal" class="modal">
         <div class="modal-content">
-            <div class="card-title">☁️ Cloud-Sync Konfiguration</div>
+            <div class="card-title">☁️ Cloud-Sync & Auto-Backup</div>
             <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">
                 Trage deine JSONBin.io URL ein (z.B. <code>https://api.jsonbin.io/v3/b/DEINE_ID</code>) und deinen API-Key.
             </p>
@@ -657,6 +656,9 @@
             <button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 8px;">Speichern & Verbinden ☁️</button>
             <button class="btn-secondary" onclick="pullFromCloudNow()" style="width:100%; margin-bottom: 6px; background:#e0f2fe; color:#0369a1;">Daten aus Cloud laden (Pull) 📥</button>
             <button class="btn-secondary" onclick="syncWithCloudNow()" style="width:100%; margin-bottom: 8px;">Daten in Cloud speichern (Push) 📤</button>
+            <hr style="border:0; border-top:1px solid var(--border); margin:10px 0;">
+            <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:6px;">🛡️ Automatisches Tages-Backup (lokal auf Smartphone):</div>
+            <button class="btn-secondary" onclick="restoreAutoBackup()" style="width:100%; margin-bottom: 8px; background:#fef3c7; color:#b45309;">Automatisches Tages-Backup wiederherstellen 📱</button>
             <button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button>
         </div>
     </div>
@@ -787,6 +789,9 @@
         updateHHKategorien();
         loadCashBreakdownToUI();
         
+        // 🛡️ AUTOMATISCHES TAGES-BACKUP PRÜFEN & AUSFÜHREN
+        checkAndPerformDailyAutoBackup();
+
         if (cloudConfig.url) {
             pullFromCloudNow(true).then(() => {
                 loadMonthData();
@@ -795,6 +800,58 @@
         } else {
             loadMonthData();
             updateCloudStatusLabel();
+        }
+
+        function checkAndPerformDailyAutoBackup() {
+            const todayStr = new Date().toISOString().slice(0, 10); // Format: YYYY-MM-DD
+            const lastBackupDate = localStorage.getItem('finanz_auto_backup_date');
+
+            if (lastBackupDate !== todayStr) {
+                const fullAppData = {
+                    entries: entries,
+                    goals: goals,
+                    urlaubeList: urlaubeList,
+                    currentUrlaubId: currentUrlaubId,
+                    cashBreakdown: cashBreakdown,
+                    haushaltItems: haushaltItems,
+                    backupDate: todayStr
+                };
+                localStorage.setItem('finanz_auto_backup_data', JSON.stringify(fullAppData));
+                localStorage.setItem('finanz_auto_backup_date', todayStr);
+                console.log("Automatisches Tages-Backup auf dem Smartphone erfolgreich erstellt für: " + todayStr);
+            }
+        }
+
+        function restoreAutoBackup() {
+            const savedDataStr = localStorage.getItem('finanz_auto_backup_data');
+            if(!savedDataStr) {
+                return alert('Kein automatisches Tages-Backup auf diesem Gerät gefunden!');
+            }
+            const backupDate = localStorage.getItem('finanz_auto_backup_date') || 'unbekannt';
+                
+            if(!confirm(`Möchtest du das automatische Tages-Backup vom ${backupDate} auf deinem Smartphone wiederherstellen?`)) return;
+
+            try {
+                const parsed = JSON.parse(savedDataStr);
+                if(parsed.entries) entries = parsed.entries;
+                if(parsed.goals) goals = parsed.goals;
+                if(parsed.urlaubeList) urlaubeList = parsed.urlaubeList;
+                if(parsed.currentUrlaubId) currentUrlaubId = parsed.currentUrlaubId;
+                if(parsed.cashBreakdown) cashBreakdown = parsed.cashBreakdown;
+                if(parsed.haushaltItems) haushaltItems = parsed.haushaltItems;
+
+                saveLocally();
+                alert(`Tages-Backup vom ${backupDate} erfolgreich wiederhergestellt! 📱✨`);
+                loadMonthData();
+                renderHistory();
+                renderGoals();
+                renderUrlaubView();
+                renderHaushaltView();
+                renderJahresView();
+                closeCloudModal();
+            } catch(err) {
+                alert('Fehler beim Wiederherstellen des Backups: ' + err.message);
+            }
         }
 
         function saveLocally() {
@@ -1681,9 +1738,7 @@
             const gesamtSparenVal = calc.notfallSparen + totalSparzielDeductions + calc.bargeldSparen;
             document.getElementById('resGesamtSparen').innerText = gesamtSparenVal.toFixed(2) + ' €';
 
-            // CASH STUFFING UMSCHLAG-RECHNER INITIALISIEREN & ANZEIGEN
             renderEnvelopeStuffingBreakdown(calc, totalSparzielDeductions, freizeitRest);
-
             renderHaushaltView();
         }
 
@@ -1695,7 +1750,6 @@
             const totalToWithdraw = calc.ueberschuss;
             document.getElementById('cashStuffingTotalToWithdraw').innerText = totalToWithdraw.toFixed(2) + ' € Abheben';
 
-            // 1. Notfallkonto-Umschlag
             if(calc.notfallSparen > 0) {
                 const item = document.createElement('div');
                 item.className = 'history-item';
@@ -1706,7 +1760,6 @@
                 envelopeContainer.appendChild(item);
             }
 
-            // 2. Sparziele Umschläge
             goals.forEach(goal => {
                 if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
                     if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
@@ -1722,7 +1775,6 @@
                 }
             });
 
-            // 3. Unverpacktes Rest-Geld
             document.getElementById('unpackedRestBudgetDisplay').innerText = freizeitRest.toFixed(2) + ' €';
         }
 
@@ -1732,7 +1784,7 @@
             const calc = calculateValuesFor(item);
             let totalToWithdraw = Math.floor(calc.ueberschuss);
 
-            if (totalToWithdraw <= 0) return alert('Kein ausreichnder Überschuss zum Abheben vorhanden!');
+            if (totalToWithdraw <= 0) return alert('Kein ausreichender Überschuss zum Abheben vorhanden!');
 
             let remaining = totalToWithdraw;
             const notes = [100, 50, 20, 10, 5];
@@ -2039,9 +2091,7 @@
             document.getElementById('totalErsparnisse').innerText = totalGebucht.toFixed(2) + ' €';
             document.getElementById('projGesamtErsparnisse').innerText = totalProj.toFixed(2) + ' €';
 
-            // RENDER NET WORTH CHART
             renderNetWorthChart(netWorthHistory);
-
             renderGoals();
         }
 
