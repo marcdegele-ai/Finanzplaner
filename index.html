@@ -190,10 +190,10 @@
             <h1>📊 Mein Dynamischer Finanzplan</h1>
             <div class="app-creator-sub">Ersteller: Marc Degele</div>
             <div class="user-bar">
-                <span>👤 Status: <strong style="color:var(--accent-green);">Lokal & OneDrive Sync ✅</strong></span>
+                <span>👤 Status: <strong style="color:var(--accent-green);">Lokal & Download-Sync ✅</strong></span>
                 <span class="cloud-status">⚡ Auto-Speicherung aktiv</span>
                 <div style="display:flex; gap:4px;">
-                    <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="exportBackupOneDrive()">💾 OneDrive Backup</button>
+                    <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="downloadBackupJSON()">💾 Backup herunterladen</button>
                     <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="document.getElementById('importFile').click()">📂 Laden</button>
                     <input type="file" id="importFile" style="display:none" accept=".json" onchange="importBackupJSON(event)">
                 </div>
@@ -631,6 +631,17 @@
                 <div id="simResultBox" style="font-size:0.8rem; background:#fff; padding:8px; border-radius:6px; border:1px solid var(--border); color:var(--text-main); line-height:1.4;"></div>
             </div>
 
+            <!-- GEPLANTE ENTNAHME FÜR EINEN BESTIMMTEN MONAT -->
+            <div style="background:var(--card-sub); border:1px solid #ef4444; padding:10px; border-radius:8px; margin-bottom:12px;">
+                <label style="color:#ef4444; font-weight:bold;">📅 Geplante Entnahme für einen bestimmten Monat</label>
+                <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Lege fest, in welchem Monat (z.B. März) Geld abgezogen werden soll.</div>
+                <div style="display:flex; gap:6px; margin-bottom:6px;">
+                    <input type="month" id="futureWithdrawMonth" style="flex:1;">
+                    <input type="number" id="futureWithdrawAmount" placeholder="Betrag (€)" style="width: 100px;">
+                </div>
+                <button class="btn-secondary" style="width:100%; background:#ef4444; color:#fff; border:none; font-weight:bold;" onclick="addFutureWithdrawal()">Entnahme für Monat planen ➖</button>
+            </div>
+
             <!-- Manuell Einzahlen -->
             <div style="background:var(--card-sub); border:1px solid var(--accent-green); padding:10px; border-radius:8px; margin-bottom:12px;">
                 <label style="color:var(--accent-green); font-weight:bold;">➕ Geld manuell hinzufügen (z.B. Geburtstag)</label>
@@ -641,10 +652,10 @@
                 </div>
             </div>
 
-            <!-- Manuell Abheben / Entnehmen -->
+            <!-- Manuell Abheben / Entnehmen (Sofort) -->
             <div style="background:var(--card-sub); border:1px solid #ef4444; padding:10px; border-radius:8px; margin-bottom:12px;">
-                <label style="color:#ef4444; font-weight:bold;">➖ Geld manuell abheben / entnehmen</label>
-                <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Ziehe Geld ab, wenn du etwas entnommen hast.</div>
+                <label style="color:#ef4444; font-weight:bold;">➖ Geld manuell sofort abheben / entnehmen</label>
+                <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Ziehe Geld direkt ab, wenn du etwas entnommen hast.</div>
                 <div style="display:flex; gap:6px;">
                     <input type="number" id="manualWithdrawAmount" placeholder="Betrag (€)" style="flex:1;">
                     <button class="btn-secondary" style="background:#ef4444; color:#ffffff; font-weight:bold; border:none;" onclick="withdrawManualFromGoal()">Abheben ➖</button>
@@ -685,7 +696,7 @@
 
     <script>
         let entries = JSON.parse(localStorage.getItem('finanz_entries_local')) || {
-            "2026-11": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }
+            "2026-11": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [], futureWithdrawals: [] }
         };
 
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
@@ -737,6 +748,7 @@
         document.getElementById('hhMonthInput').value = "2026-11";
         document.getElementById('selectYear').value = new Date().getFullYear();
         document.getElementById('HHDate').valueAsDate = new Date();
+        document.getElementById('futureWithdrawMonth').value = "2027-03";
 
         updateHHKategorien();
         loadCashBreakdownToUI();
@@ -751,11 +763,11 @@
             localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
         }
 
-        // Live-Autosave bei jeder Eingabe
         function autoSaveLive() {
             const m = getSelectedMonthKey();
             if(!m) return;
             const existingExtra = entries[m] ? entries[m].extraTransfers : [];
+            const existingWithdrawals = entries[m] ? entries[m].futureWithdrawals : [];
             entries[m] = {
                 gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
                 bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0,
@@ -766,14 +778,14 @@
                 splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
                 splitMode: document.getElementById('splitModeSelect').value,
                 booked: document.getElementById('gehaltBookedInput').checked,
-                extraTransfers: existingExtra
+                extraTransfers: existingExtra,
+                futureWithdrawals: existingWithdrawals
             };
             saveLocally();
             liveCalc();
         }
 
-        // ONEDRIVE BACKUP PER TEILEN-MENÜ
-        async function exportBackupOneDrive() {
+        function downloadBackupJSON() {
             const data = {
                 entries: entries,
                 goals: goals,
@@ -784,22 +796,7 @@
             };
             const dataStr = JSON.stringify(data, null, 2);
             const fileName = `Finanzplan_Backup_${new Date().toISOString().slice(0,10)}.json`;
-            const file = new File([dataStr], fileName, { type: "application/json" });
-
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({
-                        title: 'Finanzplan Backup',
-                        text: 'Automatisches Backup für OneDrive',
-                        files: [file]
-                    });
-                    return;
-                } catch (err) {
-                    if (err.name !== 'AbortError') console.log("Share fallback", err);
-                }
-            }
-
-            // Fallback auf normalen Download
+            
             const dataUri = "data:text/json;charset=utf-8," + encodeURIComponent(dataStr);
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataUri);
@@ -1027,7 +1024,8 @@
                 splitNotfall: 15, 
                 splitMode: 'percent', 
                 booked: false, 
-                extraTransfers: [] 
+                extraTransfers: [],
+                futureWithdrawals: [] 
             };
         }
 
@@ -1091,7 +1089,8 @@
                     splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
                     splitMode: document.getElementById('splitModeSelect').value,
                     booked: document.getElementById('gehaltBookedInput').checked,
-                    extraTransfers: []
+                    extraTransfers: [],
+                    futureWithdrawals: []
                 };
             }
             if(!entries[m].extraTransfers) entries[m].extraTransfers = [];
@@ -1121,6 +1120,39 @@
             saveLocally();
             alert('Überweisung storniert! Das Geld ist wieder in deinem frei verfügbaren Budget. ↩️');
             renderGoals();
+            renderHistory();
+            liveCalc();
+        }
+
+        function addFutureWithdrawal() {
+            const wMonth = document.getElementById('futureWithdrawMonth').value;
+            const amount = parseFloat(document.getElementById('futureWithdrawAmount').value);
+            if(!wMonth || isNaN(amount) || amount <= 0) return alert('Bitte Monat und gültigen Betrag eingeben!');
+
+            if(!entries[wMonth]) {
+                entries[wMonth] = {
+                    gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [], futureWithdrawals: []
+                };
+            }
+            if(!entries[wMonth].futureWithdrawals) entries[wMonth].futureWithdrawals = [];
+            
+            const goal = goals.find(g => g.id === currentModalGoalId);
+            entries[wMonth].futureWithdrawals.push({ id: Date.now(), goalId: goal.id, goalName: goal.name, amount: amount });
+
+            saveLocally();
+            document.getElementById('futureWithdrawAmount').value = '';
+            alert(`Entnahme von ${amount.toFixed(2)} € von "${goal.name}" für den Monat ${wMonth} erfolgreich eingeplant! 📅📉`);
+            openModal(currentModalGoalId);
+            renderHistory();
+            liveCalc();
+        }
+
+        function cancelFutureWithdrawal(monthKey, wId) {
+            if(!entries[monthKey] || !entries[monthKey].futureWithdrawals) return;
+            entries[monthKey].futureWithdrawals = entries[monthKey].futureWithdrawals.filter(w => w.id !== wId);
+            saveLocally();
+            alert('Geplante Entnahme storniert! ↩️');
+            openModal(currentModalGoalId);
             renderHistory();
             liveCalc();
         }
@@ -1688,14 +1720,24 @@
                     });
                 }
 
-                let totalMonthAdd = regularMonthAdd + extraThisMonth;
-                if (totalMonthAdd > 0 || itemData.booked || key <= baseKey) {
+                let withdrawalThisMonth = 0;
+                if (itemData.futureWithdrawals) {
+                    itemData.futureWithdrawals.forEach(w => {
+                        if (w.goalId === goalId) {
+                            withdrawalThisMonth += w.amount;
+                        }
+                    });
+                }
+
+                let totalMonthAdd = regularMonthAdd + extraThisMonth - withdrawalThisMonth;
+                if (totalMonthAdd !== 0 || itemData.booked || key <= baseKey) {
                     projectedSum += totalMonthAdd;
                     if (itemData.booked) {
                         runningSum += totalMonthAdd;
                     }
                     let statusLabel = itemData.booked ? "Gebucht ✅" : "Geplant (Plan) ⏳";
-                    if (extraThisMonth > 0) statusLabel += ` (inkl. ${extraThisMonth.toFixed(2)}€ Extra)`;
+                    if (extraThisMonth > 0) statusLabel += ` (inkl. +${extraThisMonth.toFixed(2)}€)`;
+                    if (withdrawalThisMonth > 0) statusLabel += ` (Entnahme -${withdrawalThisMonth.toFixed(2)}€)`;
                     
                     breakdown.push({ 
                         month: key, 
@@ -1763,6 +1805,15 @@
                     });
                 }
 
+                let wNotfall = 0, wFreizeit = 0, wKassette = 0;
+                if(itemData.futureWithdrawals) {
+                    itemData.futureWithdrawals.forEach(w => {
+                        if(w.goalId === 'notfall') wNotfall += w.amount;
+                        if(w.goalId === 'freizeit') wFreizeit += w.amount;
+                        if(w.goalId === 'kassette') wKassette += w.amount;
+                    });
+                }
+
                 let monthSparzielDeductions = 0;
                 goals.forEach(goal => {
                     if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
@@ -1786,14 +1837,14 @@
                 let freiVerfubarMonat = Math.max(0, calc.freizeitSparen - monthSparzielDeductions - extraTransfersMonthSum);
 
                 if (itemData.booked) {
-                    runningNotfall += (calc.notfallSparen + extraNotfall);
-                    runningFreizeit += (calc.freizeitSparen + extraFreizeit);
-                    runningKassette += (calc.bargeldSparen + extraKassette);
+                    runningNotfall += (calc.notfallSparen + extraNotfall - wNotfall);
+                    runningFreizeit += (calc.freizeitSparen + extraFreizeit - wFreizeit);
+                    runningKassette += (calc.bargeldSparen + extraKassette - wKassette);
                 }
 
-                projRunningNotfall += (calc.notfallSparen + extraNotfall);
-                projRunningFreizeit += (calc.freizeitSparen + extraFreizeit);
-                projRunningKassette += (calc.bargeldSparen + extraKassette);
+                projRunningNotfall += (calc.notfallSparen + extraNotfall - wNotfall);
+                projRunningFreizeit += (calc.freizeitSparen + extraFreizeit - wFreizeit);
+                projRunningKassette += (calc.bargeldSparen + extraKassette - wKassette);
 
                 const totalMonthStand = itemData.booked ? (runningNotfall + runningFreizeit + runningKassette) : (projRunningNotfall + projRunningFreizeit + projRunningKassette);
                 
@@ -2247,6 +2298,7 @@
             document.getElementById('modalDateInput').value = goal.targetDate || '';
             document.getElementById('manualDepositAmount').value = '';
             document.getElementById('manualWithdrawAmount').value = '';
+            document.getElementById('futureWithdrawAmount').value = '';
             
             let defaultMonthly = goal.fixedMonthly || 100;
             if(!goal.fixedMonthly && goal.targetDate) {
@@ -2273,13 +2325,24 @@
                 data.breakdown.forEach(item => {
                     const row = document.createElement('div');
                     row.className = 'history-item';
+                    
+                    let cancelBtnHtml = '';
+                    // Prüfen ob in diesem Monat eine geplante Entnahme für dieses Ziel liegt
+                    const mKey = item.month;
+                    if(entries[mKey] && entries[mKey].futureWithdrawals) {
+                        const wObj = entries[mKey].futureWithdrawals.find(w => w.goalId === goalId);
+                        if(wObj) {
+                            cancelBtnHtml = ` <button class="storno-btn" onclick="cancelFutureWithdrawal('${mKey}', ${wObj.id})">🗑️ Entnahme Storno</button>`;
+                        }
+                    }
+
                     row.innerHTML = `
                         <div>
-                            <div class="history-date">${item.month} <span class="badge badge-once" style="font-size:0.6rem;">${item.status}</span></div>
+                            <div class="history-date">${item.month} <span class="badge badge-once" style="font-size:0.6rem;">${item.status}</span> ${cancelBtnHtml}</div>
                             <div class="history-sub">Kumulierter Stand: ${item.totalSoFar.toFixed(2)} €</div>
                         </div>
                         <div style="text-align:right;">
-                            <div class="val-highlight" style="font-size:0.9rem;">+${item.amount.toFixed(2)} €</div>
+                            <div class="val-highlight" style="font-size:0.9rem;">${item.amount >= 0 ? '+' : ''}${item.amount.toFixed(2)} €</div>
                         </div>`;
                     histList.appendChild(row);
                 });
@@ -2389,7 +2452,7 @@
             const fixedMonthly = parseFloat(document.getElementById('zielFixedMonthly').value) || 0;
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
             let targetDate = document.getElementById('zielDatum').value;
-            const goalType = document.getElementById('zielTypeSelect').value;
+            const goalType = document.getElementById('zielTypeSelect'.value);
 
             if(urlaubLinkId) {
                 let u = urlaubeList.find(x => x.id === urlaubLinkId);
