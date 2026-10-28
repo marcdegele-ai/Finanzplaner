@@ -255,15 +255,34 @@
                 </div>
             </div>
 
+            <!-- NEUER UMSCHLAG-METHODE / CASH-STUFFING RECHNER -->
+            <div class="card" style="border: 2px solid var(--accent-orange); background: #fffbf5;">
+                <div class="card-title" style="color: var(--accent-orange);">
+                    <span>✉️ Cash-Stuffing & Umschlag-Verteilung</span>
+                    <span id="cashStuffingTotalToWithdraw" class="val-orange" style="font-size: 1.05rem;">0,00 € Abheben</span>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 10px;">
+                    💡 Basierend auf deinem verfügbaren Überschuss. Hebe diesen Betrag bar ab und verteile ihn auf deine Umschläge:
+                </div>
+
+                <div id="envelopeBreakdownContainer" class="history-list" style="margin-bottom: 10px;"></div>
+
+                <div class="stat-row" style="background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0;">
+                    <span style="font-weight:600; color:#15803d;">🛍️ Unverpacktes Rest-Geld (Dein Monatsbudget):</span>
+                    <span id="unpackedRestBudgetDisplay" class="val-highlight" style="font-size:0.95rem;">0,00 €</span>
+                </div>
+
+                <button class="btn-secondary" style="width: 100%; margin-top: 10px; background: var(--accent-orange); color: #fff; border: none; font-weight: bold;" onclick="calcATMNotesRecommendation()">🏧 Automaten-Stückelung berechnen 💵</button>
+            </div>
+
             <div class="card">
                 <div class="card-title">Ergebnis für <span id="displayMonth" style="color:var(--accent);">-</span></div>
                 <div class="stat-row"><span>Netto nach Ausgaben:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row"><span>Verfügbarer Überschuss:</span><span id="resUeberschuss">0,00 €</span></div>
+                <div class="stat-row"><span>Verfügbarer Überschuss (Abhebung):</span><span id="resUeberschuss" class="val-orange" style="font-weight:bold;">0,00 €</span></div>
                 <div class="stat-row"><span>Notfallkonto Sparen:</span><span id="resNotfall" class="val-highlight">0,00 €</span></div>
                 
                 <div class="stat-row"><span>FreizeitKonto (Brutto):</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
                 
-                <!-- Container für die dynamische Sparziel-Aufschlüsselung -->
                 <div id="sparzieleBreakdownContainer"></div>
 
                 <div class="stat-row" style="background: #f0fdf4; padding: 8px 10px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 4px 0;">
@@ -271,7 +290,6 @@
                     <span id="resFreizeitRest" class="val-highlight" style="font-size:0.95rem;">0,00 €</span>
                 </div>
 
-                <!-- EXTRA-ÜBERWEISUNG VOM REST-FREIZEITGELD -->
                 <div style="background: var(--card-sub); border: 1px solid var(--accent); padding: 10px; border-radius: 8px; margin: 8px 0;">
                     <label style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 4px;">⚡ Extra-Überweisung vom Frei verfügbaren Betrag</label>
                     <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 6px;">Übertrage Geld direkt von deinem frei verfügbaren Betrag auf ein Sparziel oder die Kasse.</div>
@@ -306,7 +324,6 @@
                     <input type="month" id="hhMonthInput" min="2026-11" onchange="syncMonthInput(this.value)" style="background:#ffffff; font-weight:bold; color:var(--accent);">
                 </div>
                 
-                <!-- QUICK-BUTTONS SCHNELL-EINGABE -->
                 <div class="quick-btn-row">
                     <button class="quick-btn" onclick="quickFillHH(10)">+ 10 €</button>
                     <button class="quick-btn" onclick="quickFillHH(20)">+ 20 €</button>
@@ -351,11 +368,10 @@
                 <div class="stat-row"><span>Fixkosten-Anteil am Gehalt:</span><span id="fixQuoteDisplay" class="val-red">0.0%</span></div>
                 <div class="stat-row"><span>Gesamtausgaben Haushalt:</span><span id="HHTotalDisplay" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Gesamteinnahmen Haushalt (extra):</span><span id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</span></div>
-                <div class="stat-row"><span>Verfügbares Taschengeld-Budget (Basis):</span><span id="HHBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></div>
+                <div class="stat-row"><span>Verfügbares Unverpacktes Monatsbudget:</span><span id="HHBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></div>
                 <div class="stat-row" style="font-weight:bold; font-size:0.95rem;"><span>Rest-Budget (inkl. Einnahmen):</span><span id="HHRestDisplay">0,00 €</span></div>
             </div>
 
-            <!-- KATEGORIE-AUSWERTUNG CHART CONTAINER -->
             <div class="card" id="categoryChartCard" style="display:none;">
                 <div class="card-title">📊 Ausgaben nach Kategorien</div>
                 <div class="chart-container" id="categoryChartContainer"></div>
@@ -403,6 +419,13 @@
                     <span style="color:#15803d;">🚀 Gesamtersparnisse (Inkl. Hochrechnung):</span>
                     <span id="projGesamtErsparnisse" class="val-highlight" style="font-size:1rem;">0,00 €</span>
                 </div>
+            </div>
+
+            <!-- NEUER VERMÖGENS-GESAMTVERLAUF (NET WORTH CHART) -->
+            <div class="card">
+                <div class="card-title">📈 Vermögens-Gesamtverlauf (Sparentwicklung)</div>
+                <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">So wächst dein erspartes Vermögen Monat für Monat an:</div>
+                <div class="chart-container" id="netWorthChartContainer"></div>
             </div>
 
             <div class="card">
@@ -552,6 +575,21 @@
         </div>
     </div>
 
+    <!-- MODAL: ATM RECHNER / STÜCKELUNGS-EMPFEHLUNG -->
+    <div id="atmModal" class="modal">
+        <div class="modal-content">
+            <div class="card-title">🏧 Empfohlene Automaten-Abhebung</div>
+            <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">
+                Damit du dein abgehobenes Geld perfekt auf deine Umschläge verteilen kannst, empfiehlt sich folgende Scheine-Auswahl am Geldautomaten:
+            </p>
+            <div class="stat-row" style="font-weight:bold; margin-bottom:10px;"><span>Abhebe-Gesamtsumme:</span><span id="atmTotalDisplay" class="val-orange">0,00 €</span></div>
+            
+            <div class="history-list" id="atmNotesList" style="margin-bottom:14px;"></div>
+
+            <button class="btn-add" onclick="closeAtmModal()">Verstanden & Schließen 👍</button>
+        </div>
+    </div>
+
     <!-- MODAL: AUSGABEN -->
     <div id="expenseModal" class="modal">
         <div class="modal-content">
@@ -583,7 +621,7 @@
         <div class="modal-content">
             <div class="card-title">🏁 Monatsabschluss & Kassensturz</div>
             <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:12px;">
-                Möchtest du das restliche Haushalts- / Taschengeld-Budget aus diesem Monat direkt in ein Sparziel oder deine Bargeld-Kassette übertragen?
+                Möchtest du das restliche unverpackte Monatsbudget aus diesem Monat direkt in ein Sparziel oder deine Bargeld-Kassette übertragen?
             </p>
             <div class="stat-row" style="margin-bottom:12px;"><span>Verbleibender Restbetrag:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div>
             
@@ -639,7 +677,6 @@
                 </select>
             </div>
 
-            <!-- Manuell Einzahlen -->
             <div style="background:var(--card-sub); border:1px solid var(--accent-green); padding:10px; border-radius:8px; margin-bottom:12px;">
                 <label style="color:var(--accent-green); font-weight:bold;">➕ Geld manuell hinzufügen (z.B. Geburtstag)</label>
                 <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Füge einmalig einen Betrag hinzu.</div>
@@ -649,7 +686,6 @@
                 </div>
             </div>
 
-            <!-- Manuell Abheben / Entnehmen -->
             <div style="background:var(--card-sub); border:1px solid #ef4444; padding:10px; border-radius:8px; margin-bottom:12px;">
                 <label style="color:#ef4444; font-weight:bold;">➖ Geld manuell abheben / entnehmen</label>
                 <div style="font-size:0.72rem; color:var(--text-sub); margin-bottom:6px;">Ziehe Geld ab, wenn du etwas entnommen hast.</div>
@@ -1614,7 +1650,7 @@
                         const row = document.createElement('div');
                         row.className = 'stat-row sub-row';
                         row.innerHTML = `
-                            <span>↳ Dauerauftrag Sparziel: <strong>${goal.name}</strong></span>
+                            <span>↳ Umschlag Sparziel: <strong>${goal.name}</strong></span>
                             <span class="val-red">-${monthlyShare.toFixed(2)} €</span>
                         `;
                         container.appendChild(row);
@@ -1627,7 +1663,7 @@
                     const row = document.createElement('div');
                     row.className = 'stat-row sub-row';
                     row.innerHTML = `
-                        <span>⚡ Extra: <strong>${tr.targetName}</strong> <button class="storno-btn" onclick="cancelExtraTransfer(${tr.id})">🗑️ Storno</button></span>
+                        <span>⚡ Extra Umschlag: <strong>${tr.targetName}</strong> <button class="storno-btn" onclick="cancelExtraTransfer(${tr.id})">🗑️ Storno</button></span>
                         <span class="val-red">-${tr.amount.toFixed(2)} €</span>
                     `;
                     container.appendChild(row);
@@ -1644,7 +1680,102 @@
 
             const gesamtSparenVal = calc.notfallSparen + totalSparzielDeductions + calc.bargeldSparen;
             document.getElementById('resGesamtSparen').innerText = gesamtSparenVal.toFixed(2) + ' €';
+
+            // CASH STUFFING UMSCHLAG-RECHNER INITIALISIEREN & ANZEIGEN
+            renderEnvelopeStuffingBreakdown(calc, totalSparzielDeductions, freizeitRest);
+
             renderHaushaltView();
+        }
+
+        function renderEnvelopeStuffingBreakdown(calc, totalSparzielDeductions, freizeitRest) {
+            const envelopeContainer = document.getElementById('envelopeBreakdownContainer');
+            if(!envelopeContainer) return;
+            envelopeContainer.innerHTML = '';
+
+            const totalToWithdraw = calc.ueberschuss;
+            document.getElementById('cashStuffingTotalToWithdraw').innerText = totalToWithdraw.toFixed(2) + ' € Abheben';
+
+            // 1. Notfallkonto-Umschlag
+            if(calc.notfallSparen > 0) {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                item.innerHTML = `
+                    <div><div class="history-date">✉️ Umschlag: Notfallkonto / Sparrate</div><div class="history-sub">Bank-Überweisung / Tresor</div></div>
+                    <div><span class="val-highlight">+${calc.notfallSparen.toFixed(2)} €</span></div>
+                `;
+                envelopeContainer.appendChild(item);
+            }
+
+            // 2. Sparziele Umschläge
+            goals.forEach(goal => {
+                if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
+                    if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
+                        const amt = parseFloat(goal.fixedMonthly);
+                        const item = document.createElement('div');
+                        item.className = 'history-item';
+                        item.innerHTML = `
+                            <div><div class="history-date">✉️ Umschlag: ${goal.name}</div><div class="history-sub">Festes Sparziel</div></div>
+                            <div><span class="val-orange">+${amt.toFixed(2)} €</span></div>
+                        `;
+                        envelopeContainer.appendChild(item);
+                    }
+                }
+            });
+
+            // 3. Unverpacktes Rest-Geld
+            document.getElementById('unpackedRestBudgetDisplay').innerText = freizeitRest.toFixed(2) + ' €';
+        }
+
+        function calcATMNotesRecommendation() {
+            const m = getSelectedMonthKey();
+            const item = getMonthDataOrFallback(m);
+            const calc = calculateValuesFor(item);
+            let totalToWithdraw = Math.floor(calc.ueberschuss);
+
+            if (totalToWithdraw <= 0) return alert('Kein ausreichnder Überschuss zum Abheben vorhanden!');
+
+            let remaining = totalToWithdraw;
+            const notes = [100, 50, 20, 10, 5];
+            const resultNotes = {};
+
+            notes.forEach(note => {
+                let count = Math.floor(remaining / note);
+                if (count > 0) {
+                    resultNotes[note] = count;
+                    remaining -= count * note;
+                }
+            });
+
+            document.getElementById('atmTotalDisplay').innerText = totalToWithdraw.toFixed(2) + ' €';
+            const notesListEl = document.getElementById('atmNotesList');
+            notesListEl.innerHTML = '';
+
+            Object.keys(resultNotes).reverse().forEach(note => {
+                const count = resultNotes[note];
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div class="history-date">💵 ${note} € Scheine</div>
+                    <div><strong style="color:var(--accent); font-size:1rem;">${count}x</strong></div>
+                `;
+                notesListEl.appendChild(div);
+            });
+
+            if(remaining > 0) {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div class="history-sub">Restliche Münzen:</div>
+                    <div><strong>${remaining.toFixed(2)} €</strong></div>
+                `;
+                notesListEl.appendChild(div);
+            }
+
+            document.getElementById('atmModal').classList.add('active');
+        }
+
+        function closeAtmModal() {
+            document.getElementById('atmModal').classList.remove('active');
         }
 
         function saveCurrentMonthManual() {
@@ -1837,6 +1968,8 @@
             let projRunningFreizeit = runningFreizeit;
             let projRunningKassette = runningKassette;
 
+            let netWorthHistory = [];
+
             sortedKeys.forEach(key => {
                 const itemData = getMonthDataOrFallback(key);
                 const calc = calculateValuesFor(itemData);
@@ -1875,6 +2008,8 @@
 
                 const totalMonthStand = itemData.booked ? (runningNotfall + runningFreizeit + runningKassette) : (projRunningNotfall + projRunningFreizeit + projRunningKassette);
                 
+                netWorthHistory.push({ month: key, stand: totalMonthStand, booked: itemData.booked });
+
                 const tr = document.createElement('tr');
                 tr.onclick = () => selectMonthAndEdit(key);
                 tr.innerHTML = `
@@ -1904,7 +2039,37 @@
             document.getElementById('totalErsparnisse').innerText = totalGebucht.toFixed(2) + ' €';
             document.getElementById('projGesamtErsparnisse').innerText = totalProj.toFixed(2) + ' €';
 
+            // RENDER NET WORTH CHART
+            renderNetWorthChart(netWorthHistory);
+
             renderGoals();
+        }
+
+        function renderNetWorthChart(historyData) {
+            const container = document.getElementById('netWorthChartContainer');
+            if(!container) return;
+            container.innerHTML = '';
+
+            let maxVal = 1;
+            historyData.forEach(d => { if(d.stand > maxVal) maxVal = d.stand; });
+
+            historyData.forEach(d => {
+                let percent = (d.stand / maxVal) * 100;
+                if(percent > 100) percent = 100;
+
+                const row = document.createElement('div');
+                row.className = 'chart-bar-row';
+                row.innerHTML = `
+                    <div class="chart-label-line">
+                        <span>${d.month} ${d.booked ? '✅' : '⏳'}</span>
+                        <span class="val-highlight">${d.stand.toFixed(2)} €</span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: ${percent}%; background: var(--accent-green);"></div>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
         }
 
         function renderJahresView() {
