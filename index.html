@@ -68,7 +68,8 @@
             gap: 6px;
         }
 
-        .cloud-status { color: var(--accent-green); font-weight: 600; }
+        .cloud-status { color: var(--accent-green); font-weight: 600; cursor: pointer; }
+        .cloud-status:hover { text-decoration: underline; }
 
         .tab-bar {
             display: flex;
@@ -132,7 +133,6 @@
 
         .quick-btn-row { display: flex; gap: 6px; margin-bottom: 6px; }
         .quick-btn { flex: 1; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 6px; padding: 5px; font-size: 0.75rem; font-weight: bold; cursor: pointer; text-align: center; }
-        .quick-btn:hover { background: #bae6fd; }
 
         .history-list { display: flex; flex-direction: column; gap: 8px; }
         .history-item { background: var(--card-sub); padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); color: var(--text-main); }
@@ -191,7 +191,7 @@
             <div class="app-creator-sub">Ersteller: Marc Degele</div>
             <div class="user-bar">
                 <span>👤 Status: <strong style="color:var(--accent-green);">Lokal & Bereit ✅</strong></span>
-                <span class="cloud-status">⚡ Auto-Speicherung aktiv</span>
+                <span class="cloud-status" onclick="openCloudModal()" id="cloudStatusLabel">⚡ Cloud-Sync einrichten</span>
                 <div style="display:flex; gap:4px;">
                     <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="exportBackupJSON()">💾 Backup</button>
                     <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="document.getElementById('importFile').click()">📂 Laden</button>
@@ -600,6 +600,28 @@
         </div>
     </div>
 
+    <!-- MODAL: CLOUD-SYNC EINSTELLUNGEN -->
+    <div id="cloudModal" class="modal">
+        <div class="modal-content">
+            <div class="card-title">☁️ Cloud-Sync Konfiguration</div>
+            <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">
+                Trage deine JSONBin.io URL ein (z.B. <code>https://api.jsonbin.io/v3/b/DEINE_ID</code>) und deinen API-Key.
+            </p>
+            <div class="input-group" style="margin-bottom: 8px;">
+                <label>Cloud Sync URL / API-Endpunkt:</label>
+                <input type="text" id="cloudSyncUrlInput" placeholder="https://api.jsonbin.io/v3/b/DEINE_ID">
+            </div>
+            <div class="input-group" style="margin-bottom: 12px;">
+                <label>API Key / Master Key:</label>
+                <input type="password" id="cloudSyncKeyInput" placeholder="$2a$10$...">
+            </div>
+            <button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 8px;">Speichern & Verbinden ☁️</button>
+            <button class="btn-secondary" onclick="pullFromCloudNow()" style="width:100%; margin-bottom: 6px; background:#e0f2fe; color:#0369a1;">Daten aus Cloud laden (Pull) 📥</button>
+            <button class="btn-secondary" onclick="syncWithCloudNow()" style="width:100%; margin-bottom: 8px;">Daten in Cloud speichern (Push) 📤</button>
+            <button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button>
+        </div>
+    </div>
+
     <!-- MODAL: ZIEL-DETAILS -->
     <div id="goalModal" class="modal">
         <div class="modal-content">
@@ -728,6 +750,8 @@
 
         let cashBreakdown = JSON.parse(localStorage.getItem('finanz_cash_local')) || { c100: 0, c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0 };
         let haushaltItems = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || [];
+        
+        let cloudConfig = JSON.parse(localStorage.getItem('finanz_cloud_config')) || { url: '', key: '' };
 
         let currentModalGoalId = null;
         let currentMonthItems = [];
@@ -740,7 +764,16 @@
 
         updateHHKategorien();
         loadCashBreakdownToUI();
-        loadMonthData();
+        
+        if (cloudConfig.url) {
+            pullFromCloudNow(true).then(() => {
+                loadMonthData();
+                updateCloudStatusLabel();
+            });
+        } else {
+            loadMonthData();
+            updateCloudStatusLabel();
+        }
 
         function saveLocally() {
             localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
@@ -749,9 +782,143 @@
             localStorage.setItem('finanz_current_urlaub_local', currentUrlaubId);
             localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
             localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
+            
+            triggerCloudSyncBackground();
         }
 
-        // Live-Autosave bei jeder Eingabe
+        function openCloudModal() {
+            document.getElementById('cloudSyncUrlInput').value = cloudConfig.url || '';
+            document.getElementById('cloudSyncKeyInput').value = cloudConfig.key || '';
+            document.getElementById('cloudModal').classList.add('active');
+        }
+
+        function closeCloudModal() {
+            document.getElementById('cloudModal').classList.remove('active');
+        }
+
+        function saveCloudConfig() {
+            cloudConfig.url = document.getElementById('cloudSyncUrlInput').value.trim();
+            cloudConfig.key = document.getElementById('cloudSyncKeyInput').value.trim();
+            localStorage.setItem('finanz_cloud_config', JSON.stringify(cloudConfig));
+            closeCloudModal();
+            updateCloudStatusLabel();
+            alert('Cloud-Einstellungen gespeichert! ☁️✨');
+            syncWithCloudNow();
+        }
+
+        function updateCloudStatusLabel() {
+            const label = document.getElementById('cloudStatusLabel');
+            if (cloudConfig.url) {
+                label.innerText = '⚡ Cloud-Sync aktiv (Verbunden)';
+                label.style.color = 'var(--accent-green)';
+            } else {
+                label.innerText = '⚡ Cloud-Sync einrichten';
+                label.style.color = 'var(--accent-orange)';
+            }
+        }
+
+        function triggerCloudSyncBackground() {
+            if (!cloudConfig.url) return;
+            setTimeout(() => { syncWithCloudNow(true); }, 500);
+        }
+
+        async function syncWithCloudNow(isBackground = false) {
+            if (!cloudConfig.url) {
+                if (!isBackground) openCloudModal();
+                return;
+            }
+
+            const payload = {
+                entries: entries,
+                goals: goals,
+                urlaubeList: urlaubeList,
+                currentUrlaubId: currentUrlaubId,
+                cashBreakdown: cashBreakdown,
+                haushaltItems: haushaltItems,
+                lastUpdated: new Date().toISOString()
+            };
+
+            try {
+                let headers = { "Content-Type": "application/json" };
+                if (cloudConfig.key) {
+                    headers["X-Master-Key"] = cloudConfig.key;
+                    headers["X-Access-Key"] = cloudConfig.key;
+                }
+
+                const response = await fetch(cloudConfig.url, {
+                    method: 'PUT',
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    if (!isBackground) alert('Daten erfolgreich in die Cloud gespeichert! 📤☁️');
+                } else {
+                    const errText = await response.text();
+                    if (!isBackground) alert('Cloud-Fehler (' + response.status + '): ' + errText);
+                }
+            } catch (err) {
+                console.error("Cloud-Sync Fehler:", err);
+                if (!isBackground) alert('Netzwerkfehler beim Speichern: ' + err.message);
+            }
+        }
+
+        async function pullFromCloudNow(isSilent = false) {
+            if (!cloudConfig.url) {
+                if (!isSilent) openCloudModal();
+                return;
+            }
+
+            try {
+                let headers = {};
+                if (cloudConfig.key) {
+                    headers["X-Master-Key"] = cloudConfig.key;
+                    headers["X-Access-Key"] = cloudConfig.key;
+                }
+
+                const response = await fetch(cloudConfig.url, {
+                    method: 'GET',
+                    headers: headers
+                });
+
+                if (response.ok) {
+                    const jsonRes = await response.json();
+                    const remoteData = jsonRes.record ? jsonRes.record : jsonRes;
+
+                    if (remoteData.entries) {
+                        entries = remoteData.entries;
+                        if(remoteData.goals) goals = remoteData.goals;
+                        if(remoteData.urlaubeList) urlaubeList = remoteData.urlaubeList;
+                        if(remoteData.currentUrlaubId) currentUrlaubId = remoteData.currentUrlaubId;
+                        if(remoteData.cashBreakdown) cashBreakdown = remoteData.cashBreakdown;
+                        if(remoteData.haushaltItems) haushaltItems = remoteData.haushaltItems;
+
+                        localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
+                        localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
+                        localStorage.setItem('finanz_urlaube_local', JSON.stringify(urlaubeList));
+                        localStorage.setItem('finanz_current_urlaub_local', currentUrlaubId);
+                        localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
+                        localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
+
+                        loadMonthData();
+                        renderHistory();
+                        renderGoals();
+                        renderUrlaubView();
+                        renderHaushaltView();
+                        renderJahresView();
+                        loadCashBreakdownToUI();
+
+                        if (!isSilent) alert('Daten erfolgreich aus der Cloud geladen! 📥✨');
+                    }
+                } else {
+                    if (!isSilent) alert('Konnte keine Daten aus der Cloud laden (Status ' + response.status + ')');
+                }
+            } catch (err) {
+                console.error("Cloud Pull Fehler:", err);
+                if (!isSilent) alert('Netzwerkfehler beim Laden: ' + err.message);
+            }
+        }
+
         function autoSaveLive() {
             const m = getSelectedMonthKey();
             if(!m) return;
@@ -772,7 +939,7 @@
             liveCalc();
         }
 
-        // BACKUP & WIEDERHERSTELLUNG
+        // KORRIGIERTE BACKUP- & LADEN-FUNKTIONEN
         function exportBackupJSON() {
             const data = {
                 entries: entries,
@@ -831,25 +998,14 @@
             select.innerHTML = '';
 
             if (type === 'income') {
-                const options = [
-                    "💵 Bargeld erhalten",
-                    "🎁 Geschenk / Taschengeld",
-                    "🔄 Rückerstattung",
-                    "📦 Verkäufe / Sonstiges"
-                ];
+                const options = ["💵 Bargeld erhalten", "🎁 Geschenk / Taschengeld", "🔄 Rückerstattung", "📦 Verkäufe / Sonstiges"];
                 options.forEach(opt => {
                     const el = document.createElement('option');
                     el.value = opt; el.innerText = opt;
                     select.appendChild(el);
                 });
             } else {
-                const options = [
-                    "🛒 Lebensmittel",
-                    "🚗 Mobilität / Tanken",
-                    "🎉 Freizeit & Gastro",
-                    "💡 Haushalt & Drogerie",
-                    "📦 Sonstiges"
-                ];
+                const options = ["🛒 Lebensmittel", "🚗 Mobilität / Tanken", "🎉 Freizeit & Gastro", "💡 Haushalt & Drogerie", "📦 Sonstiges"];
                 options.forEach(opt => {
                     const el = document.createElement('option');
                     el.value = opt; el.innerText = opt;
@@ -1708,6 +1864,7 @@
 
         function renderHistory() {
             const list = document.getElementById('historyList');
+            if(!list) return;
             list.innerHTML = '';
             
             let runningNotfall = parseFloat(goals.find(g => g.id === 'notfall')?.manualOffset || 0);
@@ -1715,6 +1872,7 @@
             let runningKassette = parseFloat(goals.find(g => g.id === 'kassette')?.manualCurrent || 0);
 
             const tableBody = document.getElementById('monthSavingsTableBody');
+            if(!tableBody) return;
             tableBody.innerHTML = '';
             
             let baseKey = document.getElementById('monthInput').value || "2026-11";
@@ -1812,10 +1970,13 @@
         }
 
         function renderJahresView() {
-            const selectedYear = document.getElementById('selectYear').value;
+            const selectYearEl = document.getElementById('selectYear');
+            if(!selectYearEl) return;
+            const selectedYear = selectYearEl.value;
             let totalEinnahmen = 0, totalFix = 0, totalSparen = 0, totalHaushaltAusgaben = 0, totalEchtesSparen = 0;
             const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
             const chartContainer = document.getElementById('jahrChartContainer');
+            if(!chartContainer) return;
             chartContainer.innerHTML = '';
             let maxSavingMonth = 1;
             let monthlyDataList = [];
@@ -1880,7 +2041,6 @@
             });
         }
 
-        /* --- URLAUBSBUDGET LOGIK --- */
         function getCurrentUrlaub() {
             let u = urlaubeList.find(x => x.id === currentUrlaubId);
             if (!u && urlaubeList.length > 0) {
@@ -1892,6 +2052,7 @@
 
         function populateUrlaubDropdown() {
             const selectEl = document.getElementById('urlaubSelect');
+            if(!selectEl) return;
             selectEl.innerHTML = '';
             urlaubeList.forEach(u => {
                 const opt = document.createElement('option');
@@ -1953,7 +2114,8 @@
             const u = getCurrentUrlaub();
             if(!u) return;
 
-            document.getElementById('urlaubNameInput').value = u.name || '';
+            const nameInput = document.getElementById('urlaubNameInput');
+            if(nameInput) nameInput.value = u.name || '';
             document.getElementById('urlaubTargetInput').value = u.target || 0;
             document.getElementById('urlaubStartDate').value = u.startDate || '';
             document.getElementById('urlaubEndDate').value = u.endDate || '';
@@ -2052,6 +2214,7 @@
             document.getElementById('uProgressFill').style.width = progressPercent.toFixed(1) + '%';
 
             const selectEl = document.getElementById('uDaySelectForExpense');
+            if(!selectEl) return;
             const selectedIdx = Math.min(parseInt(selectEl.value || 0, 10), numDays - 1);
             selectEl.innerHTML = '';
             for(let i = 0; i < numDays; i++) {
@@ -2070,6 +2233,7 @@
             }
 
             const tbody = document.getElementById('urlaubTableBody');
+            if(!tbody) return;
             tbody.innerHTML = '';
             for(let i = 0; i < numDays; i++) {
                 const isHasExp = u.dayExpenses[i] !== null && u.dayExpenses[i] !== undefined && u.dayExpenses[i] !== '';
@@ -2160,6 +2324,7 @@
             populateUrlaubLinkOptions('zielUrlaubLinkSelect');
             populateExtraTransferSelect();
             const list = document.getElementById('goalsList');
+            if(!list) return;
             list.innerHTML = '';
             goals.forEach((goal, index) => {
                 let linkedUrlaub = goal.urlaubLinkId ? urlaubeList.find(u => u.id === goal.urlaubLinkId) : null;
