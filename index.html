@@ -68,7 +68,8 @@
             gap: 6px;
         }
 
-        .cloud-status { color: var(--accent-green); font-weight: 600; }
+        .cloud-status { color: var(--accent-green); font-weight: 600; cursor: pointer; }
+        .cloud-status:hover { text-decoration: underline; }
 
         .tab-bar {
             display: flex;
@@ -191,7 +192,7 @@
             <div class="app-creator-sub">Ersteller: Marc Degele</div>
             <div class="user-bar">
                 <span>👤 Status: <strong style="color:var(--accent-green);">Lokal & Bereit ✅</strong></span>
-                <span class="cloud-status">⚡ Auto-Speicherung aktiv</span>
+                <span class="cloud-status" onclick="openCloudModal()" id="cloudStatusLabel">⚡ Cloud-Sync aktiv (Konfigurieren)</span>
                 <div style="display:flex; gap:4px;">
                     <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="exportBackupJSON()">💾 Backup</button>
                     <button class="btn-secondary" style="padding: 2px 6px; font-size:0.68rem;" onclick="document.getElementById('importFile').click()">📂 Laden</button>
@@ -600,6 +601,27 @@
         </div>
     </div>
 
+    <!-- MODAL: CLOUD-SYNC EINSTELLUNGEN -->
+    <div id="cloudModal" class="modal">
+        <div class="modal-content">
+            <div class="card-title">☁️ Cloud-Sync Konfiguration</div>
+            <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">
+                Gib hier deinen Cloud-Endpunkt (z.B. JSONBin.io URL oder WebDAV API) ein, um deine Daten geräteübergreifend zu synchronisieren. Wenn leer, läuft alles rein lokal.
+            </p>
+            <div class="input-group" style="margin-bottom: 8px;">
+                <label>Cloud Sync URL / API-Endpunkt:</label>
+                <input type="text" id="cloudSyncUrlInput" placeholder="https://api.jsonbin.io/v3/b/DeinBinId">
+            </div>
+            <div class="input-group" style="margin-bottom: 12px;">
+                <label>API Key / Secret (optional):</label>
+                <input type="password" id="cloudSyncKeyInput" placeholder="Dein API Key / Master Key">
+            </div>
+            <button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 8px;">Speichern & Verbinden ☁️</button>
+            <button class="btn-secondary" onclick="syncWithCloudNow()" style="width:100%; margin-bottom: 8px;">Manuell Synchronisieren (Jetzt) 🔄</button>
+            <button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button>
+        </div>
+    </div>
+
     <!-- MODAL: ZIEL-DETAILS -->
     <div id="goalModal" class="modal">
         <div class="modal-content">
@@ -728,6 +750,8 @@
 
         let cashBreakdown = JSON.parse(localStorage.getItem('finanz_cash_local')) || { c100: 0, c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0 };
         let haushaltItems = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || [];
+        
+        let cloudConfig = JSON.parse(localStorage.getItem('finanz_cloud_config')) || { url: '', key: '' };
 
         let currentModalGoalId = null;
         let currentMonthItems = [];
@@ -741,6 +765,7 @@
         updateHHKategorien();
         loadCashBreakdownToUI();
         loadMonthData();
+        updateCloudStatusLabel();
 
         function saveLocally() {
             localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
@@ -749,6 +774,87 @@
             localStorage.setItem('finanz_current_urlaub_local', currentUrlaubId);
             localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
             localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
+            
+            // Auto-Sync zur Cloud falls aktiv
+            triggerCloudSyncBackground();
+        }
+
+        // CLOUD SYNC FUNKTIONEN
+        function openCloudModal() {
+            document.getElementById('cloudSyncUrlInput').value = cloudConfig.url || '';
+            document.getElementById('cloudSyncKeyInput').value = cloudConfig.key || '';
+            document.getElementById('cloudModal').classList.add('active');
+        }
+
+        function closeCloudModal() {
+            document.getElementById('cloudModal').classList.remove('active');
+        }
+
+        function saveCloudConfig() {
+            cloudConfig.url = document.getElementById('cloudSyncUrlInput').value.trim();
+            cloudConfig.key = document.getElementById('cloudSyncKeyInput').value.trim();
+            localStorage.setItem('finanz_cloud_config', JSON.stringify(cloudConfig));
+            closeCloudModal();
+            updateCloudStatusLabel();
+            alert('Cloud-Einstellungen gespeichert! ☁️✨');
+            syncWithCloudNow();
+        }
+
+        function updateCloudStatusLabel() {
+            const label = document.getElementById('cloudStatusLabel');
+            if (cloudConfig.url) {
+                label.innerText = '⚡ Cloud-Sync aktiv (Verbunden)';
+                label.style.color = 'var(--accent-green)';
+            } else {
+                label.innerText = '⚡ Cloud-Sync einrichten';
+                label.style.color = 'var(--accent-orange)';
+            }
+        }
+
+        function triggerCloudSyncBackground() {
+            if (!cloudConfig.url) return;
+            // Background sync non-blocking
+            setTimeout(() => { syncWithCloudNow(true); }, 500);
+        }
+
+        async function syncWithCloudNow(isBackground = false) {
+            if (!cloudConfig.url) {
+                if (!isBackground) openCloudModal();
+                return;
+            }
+
+            const payload = {
+                entries: entries,
+                goals: goals,
+                urlaubeList: urlaubeList,
+                currentUrlaubId: currentUrlaubId,
+                cashBreakdown: cashBreakdown,
+                haushaltItems: haushaltItems,
+                lastUpdated: new Date().toISOString()
+            };
+
+            try {
+                let headers = { "Content-Type": "application/json" };
+                if (cloudConfig.key) {
+                    headers["X-Master-Key"] = cloudConfig.key;
+                    headers["X-Access-Key"] = cloudConfig.key;
+                }
+
+                const response = await fetch(cloudConfig.url, {
+                    method: 'PUT',
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    if (!isBackground) alert('Daten erfolgreich mit der Cloud synchronisiert! ☁️🚀');
+                } else {
+                    if (!isBackground) alert('Cloud-Sync Hinweis: Server hat mit Status ' + response.status + ' geantwortet.');
+                }
+            } catch (err) {
+                console.error("Cloud-Sync Fehler:", err);
+                if (!isBackground) alert('Cloud-Sync Fehler: ' + err.message + '\n(Prüfe deine URL/Netzwerkverbindung)');
+            }
         }
 
         // Live-Autosave bei jeder Eingabe
