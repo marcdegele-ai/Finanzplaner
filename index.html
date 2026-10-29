@@ -798,9 +798,19 @@
     </div>
 
     <script>
-        let entries = JSON.parse(localStorage.getItem('finanz_entries_local')) || {
-            "2026-12": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }
-        };
+        // Bereinigt von November - Startet fest im Dezember 2026
+        let rawEntries = JSON.parse(localStorage.getItem('finanz_entries_local'));
+        let entries = {};
+        if (rawEntries) {
+            Object.keys(rawEntries).forEach(k => {
+                if (k >= "2026-12") entries[k] = rawEntries[k];
+            });
+        }
+        if (Object.keys(entries).length === 0) {
+            entries = {
+                "2026-12": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }
+            };
+        }
 
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
             { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-12" },
@@ -850,7 +860,6 @@
         let currentMonthItems = [];
         let currentMonthPausedItems = [];
 
-        // Auf Dezember 2026 als Startmonat angepasst
         document.getElementById('monthInput').value = "2026-12";
         document.getElementById('hhMonthInput').value = "2026-12";
         document.getElementById('selectYear').value = new Date().getFullYear();
@@ -993,7 +1002,10 @@
                     const remoteData = jsonRes.record ? jsonRes.record : jsonRes;
 
                     if (remoteData.entries) {
-                        entries = remoteData.entries;
+                        entries = {};
+                        Object.keys(remoteData.entries).forEach(k => {
+                            if (k >= "2026-12") entries[k] = remoteData.entries[k];
+                        });
                         if(remoteData.goals) goals = remoteData.goals;
                         if(remoteData.urlaubeList) urlaubeList = remoteData.urlaubeList;
                         if(remoteData.currentUrlaubId) currentUrlaubId = remoteData.currentUrlaubId;
@@ -1112,7 +1124,12 @@
                 fileReader.onload = (e) => {
                     try {
                         const parsed = JSON.parse(e.target.result);
-                        if(parsed.entries) entries = parsed.entries;
+                        if(parsed.entries) {
+                            entries = {};
+                            Object.keys(parsed.entries).forEach(k => {
+                                if(k >= "2026-12") entries[k] = parsed.entries[k];
+                            });
+                        }
                         if(parsed.goals) goals = parsed.goals;
                         if(parsed.urlaubeList) urlaubeList = parsed.urlaubeList;
                         if(parsed.currentUrlaubId) currentUrlaubId = parsed.currentUrlaubId;
