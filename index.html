@@ -238,7 +238,7 @@
                 <button class="tab-btn" onclick="switchTab('haushalt-view', this)">🏠 Haushalt</button>
                 <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
                 <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres-Check</button>
-                <button class="tab-btn" onclick="switchTab('urlaub-view', this)">✈️ Urlaub</button>
+                <button class="tab-btn" onclick="switchTab('urlaub-view', this)">✈️ Urlaub & Festival</button>
                 <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
                 <button class="tab-btn" onclick="switchTab('rechner-view', this)">🧮 Rechner</button>
             </div>
@@ -501,12 +501,12 @@
             </div>
         </div>
 
-        <!-- TAB 5: URLAUBSBUDGET -->
+        <!-- TAB 5: URLAUBS- & FESTIVALBUDGET -->
         <div id="urlaub-view" class="view-section">
             <div class="card">
-                <div class="card-title"><span>✈️ Urlaubs-Planer & Budgets 🏖️</span></div>
+                <div class="card-title"><span>✈️ Urlaubs- & Festival-Planer ⛺</span></div>
                 <div class="input-group full">
-                    <label style="color:var(--accent); font-weight:bold;">Urlaub auswählen / verwalten:</label>
+                    <label style="color:var(--accent); font-weight:bold;">Event / Urlaub auswählen:</label>
                     <div style="display:flex; gap:6px;">
                         <select id="urlaubSelect" onchange="switchUrlaub(this.value)" style="flex:1;"></select>
                         <button class="btn-secondary" style="background:var(--accent-green); color:#fff; border:none;" onclick="addNewUrlaub()">➕ Neu</button>
@@ -515,23 +515,23 @@
                 </div>
                 
                 <div class="grid" style="margin-top:10px;">
-                    <div class="input-group full"><label>Reise-Ziel / Name</label><input type="text" id="urlaubNameInput" oninput="liveUpdateUrlaubHeader()"></div>
+                    <div class="input-group full"><label>Event / Reise-Name</label><input type="text" id="urlaubNameInput" oninput="liveUpdateUrlaubHeader()"></div>
                     <div class="input-group full"><label>🎯 Geplantes Gesamtbudget (€)</label><input type="number" id="urlaubTargetInput" oninput="saveUrlaubConfig()"></div>
-                    <div class="input-group"><label>Anreise</label><input type="date" id="urlaubStartDate" onchange="saveUrlaubConfig()"></div>
-                    <div class="input-group"><label>Abreise</label><input type="date" id="urlaubEndDate" onchange="saveUrlaubConfig()"></div>
+                    <div class="input-group"><label>Start / Anreise</label><input type="date" id="urlaubStartDate" onchange="saveUrlaubConfig()"></div>
+                    <div class="input-group"><label>Ende / Abreise</label><input type="date" id="urlaubEndDate" onchange="saveUrlaubConfig()"></div>
                 </div>
             </div>
 
             <div class="card">
-                <div class="card-title">📌 Fixkosten, Hotel & Puffer</div>
+                <div class="card-title">📌 Fixkosten, Tickets & Verpflegung</div>
                 <div class="grid">
-                    <div class="input-group"><label>Hotelkosten (offen) (€)</label><input type="number" id="fixHotel" oninput="saveUrlaubConfig()"></div>
-                    <div class="input-group"><label>Kurtaxe (€)</label><input type="number" id="fixKurtaxe" oninput="saveUrlaubConfig()"></div>
-                    <div class="input-group"><label>Supermarkt (€)</label><input type="number" id="fixSupermarkt" oninput="saveUrlaubConfig()"></div>
-                    <div class="input-group"><label>Bus Hin-Fahrt (€)</label><input type="number" id="fixBusHin" oninput="saveUrlaubConfig()"></div>
-                    <div class="input-group full"><label>Abreise-Puffer (€)</label><input type="number" id="fixAbreisePuffer" oninput="saveUrlaubConfig()"></div>
+                    <div class="input-group"><label>Ticket / Band / Hotel (€)</label><input type="number" id="fixHotel" oninput="saveUrlaubConfig()"></div>
+                    <div class="input-group"><label>Camping / Parken / Tax (€)</label><input type="number" id="fixKurtaxe" oninput="saveUrlaubConfig()"></div>
+                    <div class="input-group"><label>Einkauf / Bier / Essen (€)</label><input type="number" id="fixSupermarkt" oninput="saveUrlaubConfig()"></div>
+                    <div class="input-group"><label>Anreise / Sprit / Bus (€)</label><input type="number" id="fixBusHin" oninput="saveUrlaubConfig()"></div>
+                    <div class="input-group full"><label>Abreise-Puffer / Notfall (€)</label><input type="number" id="fixAbreisePuffer" oninput="saveUrlaubConfig()"></div>
                 </div>
-                <div class="stat-row" style="margin-top:8px;"><span>Summe Fixkosten, Hotel & Puffer:</span><span id="uFixTotalDisplay" class="val-red">0,00 €</span></div>
+                <div class="stat-row" style="margin-top:8px;"><span>Summe Fixkosten & Vorbereitung:</span><span id="uFixTotalDisplay" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>🎯 Ziel-Netto (bei 100% Ziel):</span><span id="uTargetNettoDisplay" style="color:var(--text-sub);">0,00 €</span></div>
                 <div class="stat-row"><span>⚡ Aktuelles Live-Netto (aktuell gespart):</span><span id="uNettoTagesBudgetDisplay" class="val-highlight">0,00 €</span></div>
             </div>
@@ -539,7 +539,7 @@
             <div class="card">
                 <div class="card-title">📊 Budget- & Spar-Status</div>
                 <div class="stat-row"><span>Gesamtdauer:</span><span id="uDaysDisplay" style="font-weight:bold;">0 Tage</span></div>
-                <div class="stat-row"><span>Für diesen Urlaub gespart:</span><span id="uSavedForTripDisplay" class="val-highlight">0,00 € / 0,00 €</span></div>
+                <div class="stat-row"><span>Dafür bisher gespart:</span><span id="uSavedForTripDisplay" class="val-highlight">0,00 € / 0,00 €</span></div>
                 <div class="stat-row"><span>Echte Ausgaben bisher:</span><span id="uSpentDisplay" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Tages-Überschüsse (Gespart):</span><span id="uSavingsDisplay" class="val-highlight">0,00 €</span></div>
                 <div class="progress-bar-container"><div class="progress-bar-fill" id="uProgressFill" style="width: 0%;"></div></div>
@@ -574,7 +574,7 @@
             <div class="card">
                 <div class="card-title">🎯 Neues Sparziel anlegen</div>
                 <div class="grid">
-                    <div class="input-group full"><label>Bezeichnung des Ziels</label><input type="text" id="zielName" placeholder="z.B. Urlaub Köln, Neues Bike..."></div>
+                    <div class="input-group full"><label>Bezeichnung des Ziels</label><input type="text" id="zielName" placeholder="z.B. Rock im Park, Urlaub Köln..."></div>
                     <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="zielBetrag" placeholder="z.B. 2000"></div>
                     <div class="input-group"><label>Fixer monatlicher Dauerauftrag (€)</label><input type="number" id="zielFixedMonthly" placeholder="z.B. 50"></div>
                     <div class="input-group"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0"></div>
@@ -588,7 +588,7 @@
                         </select>
                     </div>
                     <div class="input-group full">
-                        <label>✈️ Mit Urlaub verknüpfen (Optional)</label>
+                        <label>✈️ Mit Urlaub / Festival verknüpfen (Optional)</label>
                         <select id="zielUrlaubLinkSelect">
                             <option value="">Keine Urlaubs-Verknüpfung</option>
                         </select>
@@ -741,7 +741,7 @@
             <div class="input-group" style="margin-bottom: 10px;"><label>Aktueller Stand / Grund-Guthaben (€):</label><input type="number" id="modalCurrentInput"></div>
 
             <div class="input-group" style="margin-bottom: 14px;">
-                <label>✈️ Mit Urlaub verknüpfen:</label>
+                <label>✈️ Mit Urlaub / Festival verknüpfen:</label>
                 <select id="modalUrlaubLinkSelect">
                     <option value="">Keine Urlaubs-Verknüpfung</option>
                 </select>
@@ -820,6 +820,20 @@
 
         let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || [
             {
+                id: "u_rip",
+                name: "Rock im Park 2027 🎸",
+                target: 450,
+                startDate: "2027-06-03",
+                endDate: "2027-06-06",
+                fixHotel: 280, // Ticket
+                fixKurtaxe: 40,  // Camping/Parken
+                fixSupermarkt: 80, // Verpflegung/Getränke
+                fixBusHin: 20,   // Anreise
+                fixAbreisePuffer: 30,
+                dayExpenses: [0, 0, 0, 0],
+                dayReceipts: [null, null, null, null]
+            },
+            {
                 id: "u_1",
                 name: "Mallorca April 2027 – Hotel Obelisco",
                 target: 500,
@@ -848,7 +862,7 @@
                 dayReceipts: [null, null, null, null, null]
             }
         ];
-        let currentUrlaubId = localStorage.getItem('finanz_current_urlaub_local') || "u_2";
+        let currentUrlaubId = localStorage.getItem('finanz_current_urlaub_local') || "u_rip";
 
         let cashBreakdown = JSON.parse(localStorage.getItem('finanz_cash_local')) || { c100: 0, c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0 };
         let haushaltItems = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || [];
@@ -2316,7 +2330,7 @@
             urlaubeList.forEach(u => {
                 const opt = document.createElement('option');
                 opt.value = u.id;
-                opt.innerText = u.name || 'Unbenannter Urlaub';
+                opt.innerText = u.name || 'Unbenanntes Event';
                 if(u.id === currentUrlaubId) opt.selected = true;
                 selectEl.appendChild(opt);
             });
@@ -2332,17 +2346,17 @@
             const newId = "u_" + Date.now();
             const newU = {
                 id: newId,
-                name: "Neuer Urlaub " + (urlaubeList.length + 1),
+                name: "Neuer Urlaub / Festival " + (urlaubeList.length + 1),
                 target: 500,
-                startDate: "2027-08-01",
-                endDate: "2027-08-05",
+                startDate: "2027-06-03",
+                endDate: "2027-06-06",
                 fixHotel: 0,
-                fixKurtaxe: 10,
-                fixSupermarkt: 20,
-                fixBusHin: 5,
+                fixKurtaxe: 0,
+                fixSupermarkt: 0,
+                fixBusHin: 0,
                 fixAbreisePuffer: 40,
-                dayExpenses: [0, 0, 0, 0, 0],
-                dayReceipts: [null, null, null, null, null]
+                dayExpenses: [0, 0, 0, 0],
+                dayReceipts: [null, null, null, null]
             };
             urlaubeList.push(newU);
             currentUrlaubId = newId;
@@ -2351,8 +2365,8 @@
         }
 
         function deleteCurrentUrlaub() {
-            if (urlaubeList.length <= 1) return alert('Du musst mindestens einen Urlaub in der Liste behalten!');
-            if (confirm('Diesen Urlaub wirklich löschen?')) {
+            if (urlaubeList.length <= 1) return alert('Du musst mindestens ein Event in der Liste behalten!');
+            if (confirm('Diesen Urlaub/Festival wirklich löschen?')) {
                 urlaubeList = urlaubeList.filter(u => u.id !== currentUrlaubId);
                 currentUrlaubId = urlaubeList[0].id;
                 saveLocally();
@@ -2384,7 +2398,7 @@
             document.getElementById('fixBusHin').value = u.fixBusHin || 0;
             document.getElementById('fixAbreisePuffer').value = u.fixAbreisePuffer || 0;
 
-            let numDays = 5;
+            let numDays = 4;
             let dayLabels = [];
             if (u.startDate && u.endDate) {
                 const s = new Date(u.startDate);
