@@ -194,7 +194,7 @@
         .calc-btn.eq { background: var(--accent); color: #fff; border-color: var(--accent); }
         .calc-btn.ac { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
 
-        /* Styling für die modernisierten Umschläge im Cash-Stuffing */
+        /* Styling für die Umschläge */
         .envelope-card-item {
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border: 1px solid var(--border);
@@ -249,7 +249,7 @@
             <div class="card">
                 <div class="card-title"><span>Monat auswählen & erfassen</span></div>
                 <div class="grid">
-                    <div class="input-group full"><label>Monat wählen</label><input type="month" id="monthInput" min="2026-11" onchange="syncMonthInput(this.value)"></div>
+                    <div class="input-group full"><label>Monat wählen</label><input type="month" id="monthInput" min="2026-12" onchange="syncMonthInput(this.value)"></div>
                     <div class="input-group full">
                         <label class="checkbox-container">
                             <input type="checkbox" id="gehaltBookedInput" onchange="autoSaveLive()">
@@ -352,7 +352,7 @@
                 <div class="card-title">🏠 Haushaltsbuch – Einnahme oder Ausgabe erfassen</div>
                 <div class="input-group full" style="margin-bottom: 12px; background: #e0f2fe; padding: 12px; border-radius: 10px; border: 1px solid #bae6fd;">
                     <label style="color: var(--accent); font-weight: bold;">📅 Monat im Haushaltsbuch wählen:</label>
-                    <input type="month" id="hhMonthInput" min="2026-11" onchange="syncMonthInput(this.value)" style="background:#ffffff; font-weight:bold; color:var(--accent);">
+                    <input type="month" id="hhMonthInput" min="2026-12" onchange="syncMonthInput(this.value)" style="background:#ffffff; font-weight:bold; color:var(--accent);">
                 </div>
                 
                 <div class="quick-btn-row">
@@ -799,11 +799,11 @@
 
     <script>
         let entries = JSON.parse(localStorage.getItem('finanz_entries_local')) || {
-            "2026-11": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }
+            "2026-12": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }
         };
 
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
-            { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-11" },
+            { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-12" },
             { id: "freizeit", name: "Urlaub & Freizeit", target: 2000, manualOffset: 0, targetDate: "2027-08", urlaubLinkId: "u_2" },
             { id: "kassette", name: "Bargeld-Kassette (Tresor)", target: 1000, manualCurrent: 0, targetDate: "" }
         ];
@@ -850,8 +850,9 @@
         let currentMonthItems = [];
         let currentMonthPausedItems = [];
 
-        document.getElementById('monthInput').value = "2026-11";
-        document.getElementById('hhMonthInput').value = "2026-11";
+        // Auf Dezember 2026 als Startmonat angepasst
+        document.getElementById('monthInput').value = "2026-12";
+        document.getElementById('hhMonthInput').value = "2026-12";
         document.getElementById('selectYear').value = new Date().getFullYear();
         document.getElementById('HHDate').valueAsDate = new Date();
 
@@ -1877,7 +1878,6 @@
             let remaining = totalToWithdraw;
             const resultNotes = {};
 
-            // Wunschgemäße Priorität: 100, 50, 20 und zur Not 10 Euro Scheine
             const notes = [100, 50, 20, 10];
             notes.forEach(note => {
                 let count = Math.floor(remaining / note);
@@ -2009,7 +2009,7 @@
             let projectedSum = runningSum;
             let breakdown = [];
 
-            let baseKey = document.getElementById('monthInput').value || "2026-11";
+            let baseKey = document.getElementById('monthInput').value || "2026-12";
             let targetDateLimit = goal && goal.targetDate ? goal.targetDate : "2028-12";
             
             let allMonthsToCheck = new Set(sortedKeys);
@@ -2096,7 +2096,7 @@
             if(!tableBody) return;
             tableBody.innerHTML = '';
             
-            let baseKey = document.getElementById('monthInput').value || "2026-11";
+            let baseKey = document.getElementById('monthInput').value || "2026-12";
             let allMonthKeysSet = new Set(Object.keys(entries).sort());
             let tempK = baseKey;
             for(let i=0; i<12; i++) {
