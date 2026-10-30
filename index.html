@@ -783,6 +783,12 @@
                 if (k >= "2026-12") entries[k] = rawEntries[k];
             });
         }
+        
+        // AUTOMATISCHE BEREINIGUNG: Alle alten extraTransfers (Extra-Verteilungen) in allen Monaten löschen!
+        Object.keys(entries).forEach(k => {
+            if (entries[k]) entries[k].extraTransfers = [];
+        });
+
         if (Object.keys(entries).length === 0) {
             entries = {
                 "2026-12": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }
