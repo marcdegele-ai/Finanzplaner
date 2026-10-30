@@ -780,20 +780,22 @@
         let entries = {};
         if (rawEntries) {
             Object.keys(rawEntries).forEach(k => {
-                if (k >= "2026-12") entries[k] = rawEntries[k];
+                if (k >= "2026-12") {
+                    entries[k] = rawEntries[k];
+                    // HARTER RESET: Löscht alle extraTransfers in jedem einzelnen Monat beim Laden
+                    entries[k].extraTransfers = [];
+                }
             });
         }
-        
-        // AUTOMATISCHE BEREINIGUNG: Alle alten extraTransfers (Extra-Verteilungen) in allen Monaten löschen!
-        Object.keys(entries).forEach(k => {
-            if (entries[k]) entries[k].extraTransfers = [];
-        });
 
         if (Object.keys(entries).length === 0) {
             entries = {
                 "2026-12": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }
             };
         }
+
+        // Direkt in den LocalStorage zurückschreiben, damit es sofort bereinigt ist
+        localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
 
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
             { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-12", capAtTarget: false },
@@ -980,7 +982,12 @@
                     const remoteData = jsonRes.record ? jsonRes.record : jsonRes;
                     if (remoteData.entries) {
                         entries = {};
-                        Object.keys(remoteData.entries).forEach(k => { if (k >= "2026-12") entries[k] = remoteData.entries[k]; });
+                        Object.keys(remoteData.entries).forEach(k => { 
+                            if (k >= "2026-12") {
+                                entries[k] = remoteData.entries[k];
+                                entries[k].extraTransfers = []; // Auch beim Pull bereinigen
+                            } 
+                        });
                         if(remoteData.goals) goals = remoteData.goals;
                         if(remoteData.urlaubeList) urlaubeList = remoteData.urlaubeList;
                         if(remoteData.activeUrlaubGoalId) activeUrlaubGoalId = remoteData.activeUrlaubGoalId;
@@ -1047,7 +1054,15 @@
                 fileReader.onload = (e) => {
                     try {
                         const parsed = JSON.parse(e.target.result);
-                        if(parsed.entries) { entries = {}; Object.keys(parsed.entries).forEach(k => { if(k >= "2026-12") entries[k] = parsed.entries[k]; }); }
+                        if(parsed.entries) { 
+                            entries = {}; 
+                            Object.keys(parsed.entries).forEach(k => { 
+                                if(k >= "2026-12") {
+                                    entries[k] = parsed.entries[k];
+                                    entries[k].extraTransfers = [];
+                                } 
+                            }); 
+                        }
                         if(parsed.goals) goals = parsed.goals;
                         if(parsed.urlaubeList) urlaubeList = parsed.urlaubeList;
                         if(parsed.activeUrlaubGoalId) activeUrlaubGoalId = parsed.activeUrlaubGoalId;
@@ -1220,6 +1235,7 @@
             renderGoals(); renderHistory(); liveCalc();
         }
 
+        // SMARTE VERTEILUNGS-FUNKTION
         function distributeRestToGoals() {
             const restFreizeit = getRestFreizeitGeldCalculated();
             const keepInput = prompt(`Aktuell frei verfügbar: ${restFreizeit.toFixed(2)} €\n\nWie viel Betrag soll als Sockel auf dem Freizeitkonto BLEIBEN?`, "50");
