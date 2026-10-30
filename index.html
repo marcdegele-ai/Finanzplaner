@@ -782,7 +782,7 @@
             Object.keys(rawEntries).forEach(k => {
                 if (k >= "2026-12") {
                     entries[k] = rawEntries[k];
-                    // HARTER RESET: Löscht alle extraTransfers in jedem einzelnen Monat beim Laden
+                    // KOMPLETT BEREINIGT: Alle Extra-Transfers für jeden Monat löschen
                     entries[k].extraTransfers = [];
                 }
             });
@@ -794,13 +794,25 @@
             };
         }
 
-        // Direkt in den LocalStorage zurückschreiben, damit es sofort bereinigt ist
         localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
 
-        let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
-            { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-12", capAtTarget: false },
-            { id: "kassette", name: "Bargeld-Kassette (Tresor)", target: 1000, manualCurrent: 0, targetDate: "", capAtTarget: false }
-        ];
+        // HIER GEHT DER RESET DER SPARZIEL-DAUERAUFTRÄGE LOS:
+        let goals = JSON.parse(localStorage.getItem('finanz_goals_local'));
+        if (!goals) {
+            goals = [
+                { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-12", capAtTarget: false },
+                { id: "kassette", name: "Bargeld-Kassette (Tresor)", target: 1000, manualCurrent: 0, targetDate: "", capAtTarget: false }
+            ];
+        } else {
+            // Alle automatischen fixen Monats-Beträge (fixedMonthly) bei benutzerdefinierten Zielen auf 0 setzen,
+            // damit sie sich nicht ungefragt Beträge in die Monate ziehen!
+            goals.forEach(g => {
+                if (!['notfall', 'freizeit', 'kassette'].includes(g.id)) {
+                    g.fixedMonthly = 0;
+                }
+            });
+        }
+        localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
 
         let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || [];
         let activeUrlaubGoalId = localStorage.getItem('finanz_active_urlaub_goal_local') || null;
@@ -985,10 +997,13 @@
                         Object.keys(remoteData.entries).forEach(k => { 
                             if (k >= "2026-12") {
                                 entries[k] = remoteData.entries[k];
-                                entries[k].extraTransfers = []; // Auch beim Pull bereinigen
+                                entries[k].extraTransfers = [];
                             } 
                         });
-                        if(remoteData.goals) goals = remoteData.goals;
+                        if(remoteData.goals) {
+                            goals = remoteData.goals;
+                            goals.forEach(g => { if (!['notfall', 'freizeit', 'kassette'].includes(g.id)) g.fixedMonthly = 0; });
+                        }
                         if(remoteData.urlaubeList) urlaubeList = remoteData.urlaubeList;
                         if(remoteData.activeUrlaubGoalId) activeUrlaubGoalId = remoteData.activeUrlaubGoalId;
                         if(remoteData.cashBreakdown) cashBreakdown = remoteData.cashBreakdown;
@@ -1063,7 +1078,10 @@
                                 } 
                             }); 
                         }
-                        if(parsed.goals) goals = parsed.goals;
+                        if(parsed.goals) {
+                            goals = parsed.goals;
+                            goals.forEach(g => { if (!['notfall', 'freizeit', 'kassette'].includes(g.id)) g.fixedMonthly = 0; });
+                        }
                         if(parsed.urlaubeList) urlaubeList = parsed.urlaubeList;
                         if(parsed.activeUrlaubGoalId) activeUrlaubGoalId = parsed.activeUrlaubGoalId;
                         if(parsed.cashBreakdown) cashBreakdown = parsed.cashBreakdown;
@@ -1235,7 +1253,7 @@
             renderGoals(); renderHistory(); liveCalc();
         }
 
-        // SMARTE VERTEILUNGS-FUNKTION
+        // DER SMARTE RESTGELD-VERTEILER (Nach deinem Wunsch: Chronologisch vollmachen, Rest bleibt auf Freizeit)
         function distributeRestToGoals() {
             const restFreizeit = getRestFreizeitGeldCalculated();
             const keepInput = prompt(`Aktuell frei verfügbar: ${restFreizeit.toFixed(2)} €\n\nWie viel Betrag soll als Sockel auf dem Freizeitkonto BLEIBEN?`, "50");
@@ -1261,6 +1279,7 @@
                 return;
             }
 
+            // Sortierung nach Ziel-Datum oder Erstellung (chronologisch)
             activeGoals.sort((a, b) => {
                 if (!a.targetDate) return 1;
                 if (!b.targetDate) return -1;
@@ -1301,9 +1320,9 @@
             saveLocally();
             liveCalc();
 
-            let message = `🎯 Smart verteilt:\n• ${distributedSum.toFixed(2)} € wurden intelligent auf deine offenen Ziele aufgeteilt (bis sie voll sind)!`;
+            let message = `🎯 Smart verteilt:\n• ${distributedSum.toFixed(2)} € wurden intelligent auf deine offenen Ziele aufgeteilt (chronologisch bis zum Anschlag)!`;
             if (distributable > 0) {
-                message += `\n• Restbetrag von ${distributable.toFixed(2)} € blieb unangetastet auf dem Freizeitkonto.`;
+                message += `\n• Restbetrag von ${distributable.toFixed(2)} € blieb als Puffer auf dem Freizeitkonto.`;
             }
             alert(message);
         }
@@ -2146,7 +2165,7 @@
             const fixedMonthly = parseFloat(document.getElementById('zielFixedMonthly').value) || 0;
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
             const targetDate = document.getElementById('zielDatum').value;
-            const capAtTarget = document.getElementById('zielCapAtTargetCheckbox').checked;
+            const capAtTarget = document.getElementById('zielCapAtTargetCheckbox'].checked;
             const goalType = document.getElementById('zielTypeSelect').value;
             const autoUrlaub = document.getElementById('zielAutoUrlaubCheckbox').checked;
             const startDate = document.getElementById('zielStartDateInput').value;
