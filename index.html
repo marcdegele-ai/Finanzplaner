@@ -572,10 +572,14 @@
             <div class="card" style="border: 2px solid var(--accent); background: #f0f9ff;">
                 <div class="card-title" style="color:var(--accent);"><span>💶 Bruno Gehaltsrechner (Exakt)</span></div>
                 <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:12px;">
-                    Exakte Berechnung nach dem offiziellen deutschen Steuer- & Sozialversicherungssystem (inkl. HKK, Zusatzbeitrag & PV-Regelungen)[span_12](start_span)[span_12](end_span).
+                    Berechne hier dein Gehalt inkl. Provisionen im Voraus und wähle den Monat aus, in dem das Geld ausgezahlt wird!
                 </div>
                 <div class="grid">
-                    <div class="input-group full"><label>Monatliches Bruttogehalt (€)</label><input type="number" id="bnBruttoInput" value="3500" placeholder="z.B. 3500" oninput="calcBrunoNetto()"></div>
+                    <div class="input-group full" style="background:#ffffff; padding:10px; border-radius:10px; border:1px solid #bae6fd;">
+                        <label style="color:var(--accent); font-weight:bold;">📅 Ziel-Monat für dieses Gehalt wählen:</label>
+                        <input type="month" id="bnTargetMonth" min="2026-12" style="font-weight:bold; color:var(--accent); background:#f0f9ff;">
+                    </div>
+                    <div class="input-group full"><label>Monatliches Bruttogehalt (€ inkl. Provision)</label><input type="number" id="bnBruttoInput" value="3500" placeholder="z.B. 3500" oninput="calcBrunoNetto()"></div>
                     <div class="input-group">
                         <label>Steuerklasse</label>
                         <select id="bnSteuerklasse" onchange="calcBrunoNetto()">
@@ -638,7 +642,7 @@
                     <span style="color:#15803d;">🎉 Exakte Netto-Auszahlung:</span>
                     <span id="bnResNetto" class="val-highlight" style="font-size:1.15rem;">2.337,09 €</span>
                 </div>
-                <button class="btn-add" style="margin-top: 12px; background: var(--accent);" onclick="applyNettoToCurrentMonth()">📥 Nettowert als Gehalt für aktuellen Monat übernehmen 🚀</button>
+                <button class="btn-add" style="margin-top: 12px; background: var(--accent);" onclick="applyNettoToTargetMonth()">📥 Nettowert als Gehalt für ausgewählten Monat übernehmen 🚀</button>
             </div>
         </div>
 
@@ -766,6 +770,7 @@
 
         document.getElementById('monthInput').value = "2026-12";
         document.getElementById('hhMonthInput').value = "2026-12";
+        document.getElementById('bnTargetMonth').value = "2026-12";
         document.getElementById('selectYear').value = new Date().getFullYear();
         document.getElementById('HHDate').valueAsDate = new Date();
 
@@ -944,11 +949,20 @@
             }
         }
 
-        function applyNettoToCurrentMonth() {
+        function applyNettoToTargetMonth() {
             if(lastCalculatedNetto <= 0) return alert('Bitte zuerst ein gültiges Bruttogehalt eingeben!');
-            document.getElementById('gehaltInput').value = lastCalculatedNetto;
-            autoSaveLive();
-            alert(`Bruno Nettogehalt von ${lastCalculatedNetto.toFixed(2)} € als Gehalt übernommen! 🚀`);
+            const targetM = document.getElementById('bnTargetMonth').value;
+            if(!targetM) return alert('Bitte einen gültigen Ziel-Monat auswählen!');
+
+            const existingData = getMonthDataOrFallback(targetM);
+            entries[targetM] = {
+                ...existingData,
+                gehalt: lastCalculatedNetto
+            };
+
+            saveLocally();
+            syncMonthInput(targetM);
+            alert(`Netto-Gehalt von ${lastCalculatedNetto.toFixed(2)} € für Monat ${targetM} übernommen! 🚀`);
             switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);
         }
 
@@ -1132,6 +1146,7 @@
         function syncMonthInput(val) {
             document.getElementById('monthInput').value = val;
             document.getElementById('hhMonthInput').value = val;
+            document.getElementById('bnTargetMonth').value = val;
             loadMonthData();
         }
 
