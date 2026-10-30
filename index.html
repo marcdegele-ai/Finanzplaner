@@ -563,24 +563,6 @@
             </div>
 
             <div class="card">
-                <div class="card-title">🏦 Kontostand (Gebuchte Ersparnisse & Hochrechnung)</div>
-                <div class="stat-row"><span>Notfallkonto Stand (Gebucht):</span><span id="totalNotfall" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row sub-row"><span>↳ Inkl. offener Monate (Prognose):</span><span id="projNotfall" class="val-highlight" style="font-weight:bold;">0,00 €</span></div>
-                
-                <div class="stat-row"><span>FreizeitKonto Stand (Gebucht):</span><span id="totalFreizeit" class="val-orange">0,00 €</span></div>
-                <div class="stat-row sub-row"><span>↳ Inkl. offener Monate (Prognose):</span><span id="projFreizeit" class="val-orange" style="font-weight:bold;">0,00 €</span></div>
-                
-                <div class="stat-row"><span>Bargeld-Kassette:</span><span id="totalKassette" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
-                <div class="stat-row sub-row"><span>↳ Inkl. offener Monate (Prognose):</span><span id="projKassette" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
-                
-                <div class="stat-row" style="font-weight: bold; font-size: 0.92rem;"><span>Gesamte Ersparnisse (Gebucht):</span><span id="totalErsparnisse">0,00 €</span></div>
-                <div class="stat-row" style="font-weight: bold; font-size: 0.98rem; background: #f0fdf4; padding: 12px; border-radius: 12px; border: 1px solid #bbf7d0; margin-top: 8px;">
-                    <span style="color:#15803d;">🚀 Gesamtersparnisse (Inkl. Hochrechnung):</span>
-                    <span id="projGesamtErsparnisse" class="val-highlight" style="font-size:1.05rem;">0,00 €</span>
-                </div>
-            </div>
-
-            <div class="card">
                 <div class="card-title">📈 Vermögens-Gesamtverlauf (Sparentwicklung)</div>
                 <div style="font-size: 0.78rem; color: var(--text-sub); margin-bottom: 8px;">So wächst dein erspartes Vermögen Monat für Monat an:</div>
                 <div class="chart-container" id="netWorthChartContainer"></div>
@@ -611,7 +593,7 @@
                         <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
                     </select>
                 </div>
-                <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:12px;">Summen, geplante vs. reale Sparquote und Balkendiagramme:</div>
+                <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:12px;">Summen, geplante vs. reale Sparquote:</div>
                 <div class="stat-row"><span>Gesamteinnahmen:</span><span id="jahrEinnahmen" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>Gesamte Fixkosten:</span><span id="jahrFix" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Gesamtausgaben Haushalt:</span><span id="jahrHaushaltAusgaben" class="val-red">0,00 €</span></div>
@@ -622,10 +604,6 @@
                     <span style="color:#15803d;">🎯 Ø Echte Sparquote (Real):</span>
                     <span id="jahrEchteSparquote" class="val-highlight" style="font-size:0.98rem;">0.0%</span>
                 </div>
-            </div>
-            <div class="card">
-                <div class="card-title">📊 Visuelle Monats-Sparraten (Real vs. Plan)</div>
-                <div class="chart-container" id="jahrChartContainer"></div>
             </div>
         </div>
 
@@ -1763,15 +1741,6 @@
                 tableBody.appendChild(tr);
             });
 
-            document.getElementById('totalNotfall').innerText = runningNotfall.toFixed(2) + ' €';
-            document.getElementById('projNotfall').innerText = projRunningNotfall.toFixed(2) + ' €';
-            document.getElementById('totalFreizeit').innerText = runningFreizeit.toFixed(2) + ' €';
-            document.getElementById('projFreizeit').innerText = projRunningFreizeit.toFixed(2) + ' €';
-            document.getElementById('totalKassette').innerText = runningKassette.toFixed(2) + ' €';
-            document.getElementById('projKassette').innerText = projRunningKassette.toFixed(2) + ' €';
-            document.getElementById('totalErsparnisse').innerText = (runningNotfall + runningFreizeit + runningKassette).toFixed(2) + ' €';
-            document.getElementById('projGesamtErsparnisse').innerText = (projRunningNotfall + projRunningFreizeit + projRunningKassette).toFixed(2) + ' €';
-
             renderNetWorthChart(netWorthHistory); renderGoals();
         }
 
@@ -1790,9 +1759,6 @@
             const selectYearEl = document.getElementById('selectYear'); if(!selectYearEl) return;
             const selectedYear = selectYearEl.value;
             let totalEinnahmen = 0, totalFix = 0, totalSparen = 0, totalHaushaltAusgaben = 0, totalEchtesSparen = 0;
-            const monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
-            const chartContainer = document.getElementById('jahrChartContainer'); if(!chartContainer) return; chartContainer.innerHTML = '';
-            let maxSavingMonth = 1; let monthlyDataList = [];
 
             for(let m = 1; m <= 12; m++) {
                 const monthKey = `${selectedYear}-${String(m).padStart(2, '0')}`;
@@ -1809,10 +1775,6 @@
 
                 totalEinnahmen += einnahmen + hhIncome; totalFix += fix; totalSparen += calc.gesamtSparen; totalHaushaltAusgaben += hhSpent;
                 let echtesSparenMonat = calc.gesamtSparen - hhSpent; totalEchtesSparen += echtesSparenMonat;
-
-                if (calc.gesamtSparen > maxSavingMonth) maxSavingMonth = calc.gesamtSparen;
-                if (echtesSparenMonat > maxSavingMonth) maxSavingMonth = echtesSparenMonat;
-                monthlyDataList.push({ name: monthNames[m-1], saving: calc.gesamtSparen, realSaving: echtesSparenMonat, booked: !!item.booked });
             }
 
             document.getElementById('jahrEinnahmen').innerText = totalEinnahmen.toFixed(2) + ' €';
@@ -1822,14 +1784,6 @@
             document.getElementById('jahrEchtesSparen').innerText = totalEchtesSparen.toFixed(2) + ' €';
             document.getElementById('jahrSparquote').innerText = (totalEinnahmen > 0 ? (totalSparen / totalEinnahmen) * 100 : 0).toFixed(1) + '%';
             document.getElementById('jahrEchteSparquote').innerText = (totalEinnahmen > 0 ? (totalEchtesSparen / totalEinnahmen) * 100 : 0).toFixed(1) + '%';
-
-            monthlyDataList.forEach(d => {
-                let percent = Math.min(100, (d.saving / maxSavingMonth) * 100);
-                let realPercent = Math.max(0, Math.min(100, (d.realSaving / maxSavingMonth) * 100));
-                const row = document.createElement('div'); row.className = 'chart-bar-row';
-                row.innerHTML = `<div class="chart-label-line"><span>${d.name} ${d.booked ? '✅' : '⏳'}</span><span>Plan: <strong style="color:var(--accent);">+${d.saving.toFixed(2)} €</strong> | <strong style="color:var(--accent-green);">Real: +${d.realSaving.toFixed(2)} €</strong></span></div><div class="progress-bar-container" style="margin-bottom:4px;"><div class="progress-bar-fill" style="width: ${percent}%; background: var(--accent);"></div></div><div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${realPercent}%; background: var(--accent-green);"></div></div>`;
-                chartContainer.appendChild(row);
-            });
         }
 
         function getActiveUrlaub() {
