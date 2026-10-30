@@ -2117,7 +2117,8 @@
             if(['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
                 return getGoalData(goal.id).total;
             }
-            return getGoalData(goal.id).projectedTotal;
+            // Zeige für reguläre Sparziele nur das bisher tatsächlich Eingezahlte (Gebuchte/Manuelle)
+            return getGoalData(goal.id).total;
         }
 
         function renderHistory() {
@@ -2728,7 +2729,7 @@
             const name = document.getElementById('zielName').value.trim();
             const target = parseFloat(document.getElementById('zielBetrag').value) || 0;
             const fixedMonthly = parseFloat(document.getElementById('zielFixedMonthly').value) || 0;
-            const startVal = 0; // Fix: Startbetrag erzwingt standardmäßig 0 bei Neuanlage
+            const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
             const targetDate = document.getElementById('zielDatum').value;
             const goalType = document.getElementById('zielTypeSelect').value;
             const autoUrlaub = document.getElementById('zielAutoUrlaubCheckbox').checked;
