@@ -456,7 +456,8 @@
                         <select id="extraTransferGoalSelect" style="flex: 1; font-size: 0.82rem; padding: 8px;"></select>
                         <input type="number" id="extraTransferAmount" placeholder="Betrag (€)" style="width: 100px; font-size: 0.82rem; padding: 8px;">
                     </div>
-                    <button class="btn-secondary" style="width: 100%; background: var(--accent); color: #fff; border: none; font-weight: bold; padding: 10px; border-radius:10px;" onclick="executeExtraTransfer()">Extra-Betrag überweisen 🚀</button>
+                    <button class="btn-secondary" style="width: 100%; background: var(--accent); color: #fff; border: none; font-weight: bold; padding: 10px; border-radius:10px; margin-bottom: 6px;" onclick="executeExtraTransfer()">Extra-Betrag überweisen 🚀</button>
+                    <button class="btn-secondary" style="width: 100%; background: var(--accent-orange); color: #fff; border: none; font-weight: bold; padding: 10px; border-radius:10px;" onclick="distributeRestToGoals()">🔄 Restgeld automatisch auf alle Sparziele verteilen</button>
                 </div>
 
                 <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
@@ -1211,6 +1212,54 @@
             saveLocally(); document.getElementById('extraTransferAmount').value = '';
             alert(`${amount.toFixed(2)} € auf "${goal.name}" übertragen! 🚀`);
             renderGoals(); renderHistory(); liveCalc();
+        }
+
+        function distributeRestToGoals() {
+            const restFreizeit = getRestFreizeitGeldCalculated();
+            const keepInput = prompt(`Aktuell frei verfügbar: ${restFreizeit.toFixed(2)} €\n\nWie viel Betrag soll als Sockel auf dem Freizeitkonto BLEIBEN?`, "50");
+            if (keepInput === null) return;
+            
+            const keepAmount = parseFloat(keepInput) || 0;
+            const distributable = restFreizeit - keepAmount;
+            
+            if (distributable <= 0) {
+                alert(`Kein verteilbarer Restbetrag vorhanden! (Frei verfügbar: ${restFreizeit.toFixed(2)} €, Sockel: ${keepAmount.toFixed(2)} €)`);
+                return;
+            }
+            
+            const activeGoals = goals.filter(g => !['notfall', 'freizeit', 'kassette'].includes(g.id));
+            if (activeGoals.length === 0) {
+                alert("Keine manuellen Sparziele zum Verteilen vorhanden!");
+                return;
+            }
+            
+            const mode = confirm(`Möchtest du ${distributable.toFixed(2)} € GLEICHMÄSSIG auf deine ${activeGoals.length} Sparziele verteilen?\n\n[OK] = Gleichmäßig aufteilen\n[Abbrechen] = Nach monatlicher Sparrate gewichten`);
+            
+            const m = getSelectedMonthKey();
+            if (!entries[m]) {
+                entries[m] = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0, bargeldEinnahme: 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] };
+            }
+            if (!entries[m].extraTransfers) entries[m].extraTransfers = [];
+            
+            if (mode) {
+                const share = Math.floor((distributable / activeGoals.length) * 100) / 100;
+                activeGoals.forEach(g => {
+                    entries[m].extraTransfers.push({ id: Date.now() + Math.random(), targetId: g.id, targetName: g.name, amount: share });
+                });
+            } else {
+                const totalWeight = activeGoals.reduce((sum, g) => sum + (parseFloat(g.fixedMonthly) || 1), 0);
+                activeGoals.forEach(g => {
+                    const weight = parseFloat(g.fixedMonthly) || 1;
+                    const share = Math.floor(((distributable * weight) / totalWeight) * 100) / 100;
+                    if (share > 0) {
+                        entries[m].extraTransfers.push({ id: Date.now() + Math.random(), targetId: g.id, targetName: g.name, amount: share });
+                    }
+                });
+            }
+            
+            saveLocally();
+            liveCalc();
+            alert(`🎉 ${distributable.toFixed(2)} € wurden erfolgreich auf deine Sparziele verteilt!`);
         }
 
         function cancelExtraTransfer(transferId) {
