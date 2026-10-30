@@ -2063,15 +2063,10 @@
                 } else if(goalId === 'kassette') {
                     regularMonthAdd = calc.bargeldSparen;
                 } else {
-                    if (goal.target && goal.target > 0 && projectedSum >= goal.target) {
-                        regularMonthAdd = 0;
-                    } else if (goal.targetDate && key > goal.targetDate) {
+                    if (goal.targetDate && key > goal.targetDate) {
                         regularMonthAdd = 0;
                     } else if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                         regularMonthAdd = parseFloat(goal.fixedMonthly);
-                        if (goal.target && goal.target > 0 && (projectedSum + regularMonthAdd) > goal.target) {
-                            regularMonthAdd = Math.max(0, goal.target - projectedSum);
-                        }
                     }
                 }
 
@@ -2107,17 +2102,14 @@
                 }
             });
 
-            let avgMonthly = countMonthsContributed > 0 ? (totalContributedSoFar / countMonthsContributed) : (parseFloat(goal.fixedMonthly) || 0);
+            let avgMonthly = parseFloat(goal.fixedMonthly) > 0 ? parseFloat(goal.fixedMonthly) : (countMonthsContributed > 0 ? (totalContributedSoFar / countMonthsContributed) : 0);
 
             return { total: runningSum, projectedTotal: projectedSum, breakdown, avgMonthly };
         }
 
         function getSavedAmountForGoal(goal) {
             if(!goal) return 0;
-            if(['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
-                return getGoalData(goal.id).total;
-            }
-            // Zeige für reguläre Sparziele nur das bisher tatsächlich Eingezahlte (Gebuchte/Manuelle)
+            // Zeige für alle Sparziele den echten, reell bereits gebuchten / eingezahlten Betrag
             return getGoalData(goal.id).total;
         }
 
@@ -2457,7 +2449,7 @@
             if(!tbody) return;
             tbody.innerHTML = '';
             for(let i = 0; i < numDays; i++) {
-                const isHasExp = u.dayExpenses[i] !== null && u.dayExpenses[i] !== undefined && u.dayExpenses[i] !== '';
+                const isHasExp = u.dayExpenses[i] !== null && u.dayExpenses[i] !== '';
                 let recBtn = u.dayReceipts[i] ? `<button class="receipt-btn" onclick="showReceiptModal('${u.dayReceipts[i]}')">🧾 Beleg</button>` : '-';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
