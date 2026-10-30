@@ -237,6 +237,7 @@
                 <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
                 <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres-Check</button>
                 <button class="tab-btn" onclick="switchTab('urlaub-view', this)" id="urlaubTabBtn" style="display:none;">✈️ Urlaubs-Planer</button>
+                <button class="tab-btn" onclick="switchTab('netto-view', this)">💶 Brutto/Netto</button>
                 <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
                 <button class="tab-btn" onclick="switchTab('rechner-view', this)">🧮 Rechner</button>
             </div>
@@ -499,7 +500,7 @@
             </div>
         </div>
 
-        <!-- TAB 5: URLAUBS- & FESTIVALBUDGET (Mehrere Urlaubspläne auswählbar) -->
+        <!-- TAB 5: URLAUBS- & FESTIVALBUDGET -->
         <div id="urlaub-view" class="view-section">
             <div class="card" style="border: 2px solid var(--accent); background: #f0f9ff;">
                 <div class="card-title" style="color: var(--accent);">
@@ -515,6 +516,9 @@
                 <div class="card-title"><span id="uHeaderTitle">✈️ Urlaubs- & Festival-Planer</span></div>
                 <div class="stat-row"><span>Zugeordnetes Sparziel:</span><strong id="uTargetGoalName" style="color:var(--accent);"> - </strong></div>
                 <div class="stat-row"><span>Gesamtbudget / Ziel:</span><span id="uTargetBudgetDisplay" class="val-highlight">0,00 €</span></div>
+                <div style="margin-top: 10px;">
+                    <button class="btn-secondary" style="width:100%; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-weight:bold;" onclick="deleteCurrentUrlaubPlan()">🗑️ Diesen Urlaubsplaner löschen</button>
+                </div>
             </div>
 
             <div class="card">
@@ -563,7 +567,71 @@
             </div>
         </div>
 
-        <!-- TAB 6: SPARZIELE -->
+        <!-- TAB 6: BRUTTO-NETTO RECHNER -->
+        <div id="netto-view" class="view-section">
+            <div class="card" style="border: 1px solid var(--accent);">
+                <div class="card-title" style="color:var(--accent);"><span>💶 Gehalts- & Brutto-Netto-Rechner</span></div>
+                <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:12px;">
+                    Berechne dein ungefähres Nettogehalt basierend auf deinen Eingaben (ideal für Bayern / Deutschland).
+                </div>
+                <div class="grid">
+                    <div class="input-group full"><label>Bruttogehalt (€)</label><input type="number" id="bnBruttoInput" placeholder="z.B. 3500" oninput="calcBruttoNetto()"></div>
+                    <div class="input-group">
+                        <label>Steuerklasse</label>
+                        <select id="bnSteuerklasse" onchange="calcBruttoNetto()">
+                            <option value="1">Klasse 1 (Ledig)</option>
+                            <option value="2">Klasse 2 (Alleinerziehend)</option>
+                            <option value="3" selected>Klasse 3 (Verheiratet - Geringer)</option>
+                            <option value="4">Klasse 4 (Verheiratet - Standard)</option>
+                            <option value="5">Klasse 5 (Verheiratet - Höher)</option>
+                            <option value="6">Klasse 6 (Zweitjob)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Bundesland</label>
+                        <select id="bnLand" onchange="calcBruttoNetto()">
+                            <option value="bayern" selected>Bayern (Pflegevers. 4%)</option>
+                            <option value="bw">Baden-Württemberg</option>
+                            <option value="nrw">Nordrhein-Westfalen</option>
+                            <option value="berlin">Berlin / Andere</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Kirchensteuer</label>
+                        <select id="bnKirchen" onchange="calcBruttoNetto()">
+                            <option value="yes" selected>Ja (8% / 9%)</option>
+                            <option value="no">Nein (Keine Kirche)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Kinder / Kinderfreibetrag</label>
+                        <select id="bnKinder" onchange="calcBruttoNetto()">
+                            <option value="0" selected>Keine Kinder</option>
+                            <option value="1">1 Kind</option>
+                            <option value="2">2 oder mehr Kinder</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📊 Ergebnis der Nettoberechnung</div>
+                <div class="stat-row"><span>Bruttogehalt:</span><span id="bnResBrutto" style="font-weight:bold;">0,00 €</span></div>
+                <div class="stat-row"><span>Lohnsteuer (ca.):</span><span id="bnResSteuer" class="val-red">-0,00 €</span></div>
+                <div class="stat-row"><span>Kirchensteuer (ca.):</span><span id="bnResKirche" class="val-red">-0,00 €</span></div>
+                <div class="stat-row"><span>Krankenversicherung (ca. 7.3% + Puffer):</span><span id="bnResKV" class="val-red">-0,00 €</span></div>
+                <div class="stat-row"><span>Rentenversicherung (9.3%):</span><span id="bnResRV" class="val-red">-0,00 €</span></div>
+                <div class="stat-row"><span>Arbeitslosenversicherung (1.3%):</span><span id="bnResAV" class="val-red">-0,00 €</span></div>
+                <div class="stat-row"><span>Pflegeversicherung (ca. 2.2%):</span><span id="bnResPV" class="val-red">-0,00 €</span></div>
+                <div class="stat-row" style="font-weight: bold; font-size: 1.05rem; background: #f0fdf4; padding: 12px; border-radius: 10px; border: 1px solid #bbf7d0; margin-top: 8px;">
+                    <span style="color:#15803d;">🎉 Ungefähres Nettogehalt:</span>
+                    <span id="bnResNetto" class="val-highlight" style="font-size:1.15rem;">0,00 €</span>
+                </div>
+                <button class="btn-add" style="margin-top: 12px; background: var(--accent);" onclick="applyNettoToCurrentMonth()">📥 Nettowert als Gehalt für aktuellen Monat übernehmen 🚀</button>
+            </div>
+        </div>
+
+        <!-- TAB 7: SPARZIELE -->
         <div id="ziele-view" class="view-section">
             <div class="card">
                 <div class="card-title">🎯 Neues Sparziel anlegen</div>
@@ -603,7 +671,7 @@
             </div>
         </div>
 
-        <!-- TAB 7: EIGENER RECHNER REITER -->
+        <!-- TAB 8: EIGENER RECHNER REITER -->
         <div id="rechner-view" class="view-section">
             <div class="card" style="border: 1px solid var(--accent);">
                 <div class="card-title" style="color:var(--accent);"><span>🧮 Finanz- & Prozentrechner</span></div>
@@ -824,6 +892,7 @@
         let currentModalGoalId = null;
         let currentMonthItems = [];
         let currentMonthPausedItems = [];
+        let lastCalculatedNetto = 0;
 
         document.getElementById('monthInput').value = "2026-12";
         document.getElementById('hhMonthInput').value = "2026-12";
@@ -845,6 +914,7 @@
         loadCashBreakdownToUI();
         updateLastUpdateDisplay();
         checkUrlaubTabVisibility();
+        calcBruttoNetto();
 
         if (cloudConfig.url) {
             pullFromCloudNow(true).then(() => {
@@ -886,6 +956,85 @@
             activeUrlaubGoalId = goalId;
             saveLocally();
             renderUrlaubView();
+        }
+
+        function deleteCurrentUrlaubPlan() {
+            const u = getActiveUrlaub();
+            if(!u) return;
+            const goal = goals.find(g => g.id === u.goalId);
+            const goalName = goal ? goal.name : 'dieses Ziel';
+
+            if(confirm(`Möchtest du den Urlaubsplaner für "${goalName}" wirklich löschen? Dein Sparziel bleibt dabei erhalten.`)) {
+                urlaubeList = urlaubeList.filter(item => item.goalId !== u.goalId);
+                activeUrlaubGoalId = urlaubeList.length > 0 ? urlaubeList[0].goalId : null;
+                saveLocally();
+                checkUrlaubTabVisibility();
+                renderGoals();
+                if(urlaubeList.length > 0) {
+                    renderUrlaubView();
+                } else {
+                    switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);
+                }
+                alert('Urlaubsplaner erfolgreich gelöscht! 🗑️');
+            }
+        }
+
+        function calcBruttoNetto() {
+            const brutto = parseFloat(document.getElementById('bnBruttoInput').value) || 0;
+            const sk = parseInt(document.getElementById('bnSteuerklasse').value) || 1;
+            const hasChurch = document.getElementById('bnKirchen').value === 'yes';
+            const kids = parseInt(document.getElementById('bnKinder').value) || 0;
+
+            if(brutto <= 0) {
+                document.getElementById('bnResBrutto').innerText = '0,00 €';
+                document.getElementById('bnResSteuer').innerText = '-0,00 €';
+                document.getElementById('bnResKirche').innerText = '-0,00 €';
+                document.getElementById('bnResKV').innerText = '-0,00 €';
+                document.getElementById('bnResRV').innerText = '-0,00 €';
+                document.getElementById('bnResAV').innerText = '-0,00 €';
+                document.getElementById('bnResPV').innerText = '-0,00 €';
+                document.getElementById('bnResNetto').innerText = '0,00 €';
+                lastCalculatedNetto = 0;
+                return;
+            }
+
+            let taxFactor = 0.18;
+            if (sk === 3) taxFactor = 0.09;
+            if (sk === 5) taxFactor = 0.28;
+            if (sk === 6) taxFactor = 0.32;
+            if (brutto > 4000) taxFactor += 0.05;
+            if (brutto > 6000) taxFactor += 0.05;
+            if (kids > 0) taxFactor -= 0.02;
+
+            const tax = Math.max(0, brutto * taxFactor);
+            const church = hasChurch ? tax * 0.09 : 0;
+            const kv = brutto * 0.075; 
+            const rv = brutto * 0.093; 
+            const av = brutto * 0.013; 
+            let pvRate = 0.022;
+            if (kids === 0) pvRate = 0.024;
+            const pv = brutto * pvRate;
+
+            const totalAbzug = tax + church + kv + rv + av + pv;
+            const netto = Math.max(0, brutto - totalAbzug);
+            lastCalculatedNetto = Math.round(netto * 100) / 100;
+
+            document.getElementById('bnResBrutto').innerText = brutto.toFixed(2) + ' €';
+            document.getElementById('bnResSteuer').innerText = '-' + tax.toFixed(2) + ' €';
+            document.getElementById('bnResKirche').innerText = '-' + church.toFixed(2) + ' €';
+            document.getElementById('bnResKV').innerText = '-' + kv.toFixed(2) + ' €';
+            document.getElementById('bnResRV').innerText = '-' + rv.toFixed(2) + ' €';
+            document.getElementById('bnResAV').innerText = '-' + av.toFixed(2) + ' €';
+            document.getElementById('bnResPV').innerText = '-' + pv.toFixed(2) + ' €';
+            document.getElementById('bnResNetto').innerText = lastCalculatedNetto.toFixed(2) + ' €';
+        }
+
+        function applyNettoToCurrentMonth() {
+            if(lastCalculatedNetto <= 0) return alert('Bitte zuerst ein gültiges Bruttogehalt eingeben!');
+            document.getElementById('gehaltInput').value = lastCalculatedNetto;
+            autoSaveLive();
+            alert(`Nettogehalt von ${lastCalculatedNetto.toFixed(2)} € als Gehalt für den aktuellen Monat übernommen! 🚀`);
+            switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);
         }
 
         function updateLastUpdateDisplay() {
