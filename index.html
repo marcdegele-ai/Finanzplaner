@@ -2044,7 +2044,7 @@
                 return getGoalData(goal.id).total;
             }
             
-            let total = parseFloat(goal.manualCurrent || 0);
+            let total = parseFloat(goal.manualCurrent || goal.manualOffset || 0);
             const sortedKeys = Object.keys(entries).sort();
             
             sortedKeys.forEach(key => {
@@ -2068,13 +2068,14 @@
         function getGoalData(goalId) {
             const sortedKeys = Object.keys(entries).sort();
             const goal = goals.find(g => g.id === goalId);
-            let runningSum = goalId === 'kassette' ? parseFloat(goal?.manualCurrent || 0) : parseFloat(goal?.manualOffset || 0);
-            
+            if (!goal) return { total: 0, projectedTotal: 0, breakdown: [], avgMonthly: 0 };
+
+            let runningSum = goalId === 'kassette' ? parseFloat(goal.manualCurrent || 0) : parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             let projectedSum = runningSum;
             let breakdown = [];
 
             let baseKey = document.getElementById('monthInput').value || "2026-12";
-            let targetDateLimit = goal && goal.targetDate ? goal.targetDate : "2028-12";
+            let targetDateLimit = goal.targetDate ? goal.targetDate : "2028-12";
             
             let allMonthsToCheck = new Set(sortedKeys);
             let simKey = baseKey;
@@ -2084,6 +2085,9 @@
                 simKey = getNextMonthKey(simKey);
             }
             let sortedAllMonths = Array.from(allMonthsToCheck).sort();
+
+            let totalContributedSoFar = 0;
+            let countMonthsContributed = 0;
 
             sortedAllMonths.forEach(key => {
                 const itemData = getMonthDataOrFallback(key);
@@ -2124,6 +2128,11 @@
                     if (itemData.booked) {
                         runningSum += totalMonthAdd;
                     }
+                    if (totalMonthAdd > 0) {
+                        totalContributedSoFar += totalMonthAdd;
+                        countMonthsContributed++;
+                    }
+
                     let statusLabel = itemData.booked ? "Gebucht ✅" : "Geplant (Plan) ⏳";
                     if (extraThisMonth > 0) statusLabel += ` (inkl. ${extraThisMonth.toFixed(2)}€ Extra)`;
                     
@@ -2135,7 +2144,10 @@
                     });
                 }
             });
-            return { total: runningSum, projectedTotal: projectedSum, breakdown };
+
+            let avgMonthly = countMonthsContributed > 0 ? (totalContributedSoFar / countMonthsContributed) : (parseFloat(goal.fixedMonthly) || 0);
+
+            return { total: runningSum, projectedTotal: projectedSum, breakdown, avgMonthly };
         }
 
         function getSavedAmountForGoal(goal) {
@@ -2144,14 +2156,6 @@
                 return getGoalData(goal.id).total;
             }
             return getGoalData(goal.id).projectedTotal;
-        }
-
-        function getProjectedAmountForGoal(goalId) {
-            if(['notfall', 'freizeit', 'kassette'].includes(goalId)) {
-                return getGoalData(goalId).projectedTotal;
-            }
-            const goal = goals.find(g => g.id === goalId);
-            return getGoalData(goalId).projectedTotal;
         }
 
         function renderHistory() {
@@ -2682,8 +2686,11 @@
                 let remaining = goal.target - currentVal;
                 let monthlyNeededText = "";
                 
+                const goalData = getGoalData(goal.id);
+                const avgMonthly = goalData.avgMonthly;
+
                 if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
-                    monthlyNeededText = `Dauerauftrag: ${parseFloat(goal.fixedMonthly).toFixed(2)} €/Mo.`;
+                    monthlyNeededText = `Ø ${avgMonthly.toFixed(2)} €/Mo. eingezahlt`;
                 } else if (goal.targetDate && remaining > 0) {
                     const m = getSelectedMonthKey();
                     const [tY, tM] = goal.targetDate.split('-').map(Number);
@@ -2691,7 +2698,7 @@
                     const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
                     if (diffMonths > 0) {
                         const autoCalc = Math.ceil(remaining / diffMonths);
-                        monthlyNeededText = `Rückwärts: ca. ${autoCalc} €/Mo. bis ${goal.targetDate}`;
+                        monthlyNeededText = `Rückwärts: ca. ${autoCalc} €/Mo.`;
                     }
                 }
 
@@ -2720,7 +2727,7 @@
                     ${goal.target > 0 ? `<div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${percent}%;"></div></div>` : ''}
                     <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-sub); margin-top:6px;">
                         <span>${goal.target > 0 ? (remaining > 0 ? 'Rest: ' + remaining.toFixed(2) + ' €' : 'Erreicht! 🎉') : ''}</span>
-                        <span style="color:var(--accent); font-weight:600;">${monthlyNeededText}</span>
+                        <span style="color:var(--accent); font-weight:600;">${monthlyNeededText} (Ende-Prognose: <strong>${goalData.projectedTotal.toFixed(2)} €</strong>)</span>
                     </div>
                 `;
                 list.appendChild(div);
