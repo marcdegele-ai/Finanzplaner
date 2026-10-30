@@ -499,8 +499,18 @@
             </div>
         </div>
 
-        <!-- TAB 5: URLAUBS- & FESTIVALBUDGET (Dynamisch generiert) -->
+        <!-- TAB 5: URLAUBS- & FESTIVALBUDGET (Mehrere Urlaubspläne auswählbar) -->
         <div id="urlaub-view" class="view-section">
+            <div class="card" style="border: 2px solid var(--accent); background: #f0f9ff;">
+                <div class="card-title" style="color: var(--accent);">
+                    <span>✈️ Urlaubs- & Festival-Planer wählen</span>
+                </div>
+                <div class="input-group full">
+                    <label style="color: var(--accent); font-weight: bold;">Welchen Urlaubsplaner möchtest du bearbeiten?</label>
+                    <select id="urlaubSelectSwitch" onchange="switchActiveUrlaub(this.value)" style="font-weight: bold; color: var(--accent); background: #ffffff;"></select>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-title"><span id="uHeaderTitle">✈️ Urlaubs- & Festival-Planer</span></div>
                 <div class="stat-row"><span>Zugeordnetes Sparziel:</span><strong id="uTargetGoalName" style="color:var(--accent);"> - </strong></div>
@@ -848,11 +858,34 @@
 
         function checkUrlaubTabVisibility() {
             const tabBtn = document.getElementById('urlaubTabBtn');
-            if(activeUrlaubGoalId && urlaubeList.some(u => u.goalId === activeUrlaubGoalId)) {
+            const selectSwitch = document.getElementById('urlaubSelectSwitch');
+            
+            if (urlaubeList && urlaubeList.length > 0) {
                 tabBtn.style.display = 'block';
+                if (!activeUrlaubGoalId || !urlaubeList.some(u => u.goalId === activeUrlaubGoalId)) {
+                    activeUrlaubGoalId = urlaubeList[0].goalId;
+                }
+                
+                if (selectSwitch) {
+                    selectSwitch.innerHTML = '';
+                    urlaubeList.forEach(u => {
+                        const g = goals.find(goal => goal.id === u.goalId);
+                        const opt = document.createElement('option');
+                        opt.value = u.goalId;
+                        opt.innerText = g ? g.name : ('Urlaub ' + u.goalId);
+                        if (u.goalId === activeUrlaubGoalId) opt.selected = true;
+                        selectSwitch.appendChild(opt);
+                    });
+                }
             } else {
                 tabBtn.style.display = 'none';
             }
+        }
+
+        function switchActiveUrlaub(goalId) {
+            activeUrlaubGoalId = goalId;
+            saveLocally();
+            renderUrlaubView();
         }
 
         function updateLastUpdateDisplay() {
@@ -2109,7 +2142,6 @@
 
         function getSavedAmountForGoal(goal) {
             if(!goal) return 0;
-            // Zeige für alle Sparziele den echten, reell bereits gebuchten / eingezahlten Betrag
             return getGoalData(goal.id).total;
         }
 
@@ -2310,7 +2342,9 @@
         }
 
         function getActiveUrlaub() {
-            return urlaubeList.find(u => u.goalId === activeUrlaubGoalId);
+            if (!urlaubeList || urlaubeList.length === 0) return null;
+            let active = urlaubeList.find(u => u.goalId === activeUrlaubGoalId);
+            return active || urlaubeList[0];
         }
 
         function openUrlaubPlanerForCurrentGoal() {
@@ -2323,6 +2357,7 @@
         }
 
         function renderUrlaubView() {
+            checkUrlaubTabVisibility();
             const u = getActiveUrlaub();
             if(!u) {
                 document.getElementById('uHeaderTitle').innerText = "✈️ Kein aktiver Urlaubsplaner";
@@ -2449,7 +2484,7 @@
             if(!tbody) return;
             tbody.innerHTML = '';
             for(let i = 0; i < numDays; i++) {
-                const isHasExp = u.dayExpenses[i] !== null && u.dayExpenses[i] !== '';
+                const isHasExp = u.dayExpenses[i] !== null && u.dayExpenses[i] !== undefined && u.dayExpenses[i] !== '';
                 let recBtn = u.dayReceipts[i] ? `<button class="receipt-btn" onclick="showReceiptModal('${u.dayReceipts[i]}')">🧾 Beleg</button>` : '-';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
