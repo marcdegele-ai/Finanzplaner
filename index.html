@@ -581,8 +581,8 @@
                     <div class="input-group full">
                         <label>Konto-Verknüpfung / Typ</label>
                         <select id="zielTypeSelect">
-                            <option value="custom">⚙️ Manuelles Sparziel (Dauerauftrag vom Freizeitkonto)</option>
-                            <option value="notfall">🛡️ Verknüpft mit Notfallkonto</option>
+                            <option value="custom">⚙️ Manuelles Sparziel (Abzug vom Freizeitkonto / frei verfügbar)</option>
+                            <option value="notfall">🛡️ Verknüpft mit Notfallkonto (Vorab-Abzug)</option>
                             <option value="freizeit">🎉 Verknüpft mit Freizeitkonto</option>
                             <option value="kassette">🪙 Verknüpft mit Bargeld-Kassette</option>
                         </select>
@@ -1492,6 +1492,19 @@
             }
         }
 
+        function getActiveDeductionsForGoal(goal, currentMonthKey) {
+            if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
+            if (!goal.fixedMonthly || parseFloat(goal.fixedMonthly) <= 0) return 0;
+            if (goal.targetDate && currentMonthKey > goal.targetDate) return 0;
+
+            if (goal.target && goal.target > 0) {
+                let currentSavedSoFar = getSavedAmountForGoalUpTo(goal, currentMonthKey);
+                if (currentSavedSoFar >= goal.target) return 0;
+            }
+
+            return parseFloat(goal.fixedMonthly);
+        }
+
         function getRestFreizeitGeldCalculated() {
             const m = getSelectedMonthKey();
             const monthData = entries[m] || {};
@@ -1509,11 +1522,7 @@
             let totalSparzielDeductions = 0;
 
             goals.forEach(goal => {
-                if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
-                    if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
-                        totalSparzielDeductions += parseFloat(goal.fixedMonthly);
-                    }
-                }
+                totalSparzielDeductions += getActiveDeductionsForGoal(goal, m);
             });
 
             let extraTransfersSum = 0;
@@ -1800,18 +1809,16 @@
             let totalSparzielDeductions = 0;
 
             goals.forEach(goal => {
-                if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
-                    if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
-                        let monthlyShare = parseFloat(goal.fixedMonthly);
-                        totalSparzielDeductions += monthlyShare;
-                        const row = document.createElement('div');
-                        row.className = 'stat-row sub-row';
-                        row.innerHTML = `
-                            <span>↳ Umschlag Sparziel: <strong>${goal.name}</strong></span>
-                            <span class="val-red">-${monthlyShare.toFixed(2)} €</span>
-                        `;
-                        container.appendChild(row);
-                    }
+                let monthlyShare = getActiveDeductionsForGoal(goal, m);
+                if (monthlyShare > 0) {
+                    totalSparzielDeductions += monthlyShare;
+                    const row = document.createElement('div');
+                    row.className = 'stat-row sub-row';
+                    row.innerHTML = `
+                        <span>↳ Umschlag Sparziel: <strong>${goal.name}</strong></span>
+                        <span class="val-red">-${monthlyShare.toFixed(2)} €</span>
+                    `;
+                    container.appendChild(row);
                 }
             });
 
@@ -1860,22 +1867,20 @@
                 envelopeContainer.appendChild(item);
             }
 
+            const m = getSelectedMonthKey();
             goals.forEach(goal => {
-                if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
-                    if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
-                        const amt = parseFloat(goal.fixedMonthly);
-                        const item = document.createElement('div');
-                        item.className = 'envelope-card-item special';
-                        item.innerHTML = `
-                            <div><div class="history-date" style="color:var(--accent-orange);">✉️ Umschlag: ${goal.name}</div><div class="history-sub">Festes Sparziel (Bargeld-Umschlag)</div></div>
-                            <div><span class="val-orange" style="font-size:0.95rem;">+${amt.toFixed(2)} €</span></div>
-                        `;
-                        envelopeContainer.appendChild(item);
-                    }
+                let amt = getActiveDeductionsForGoal(goal, m);
+                if (amt > 0) {
+                    const item = document.createElement('div');
+                    item.className = 'envelope-card-item special';
+                    item.innerHTML = `
+                        <div><div class="history-date" style="color:var(--accent-orange);">✉️ Umschlag: ${goal.name}</div><div class="history-sub">Sparziel (Abzug vom Freizeit-Budget)</div></div>
+                        <div><span class="val-orange" style="font-size:0.95rem;">+${amt.toFixed(2)} €</span></div>
+                    `;
+                    envelopeContainer.appendChild(item);
                 }
             });
 
-            const m = getSelectedMonthKey();
             const monthData = entries[m] || {};
             if(monthData.extraTransfers) {
                 monthData.extraTransfers.forEach(tr => {
@@ -2032,6 +2037,34 @@
             }
         }
 
+        function getSavedAmountForGoalUpTo(goal, uptoMonthKey) {
+            if(!goal) return 0;
+            if(goal.id === 'kassette') return parseFloat(goal.manualCurrent || 0);
+            if(goal.id === 'notfall' || goal.id === 'freizeit') {
+                return getGoalData(goal.id).total;
+            }
+            
+            let total = parseFloat(goal.manualCurrent || 0);
+            const sortedKeys = Object.keys(entries).sort();
+            
+            sortedKeys.forEach(key => {
+                if (key < uptoMonthKey) {
+                    const itemData = getMonthDataOrFallback(key);
+                    if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
+                        if (!goal.targetDate || key <= goal.targetDate) {
+                            total += parseFloat(goal.fixedMonthly);
+                        }
+                    }
+                    if (itemData.extraTransfers) {
+                        itemData.extraTransfers.forEach(tr => {
+                            if (tr.targetId === goal.id) total += tr.amount;
+                        });
+                    }
+                }
+            });
+            return total;
+        }
+
         function getGoalData(goalId) {
             const sortedKeys = Object.keys(entries).sort();
             const goal = goals.find(g => g.id === goalId);
@@ -2064,8 +2097,15 @@
                 } else if(goalId === 'kassette') {
                     regularMonthAdd = calc.bargeldSparen;
                 } else {
-                    if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
+                    if (goal.target && goal.target > 0 && projectedSum >= goal.target) {
+                        regularMonthAdd = 0;
+                    } else if (goal.targetDate && key > goal.targetDate) {
+                        regularMonthAdd = 0;
+                    } else if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                         regularMonthAdd = parseFloat(goal.fixedMonthly);
+                        if (goal.target && goal.target > 0 && (projectedSum + regularMonthAdd) > goal.target) {
+                            regularMonthAdd = Math.max(0, goal.target - projectedSum);
+                        }
                     }
                 }
 
@@ -2103,7 +2143,7 @@
             if(['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
                 return getGoalData(goal.id).total;
             }
-            return parseFloat(goal.manualCurrent || 0);
+            return getGoalData(goal.id).projectedTotal;
         }
 
         function getProjectedAmountForGoal(goalId) {
@@ -2111,7 +2151,7 @@
                 return getGoalData(goalId).projectedTotal;
             }
             const goal = goals.find(g => g.id === goalId);
-            return parseFloat(goal?.manualCurrent || 0);
+            return getGoalData(goalId).projectedTotal;
         }
 
         function renderHistory() {
@@ -2159,11 +2199,7 @@
 
                 let monthSparzielDeductions = 0;
                 goals.forEach(goal => {
-                    if(!['notfall', 'freizeit', 'kassette'].includes(goal.id)) {
-                        if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
-                            monthSparzielDeductions += parseFloat(goal.fixedMonthly);
-                        }
-                    }
+                    monthSparzielDeductions += getActiveDeductionsForGoal(goal, key);
                 });
 
                 let freiVerfubarMonat = Math.max(0, calc.freizeitSparen - monthSparzielDeductions - extraTransfersMonthSum);
