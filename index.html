@@ -2728,7 +2728,7 @@
             const name = document.getElementById('zielName').value.trim();
             const target = parseFloat(document.getElementById('zielBetrag').value) || 0;
             const fixedMonthly = parseFloat(document.getElementById('zielFixedMonthly').value) || 0;
-            const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
+            const startVal = 0; // Fix: Startbetrag erzwingt standardmäßig 0 bei Neuanlage
             const targetDate = document.getElementById('zielDatum').value;
             const goalType = document.getElementById('zielTypeSelect').value;
             const autoUrlaub = document.getElementById('zielAutoUrlaubCheckbox').checked;
