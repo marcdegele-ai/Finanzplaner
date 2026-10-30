@@ -236,7 +236,7 @@
                 <button class="tab-btn" onclick="switchTab('haushalt-view', this)">🏠 Haushalt</button>
                 <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
                 <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres-Check</button>
-                <button class="tab-btn" onclick="switchTab('urlaub-view', this)">✈️ Urlaub & Festival</button>
+                <button class="tab-btn" onclick="switchTab('urlaub-view', this)" id="urlaubTabBtn" style="display:none;">✈️ Urlaubs-Planer</button>
                 <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
                 <button class="tab-btn" onclick="switchTab('rechner-view', this)">🧮 Rechner</button>
             </div>
@@ -499,38 +499,24 @@
             </div>
         </div>
 
-        <!-- TAB 5: URLAUBS- & FESTIVALBUDGET -->
+        <!-- TAB 5: URLAUBS- & FESTIVALBUDGET (Dynamisch generiert) -->
         <div id="urlaub-view" class="view-section">
             <div class="card">
-                <div class="card-title"><span>✈️ Urlaubs- & Festival-Planer ⛺</span></div>
-                <div class="input-group full">
-                    <label style="color:var(--accent); font-weight:bold;">Event / Urlaub auswählen:</label>
-                    <div style="display:flex; gap:6px;">
-                        <select id="urlaubSelect" onchange="switchUrlaub(this.value)" style="flex:1;"></select>
-                        <button class="btn-secondary" style="background:var(--accent-green); color:#fff; border:none;" onclick="addNewUrlaub()">➕ Neu</button>
-                        <button class="btn-secondary" style="background:#ef4444; color:#fff; border:none;" onclick="deleteCurrentUrlaub()">🗑️ Löschen</button>
-                    </div>
-                </div>
-                
-                <div class="grid" style="margin-top:10px;">
-                    <div class="input-group full"><label>Event / Reise-Name</label><input type="text" id="urlaubNameInput" oninput="liveUpdateUrlaubHeader()"></div>
-                    <div class="input-group full"><label>🎯 Geplantes Gesamtbudget (€)</label><input type="number" id="urlaubTargetInput" oninput="saveUrlaubConfig()"></div>
-                    <div class="input-group"><label>Start / Anreise</label><input type="date" id="urlaubStartDate" onchange="saveUrlaubConfig()"></div>
-                    <div class="input-group"><label>Ende / Abreise</label><input type="date" id="urlaubEndDate" onchange="saveUrlaubConfig()"></div>
-                </div>
+                <div class="card-title"><span id="uHeaderTitle">✈️ Urlaubs- & Festival-Planer</span></div>
+                <div class="stat-row"><span>Zugeordnetes Sparziel:</span><strong id="uTargetGoalName" style="color:var(--accent);"> - </strong></div>
+                <div class="stat-row"><span>Gesamtbudget / Ziel:</span><span id="uTargetBudgetDisplay" class="val-highlight">0,00 €</span></div>
             </div>
 
             <div class="card">
                 <div class="card-title">📌 Fixkosten, Tickets & Verpflegung</div>
                 <div class="grid">
-                    <div class="input-group"><label>Ticket / Band / Hotel (€)</label><input type="number" id="fixHotel" oninput="saveUrlaubConfig()"></div>
-                    <div class="input-group"><label>Camping / Parken / Tax (€)</label><input type="number" id="fixKurtaxe" oninput="saveUrlaubConfig()"></div>
-                    <div class="input-group"><label>Einkauf / Bier / Essen (€)</label><input type="number" id="fixSupermarkt" oninput="saveUrlaubConfig()"></div>
-                    <div class="input-group"><label>Anreise / Sprit / Bus (€)</label><input type="number" id="fixBusHin" oninput="saveUrlaubConfig()"></div>
-                    <div class="input-group full"><label>Abreise-Puffer / Notfall (€)</label><input type="number" id="fixAbreisePuffer" oninput="saveUrlaubConfig()"></div>
+                    <div class="input-group"><label>Ticket / Hotel (€)</label><input type="number" id="uFixHotel" oninput="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Kurtaxe / Parken / Tax (€)</label><input type="number" id="uFixKurtaxe" oninput="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Supermarkt / Verpflegung (€)</label><input type="number" id="uFixSupermarkt" oninput="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Anreise / Sprit / Bus (€)</label><input type="number" id="uFixBusHin" oninput="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group full"><label>Abreise-Puffer / Notfall (€)</label><input type="number" id="uFixAbreisePuffer" oninput="saveUrlaubConfigDynamic()"></div>
                 </div>
                 <div class="stat-row" style="margin-top:8px;"><span>Summe Fixkosten & Vorbereitung:</span><span id="uFixTotalDisplay" class="val-red">0,00 €</span></div>
-                <div class="stat-row"><span>🎯 Ziel-Netto (bei 100% Ziel):</span><span id="uTargetNettoDisplay" style="color:var(--text-sub);">0,00 €</span></div>
                 <div class="stat-row"><span>⚡ Aktuelles Live-Netto (aktuell gespart):</span><span id="uNettoTagesBudgetDisplay" class="val-highlight">0,00 €</span></div>
             </div>
 
@@ -572,8 +558,8 @@
             <div class="card">
                 <div class="card-title">🎯 Neues Sparziel anlegen</div>
                 <div class="grid">
-                    <div class="input-group full"><label>Bezeichnung des Ziels</label><input type="text" id="zielName" placeholder="z.B. Rock im Park, Urlaub Köln..."></div>
-                    <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="zielBetrag" placeholder="z.B. 2000"></div>
+                    <div class="input-group full"><label>Bezeichnung des Ziels</label><input type="text" id="zielName" placeholder="z.B. Mallorca Sommerurlaub, Neues Handy..."></div>
+                    <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="zielBetrag" placeholder="z.B. 800"></div>
                     <div class="input-group"><label>Fixer monatlicher Dauerauftrag (€)</label><input type="number" id="zielFixedMonthly" placeholder="z.B. 50"></div>
                     <div class="input-group"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0"></div>
                     <div class="input-group full">
@@ -586,11 +572,16 @@
                         </select>
                     </div>
                     <div class="input-group full">
-                        <label>✈️ Mit Urlaub / Festival verknüpfen (Optional)</label>
-                        <select id="zielUrlaubLinkSelect">
-                            <option value="">Keine Urlaubs-Verknüpfung</option>
-                        </select>
+                        <label class="checkbox-container" style="background:#fef3c7; border-color:#f59e0b;">
+                            <input type="checkbox" id="zielAutoUrlaubCheckbox">
+                            <div>
+                                <strong style="color:#b45309; font-size:0.85rem;">✨ Automatischen Urlaubs- & Tagesplaner für dieses Ziel generieren</strong>
+                                <div style="font-size:0.72rem; color:var(--text-sub);">Erstellt automatisch einen tagesgenauen Urlaubsplaner (inkl. Start- und Enddatum).</div>
+                            </div>
+                        </label>
                     </div>
+                    <div class="input-group" id="zielStartDateGroup" style="display:none;"><label>Start / Anreise Datum</label><input type="date" id="zielStartDateInput"></div>
+                    <div class="input-group" id="zielEndDateGroup" style="display:none;"><label>Ende / Abreise Datum</label><input type="date" id="zielEndDateInput"></div>
                     <div class="input-group full"><label>Ziel-Datum (Frist für automatische Rückwärts-Berechnung)</label><input type="month" id="zielDatum" onchange="calcAutoMonthlyOnCreate()"></div>
                 </div>
                 <button class="btn-add" onclick="saveGoal()">Sparziel Hinzufügen</button>
@@ -738,11 +729,8 @@
             <div class="input-group" style="margin-bottom: 10px;"><label>Fixer monatlicher Dauerauftrag (€):</label><input type="number" id="modalFixedMonthlyInput" placeholder="z.B. 50"></div>
             <div class="input-group" style="margin-bottom: 10px;"><label>Aktueller Stand / Grund-Guthaben (€):</label><input type="number" id="modalCurrentInput"></div>
 
-            <div class="input-group" style="margin-bottom: 14px;">
-                <label>✈️ Mit Urlaub / Festival verknüpfen:</label>
-                <select id="modalUrlaubLinkSelect">
-                    <option value="">Keine Urlaubs-Verknüpfung</option>
-                </select>
+            <div id="modalUrlaubLinkRow" style="display:none; margin-bottom:14px;">
+                <button class="btn-secondary" style="width:100%; background:#fef3c7; color:#b45309; font-weight:bold; border:1px solid #f59e0b;" onclick="openUrlaubPlanerForCurrentGoal()">✈️ Zum automatischen Urlaubs-Planer dieses Ziels 🌴</button>
             </div>
 
             <div style="background:var(--card-sub); border:1px solid var(--accent-green); padding:12px; border-radius:10px; margin-bottom:14px;">
@@ -796,7 +784,6 @@
     </div>
 
     <script>
-        // Bereinigt von November - Startet fest im Dezember 2026
         let rawEntries = JSON.parse(localStorage.getItem('finanz_entries_local'));
         let entries = {};
         if (rawEntries) {
@@ -812,55 +799,11 @@
 
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local')) || [
             { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-12" },
-            { id: "freizeit", name: "Urlaub & Freizeit", target: 2000, manualOffset: 0, targetDate: "2027-08", urlaubLinkId: "u_2" },
             { id: "kassette", name: "Bargeld-Kassette (Tresor)", target: 1000, manualCurrent: 0, targetDate: "" }
         ];
 
-        let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || [
-            {
-                id: "u_rip",
-                name: "Rock im Park 2027 🎸",
-                target: 450,
-                startDate: "2027-06-03",
-                endDate: "2027-06-06",
-                fixHotel: 280,
-                fixKurtaxe: 40,
-                fixSupermarkt: 80,
-                fixBusHin: 20,
-                fixAbreisePuffer: 30,
-                dayExpenses: [0, 0, 0, 0],
-                dayReceipts: [null, null, null, null]
-            },
-            {
-                id: "u_1",
-                name: "Mallorca April 2027 – Hotel Obelisco",
-                target: 500,
-                startDate: "2027-04-21",
-                endDate: "2027-04-25",
-                fixHotel: 0,
-                fixKurtaxe: 13.2,
-                fixSupermarkt: 20,
-                fixBusHin: 5.5,
-                fixAbreisePuffer: 40,
-                dayExpenses: [0, 0, 0, 0, 0],
-                dayReceipts: [null, null, null, null, null]
-            },
-            {
-                id: "u_2",
-                name: "Mallorca August 2027 – Hotel Obelisco",
-                target: 600,
-                startDate: "2027-08-25",
-                endDate: "2027-08-29",
-                fixHotel: 0,
-                fixKurtaxe: 13.2,
-                fixSupermarkt: 25,
-                fixBusHin: 5.5,
-                fixAbreisePuffer: 50,
-                dayExpenses: [0, 0, null, null, null],
-                dayReceipts: [null, null, null, null, null]
-            }
-        ];
-        let currentUrlaubId = localStorage.getItem('finanz_current_urlaub_local') || "u_rip";
+        let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || [];
+        let activeUrlaubGoalId = localStorage.getItem('finanz_active_urlaub_goal_local') || null;
 
         let cashBreakdown = JSON.parse(localStorage.getItem('finanz_cash_local')) || { c100: 0, c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0 };
         let haushaltItems = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || [];
@@ -877,9 +820,21 @@
         document.getElementById('selectYear').value = new Date().getFullYear();
         document.getElementById('HHDate').valueAsDate = new Date();
 
+        document.getElementById('zielAutoUrlaubCheckbox').addEventListener('change', function() {
+            const isChecked = this.checked;
+            document.getElementById('zielStartDateGroup').style.display = isChecked ? 'flex' : 'none';
+            document.getElementById('zielEndDateGroup').style.display = isChecked ? 'flex' : 'none';
+            if(isChecked) {
+                const today = new Date().toISOString().slice(0,10);
+                document.getElementById('zielStartDateInput').value = today;
+                document.getElementById('zielEndDateInput').value = today;
+            }
+        });
+
         updateHHKategorien();
         loadCashBreakdownToUI();
         updateLastUpdateDisplay();
+        checkUrlaubTabVisibility();
 
         if (cloudConfig.url) {
             pullFromCloudNow(true).then(() => {
@@ -889,6 +844,15 @@
         } else {
             loadMonthData();
             updateCloudStatusLabel();
+        }
+
+        function checkUrlaubTabVisibility() {
+            const tabBtn = document.getElementById('urlaubTabBtn');
+            if(activeUrlaubGoalId && urlaubeList.some(u => u.goalId === activeUrlaubGoalId)) {
+                tabBtn.style.display = 'block';
+            } else {
+                tabBtn.style.display = 'none';
+            }
         }
 
         function updateLastUpdateDisplay() {
@@ -906,7 +870,7 @@
             localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
             localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
             localStorage.setItem('finanz_urlaube_local', JSON.stringify(urlaubeList));
-            localStorage.setItem('finanz_current_urlaub_local', currentUrlaubId);
+            localStorage.setItem('finanz_active_urlaub_goal_local', activeUrlaubGoalId);
             localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
             localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
             
@@ -960,7 +924,7 @@
                 entries: entries,
                 goals: goals,
                 urlaubeList: urlaubeList,
-                currentUrlaubId: currentUrlaubId,
+                activeUrlaubGoalId: activeUrlaubGoalId,
                 cashBreakdown: cashBreakdown,
                 haushaltItems: haushaltItems,
                 lastUpdated: new Date().toISOString()
@@ -1020,14 +984,14 @@
                         });
                         if(remoteData.goals) goals = remoteData.goals;
                         if(remoteData.urlaubeList) urlaubeList = remoteData.urlaubeList;
-                        if(remoteData.currentUrlaubId) currentUrlaubId = remoteData.currentUrlaubId;
+                        if(remoteData.activeUrlaubGoalId) activeUrlaubGoalId = remoteData.activeUrlaubGoalId;
                         if(remoteData.cashBreakdown) cashBreakdown = remoteData.cashBreakdown;
                         if(remoteData.haushaltItems) haushaltItems = remoteData.haushaltItems;
 
                         localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
                         localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
                         localStorage.setItem('finanz_urlaube_local', JSON.stringify(urlaubeList));
-                        localStorage.setItem('finanz_current_urlaub_local', currentUrlaubId);
+                        localStorage.setItem('finanz_active_urlaub_goal_local', activeUrlaubGoalId);
                         localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
                         localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
 
@@ -1035,9 +999,9 @@
                         loadMonthData();
                         renderHistory();
                         renderGoals();
-                        renderUrlaubView();
                         renderHaushaltView();
                         renderJahresView();
+                        checkUrlaubTabVisibility();
                         loadCashBreakdownToUI();
 
                         if (!isSilent) alert('Daten erfolgreich aus der Cloud geladen! 📥✨');
@@ -1116,7 +1080,7 @@
                 entries: entries,
                 goals: goals,
                 urlaubeList: urlaubeList,
-                currentUrlaubId: currentUrlaubId,
+                activeUrlaubGoalId: activeUrlaubGoalId,
                 cashBreakdown: cashBreakdown,
                 haushaltItems: haushaltItems
             };
@@ -1144,7 +1108,7 @@
                         }
                         if(parsed.goals) goals = parsed.goals;
                         if(parsed.urlaubeList) urlaubeList = parsed.urlaubeList;
-                        if(parsed.currentUrlaubId) currentUrlaubId = parsed.currentUrlaubId;
+                        if(parsed.activeUrlaubGoalId) activeUrlaubGoalId = parsed.activeUrlaubGoalId;
                         if(parsed.cashBreakdown) cashBreakdown = parsed.cashBreakdown;
                         if(parsed.haushaltItems) haushaltItems = parsed.haushaltItems;
 
@@ -1153,9 +1117,9 @@
                         loadMonthData();
                         renderHistory();
                         renderGoals();
-                        renderUrlaubView();
                         renderHaushaltView();
                         renderJahresView();
+                        checkUrlaubTabVisibility();
                     } catch (err) {
                         alert('Fehler beim Lesen der Backup-Datei: ' + err.message);
                     }
@@ -2352,89 +2316,39 @@
             });
         }
 
-        function getCurrentUrlaub() {
-            let u = urlaubeList.find(x => x.id === currentUrlaubId);
-            if (!u && urlaubeList.length > 0) {
-                currentUrlaubId = urlaubeList[0].id;
-                u = urlaubeList[0];
-            }
-            return u;
+        function getActiveUrlaub() {
+            return urlaubeList.find(u => u.goalId === activeUrlaubGoalId);
         }
 
-        function populateUrlaubDropdown() {
-            const selectEl = document.getElementById('urlaubSelect');
-            if(!selectEl) return;
-            selectEl.innerHTML = '';
-            urlaubeList.forEach(u => {
-                const opt = document.createElement('option');
-                opt.value = u.id;
-                opt.innerText = u.name || 'Unbenanntes Event';
-                if(u.id === currentUrlaubId) opt.selected = true;
-                selectEl.appendChild(opt);
-            });
-        }
-
-        function switchUrlaub(uId) {
-            currentUrlaubId = uId;
-            renderUrlaubView();
+        function openUrlaubPlanerForCurrentGoal() {
+            if(!currentModalGoalId) return;
+            activeUrlaubGoalId = currentModalGoalId;
             saveLocally();
-        }
-
-        function addNewUrlaub() {
-            const newId = "u_" + Date.now();
-            const newU = {
-                id: newId,
-                name: "Neuer Urlaub / Festival " + (urlaubeList.length + 1),
-                target: 500,
-                startDate: "2027-06-03",
-                endDate: "2027-06-06",
-                fixHotel: 0,
-                fixKurtaxe: 0,
-                fixSupermarkt: 0,
-                fixBusHin: 0,
-                fixAbreisePuffer: 40,
-                dayExpenses: [0, 0, 0, 0],
-                dayReceipts: [null, null, null, null]
-            };
-            urlaubeList.push(newU);
-            currentUrlaubId = newId;
-            saveLocally();
-            renderUrlaubView();
-        }
-
-        function deleteCurrentUrlaub() {
-            if (urlaubeList.length <= 1) return alert('Du musst mindestens ein Event in der Liste behalten!');
-            if (confirm('Diesen Urlaub/Festival wirklich löschen?')) {
-                urlaubeList = urlaubeList.filter(u => u.id !== currentUrlaubId);
-                currentUrlaubId = urlaubeList[0].id;
-                saveLocally();
-                renderUrlaubView();
-            }
-        }
-
-        function liveUpdateUrlaubHeader() {
-            const u = getCurrentUrlaub();
-            if(!u) return;
-            u.name = document.getElementById('urlaubNameInput').value;
-            populateUrlaubDropdown();
-            saveUrlaubConfig();
+            checkUrlaubTabVisibility();
+            closeModal();
+            switchTab('urlaub-view', document.querySelectorAll('.tab-btn')[4]);
         }
 
         function renderUrlaubView() {
-            populateUrlaubDropdown();
-            const u = getCurrentUrlaub();
-            if(!u) return;
+            const u = getActiveUrlaub();
+            if(!u) {
+                document.getElementById('uHeaderTitle').innerText = "✈️ Kein aktiver Urlaubsplaner";
+                document.getElementById('uTargetGoalName').innerText = "Kein Ziel ausgewählt";
+                return;
+            }
 
-            const nameInput = document.getElementById('urlaubNameInput');
-            if(nameInput) nameInput.value = u.name || '';
-            document.getElementById('urlaubTargetInput').value = u.target || 0;
-            document.getElementById('urlaubStartDate').value = u.startDate || '';
-            document.getElementById('urlaubEndDate').value = u.endDate || '';
-            document.getElementById('fixHotel').value = u.fixHotel || 0;
-            document.getElementById('fixKurtaxe').value = u.fixKurtaxe || 0;
-            document.getElementById('fixSupermarkt').value = u.fixSupermarkt || 0;
-            document.getElementById('fixBusHin').value = u.fixBusHin || 0;
-            document.getElementById('fixAbreisePuffer').value = u.fixAbreisePuffer || 0;
+            const goal = goals.find(g => g.id === u.goalId);
+            document.getElementById('uHeaderTitle').innerText = `✈️ ${goal ? goal.name : 'Urlaub'}`;
+            document.getElementById('uTargetGoalName').innerText = goal ? goal.name : '-';
+            
+            const target = goal ? goal.target : (u.target || 0);
+            document.getElementById('uTargetBudgetDisplay').innerText = target.toFixed(2) + ' €';
+
+            document.getElementById('uFixHotel').value = u.fixHotel || 0;
+            document.getElementById('uFixKurtaxe').value = u.fixKurtaxe || 0;
+            document.getElementById('uFixSupermarkt').value = u.fixSupermarkt || 0;
+            document.getElementById('uFixBusHin').value = u.fixBusHin || 0;
+            document.getElementById('uFixAbreisePuffer').value = u.fixAbreisePuffer || 40;
 
             let numDays = 4;
             let dayLabels = [];
@@ -2459,15 +2373,10 @@
 
             document.getElementById('uDaysDisplay').innerText = numDays + " Tage";
 
-            const target = parseFloat(u.target) || 0;
             const fixSum = (parseFloat(u.fixHotel)||0) + (parseFloat(u.fixKurtaxe)||0) + (parseFloat(u.fixSupermarkt)||0) + (parseFloat(u.fixBusHin)||0) + (parseFloat(u.fixAbreisePuffer)||0);
-            
-            const targetNettoTotal = Math.max(0, target - fixSum);
             document.getElementById('uFixTotalDisplay').innerText = fixSum.toFixed(2) + ' €';
-            document.getElementById('uTargetNettoDisplay').innerText = targetNettoTotal.toFixed(2) + ' €';
 
-            let linkedGoal = goals.find(g => g.urlaubLinkId === u.id);
-            let actualSaved = linkedGoal ? getSavedAmountForGoal(linkedGoal) : 0;
+            let actualSaved = goal ? getSavedAmountForGoal(goal) : 0;
             document.getElementById('uSavedForTripDisplay').innerText = `${actualSaved.toFixed(2)} € / ${target.toFixed(2)} €`;
 
             const liveNettoTotal = Math.max(0, actualSaved - fixSum);
@@ -2563,32 +2472,21 @@
             }
         }
 
-        function saveUrlaubConfig() {
-            const u = getCurrentUrlaub();
+        function saveUrlaubConfigDynamic() {
+            const u = getActiveUrlaub();
             if(!u) return;
-            u.name = document.getElementById('urlaubNameInput').value;
-            u.target = parseFloat(document.getElementById('urlaubTargetInput').value) || 0;
-            u.startDate = document.getElementById('urlaubStartDate').value;
-            u.endDate = document.getElementById('urlaubEndDate').value;
-            u.fixHotel = parseFloat(document.getElementById('fixHotel').value) || 0;
-            u.fixKurtaxe = parseFloat(document.getElementById('fixKurtaxe').value) || 0;
-            u.fixSupermarkt = parseFloat(document.getElementById('fixSupermarkt').value) || 0;
-            u.fixBusHin = parseFloat(document.getElementById('fixBusHin').value) || 0;
-            u.fixAbreisePuffer = parseFloat(document.getElementById('fixAbreisePuffer').value) || 0;
+            u.fixHotel = parseFloat(document.getElementById('uFixHotel').value) || 0;
+            u.fixKurtaxe = parseFloat(document.getElementById('uFixKurtaxe').value) || 0;
+            u.fixSupermarkt = parseFloat(document.getElementById('uFixSupermarkt').value) || 0;
+            u.fixBusHin = parseFloat(document.getElementById('uFixBusHin').value) || 0;
+            u.fixAbreisePuffer = parseFloat(document.getElementById('uFixAbreisePuffer').value) || 0;
             
-            goals.forEach(g => {
-                if(g.urlaubLinkId === u.id) {
-                    g.target = u.target;
-                }
-            });
-
             saveLocally();
             renderUrlaubView();
-            renderGoals();
         }
 
         function updateDayExpenseFromInput() {
-            const u = getCurrentUrlaub();
+            const u = getActiveUrlaub();
             if(!u) return;
             const dayIdx = parseInt(document.getElementById('uDaySelectForExpense').value, 10);
             const val = document.getElementById('uDayExpenseInput').value;
@@ -2599,7 +2497,7 @@
         }
 
         async function uploadUrlaubDayReceipt() {
-            const u = getCurrentUrlaub();
+            const u = getActiveUrlaub();
             if(!u) return;
             const dayIdx = parseInt(document.getElementById('uDaySelectForExpense').value, 10);
             const input = document.getElementById('uDayReceiptInput');
@@ -2616,19 +2514,6 @@
                     console.error("Fehler beim Upload des Urlaubsbelegs:", err);
                 }
             }
-        }
-
-        function populateUrlaubLinkOptions(selectElementId, selectedId = "") {
-            const el = document.getElementById(selectElementId);
-            if(!el) return;
-            el.innerHTML = '<option value="">Keine Urlaubs-Verknüpfung</option>';
-            urlaubeList.forEach(u => {
-                const opt = document.createElement('option');
-                opt.value = u.id;
-                opt.innerText = u.name + ' (' + (u.target || 0) + ' €)';
-                if(u.id === selectedId) opt.selected = true;
-                el.appendChild(opt);
-            });
         }
 
         function calcAutoMonthlyOnCreate() {
@@ -2668,17 +2553,10 @@
         }
 
         function renderGoals() {
-            populateUrlaubLinkOptions('zielUrlaubLinkSelect');
-            populateExtraTransferSelect();
             const list = document.getElementById('goalsList');
             if(!list) return;
             list.innerHTML = '';
             goals.forEach((goal, index) => {
-                let linkedUrlaub = goal.urlaubLinkId ? urlaubeList.find(u => u.id === goal.urlaubLinkId) : null;
-                if(linkedUrlaub) {
-                    goal.target = linkedUrlaub.target;
-                }
-
                 let currentVal = getSavedAmountForGoal(goal);
                 let percent = goal.target > 0 ? Math.min(100, (currentVal / goal.target) * 100) : 0;
                 let remaining = goal.target - currentVal;
@@ -2706,7 +2584,8 @@
                 else if (percent >= 50) badgeGamification = `<span class="badge badge-gamification">🥈 50% Halbzeit!</span>`;
                 else if (percent >= 25) badgeGamification = `<span class="badge badge-gamification">🥉 25% Start!</span>`;
 
-                let urlaubBadge = linkedUrlaub ? `<span class="badge badge-urlaub">✈️ ${linkedUrlaub.name}</span>` : '';
+                let hasUrlaub = urlaubeList.some(u => u.goalId === goal.id);
+                let urlaubBadge = hasUrlaub ? `<span class="badge badge-urlaub">✈️ Urlaubsplan aktiv</span>` : '';
 
                 const div = document.createElement('div');
                 div.className = 'goal-card-box';
@@ -2737,8 +2616,6 @@
             currentModalGoalId = goalId;
             const goal = goals.find(g => g.id === goalId);
             if(!goal) return;
-            
-            populateUrlaubLinkOptions('modalUrlaubLinkSelect', goal.urlaubLinkId || "");
 
             document.getElementById('modalTitle').innerText = `Ziel: ${goal.name}`;
             document.getElementById('modalTargetInput').value = goal.target;
@@ -2746,6 +2623,9 @@
             document.getElementById('modalDateInput').value = goal.targetDate || '';
             document.getElementById('manualDepositAmount').value = '';
             document.getElementById('manualWithdrawAmount').value = '';
+
+            let hasUrlaub = urlaubeList.some(u => u.goalId === goal.id);
+            document.getElementById('modalUrlaubLinkRow').style.display = hasUrlaub ? 'block' : 'none';
 
             document.getElementById('cashTransferBox').style.display = (goal.id === 'freizeit') ? 'block' : 'none';
             document.getElementById('modalCurrentInput').value = ['notfall', 'freizeit'].includes(goal.id) ? (goal.manualOffset || 0) : (goal.manualCurrent || 0);
@@ -2785,7 +2665,7 @@
             saveLocally();
             document.getElementById('manualDepositAmount').value = '';
             alert(`${amount.toFixed(2)} € erfolgreich hinzugefügt! 🎉`);
-            renderGoals(); renderHistory(); renderUrlaubView(); openModal(goal.id);
+            renderGoals(); renderHistory(); openModal(goal.id);
         }
 
         function withdrawManualFromGoal() {
@@ -2799,7 +2679,7 @@
             saveLocally();
             document.getElementById('manualWithdrawAmount').value = '';
             alert(`${amount.toFixed(2)} € erfolgreich abgehoben! 💸`);
-            renderGoals(); renderHistory(); renderUrlaubView(); openModal(goal.id);
+            renderGoals(); renderHistory(); openModal(goal.id);
         }
 
         function transferFreizeitToKassette() {
@@ -2822,23 +2702,15 @@
             if(!currentModalGoalId) return;
             const goal = goals.find(g => g.id === currentModalGoalId);
             if(goal) {
-                goal.urlaubLinkId = document.getElementById('modalUrlaubLinkSelect').value || null;
                 goal.target = parseFloat(document.getElementById('modalTargetInput').value) || goal.target;
                 goal.fixedMonthly = parseFloat(document.getElementById('modalFixedMonthlyInput').value) || 0;
                 goal.targetDate = document.getElementById('modalDateInput').value;
                 
-                if(goal.urlaubLinkId) {
-                    let u = urlaubeList.find(x => x.id === goal.urlaubLinkId);
-                    if(u) {
-                        goal.target = u.target;
-                    }
-                }
-
                 const newCurrent = parseFloat(document.getElementById('modalCurrentInput').value);
                 if(['notfall', 'freizeit'].includes(goal.id)) goal.manualOffset = isNaN(newCurrent) ? 0 : newCurrent;
                 else goal.manualCurrent = isNaN(newCurrent) ? 0 : newCurrent;
                 
-                saveLocally(); renderGoals(); renderHistory(); renderUrlaubView(); closeModal();
+                saveLocally(); renderGoals(); renderHistory(); closeModal();
             }
         }
 
@@ -2846,29 +2718,25 @@
             if(!currentModalGoalId) return;
             if(confirm('Sparziel wirklich löschen?')) {
                 goals = goals.filter(g => g.id !== currentModalGoalId);
-                saveLocally(); renderGoals(); renderHistory(); renderUrlaubView(); closeModal();
+                urlaubeList = urlaubeList.filter(u => u.goalId !== currentModalGoalId);
+                if(activeUrlaubGoalId === currentModalGoalId) activeUrlaubGoalId = null;
+                saveLocally(); renderGoals(); renderHistory(); checkUrlaubTabVisibility(); closeModal();
             }
         }
 
         function saveGoal() {
             const name = document.getElementById('zielName').value.trim();
-            const urlaubLinkId = document.getElementById('zielUrlaubLinkSelect').value || null;
-            let target = parseFloat(document.getElementById('zielBetrag').value) || 0;
+            const target = parseFloat(document.getElementById('zielBetrag').value) || 0;
             const fixedMonthly = parseFloat(document.getElementById('zielFixedMonthly').value) || 0;
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
-            let targetDate = document.getElementById('zielDatum').value;
+            const targetDate = document.getElementById('zielDatum').value;
             const goalType = document.getElementById('zielTypeSelect').value;
+            const autoUrlaub = document.getElementById('zielAutoUrlaubCheckbox').checked;
+            const startDate = document.getElementById('zielStartDateInput').value;
+            const endDate = document.getElementById('zielEndDateInput').value;
 
-            if(urlaubLinkId) {
-                let u = urlaubeList.find(x => x.id === urlaubLinkId);
-                if(u) {
-                    target = u.target;
-                }
-            }
-
-            if(!name || (target <= 0 && !urlaubLinkId)) return alert('Name und Zielbetrag angeben!');
+            if(!name || target <= 0) return alert('Name und Zielbetrag angeben!');
             
-            // WICHTIG: Eindeutige ID vergeben, damit neue Ziele sauber mit 0€ starten und sich nicht überschreiben
             let newId = ['notfall', 'freizeit'].includes(goalType) ? goalType : 'goal_' + Date.now();
             
             goals = goals.filter(g => g.id !== newId);
@@ -2879,9 +2747,25 @@
                 fixedMonthly, 
                 manualCurrent: ['notfall', 'freizeit'].includes(newId) ? 0 : startVal, 
                 manualOffset: ['notfall', 'freizeit'].includes(newId) ? startVal : 0, 
-                targetDate, 
-                urlaubLinkId 
+                targetDate
             });
+
+            if(autoUrlaub) {
+                urlaubeList = urlaubeList.filter(u => u.goalId !== newId);
+                urlaubeList.push({
+                    goalId: newId,
+                    startDate: startDate || "2027-06-03",
+                    endDate: endDate || "2027-06-06",
+                    fixHotel: 0,
+                    fixKurtaxe: 0,
+                    fixSupermarkt: 0,
+                    fixBusHin: 0,
+                    fixAbreisePuffer: 40,
+                    dayExpenses: [],
+                    dayReceipts: []
+                });
+                activeUrlaubGoalId = newId;
+            }
             
             saveLocally();
             document.getElementById('zielName').value = ''; 
@@ -2889,16 +2773,25 @@
             document.getElementById('zielFixedMonthly').value = ''; 
             document.getElementById('zielStart').value = '0'; 
             document.getElementById('zielDatum').value = '';
+            document.getElementById('zielAutoUrlaubCheckbox').checked = false;
+            document.getElementById('zielStartDateGroup').style.display = 'none';
+            document.getElementById('zielEndDateGroup').style.display = 'none';
+
             renderGoals(); 
-            renderHistory(); 
-            renderUrlaubView();
-            alert('Sparziel erfolgreich mit Startstand angelegt! 🎯');
+            renderHistory();
+            checkUrlaubTabVisibility();
+            alert('Sparziel erfolgreich angelegt! 🎯');
         }
 
         function deleteGoalDirect(index) {
             if(confirm('Sparziel wirklich löschen?')) {
+                const goalToDelete = goals[index];
+                if(goalToDelete) {
+                    urlaubeList = urlaubeList.filter(u => u.goalId !== goalToDelete.id);
+                    if(activeUrlaubGoalId === goalToDelete.id) activeUrlaubGoalId = null;
+                }
                 goals.splice(index, 1);
-                saveLocally(); renderGoals(); renderHistory(); renderUrlaubView();
+                saveLocally(); renderGoals(); renderHistory(); checkUrlaubTabVisibility();
             }
         }
     </script>
