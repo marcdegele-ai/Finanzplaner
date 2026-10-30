@@ -367,7 +367,6 @@
                 <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
                 <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres-Check</button>
                 <button class="tab-btn" onclick="switchTab('urlaub-view', this)" id="urlaubTabBtn" style="display:none;">✈️ Urlaubs-Planer</button>
-                <button class="tab-btn" onclick="switchTab('netto-view', this)">💶 Bruno Rechner</button>
                 <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
                 <button class="tab-btn" onclick="switchTab('rechner-view', this)">🧮 Rechner</button>
             </div>
@@ -697,86 +696,7 @@
             </div>
         </div>
 
-        <!-- TAB 6: BRUNO BRUTTO-NETTO RECHNER -->
-        <div id="netto-view" class="view-section">
-            <div class="card" style="border: 2px solid var(--accent); background: #f0f9ff;">
-                <div class="card-title" style="color:var(--accent);"><span>💶 Bruno Gehaltsrechner (Exakt)</span></div>
-                <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:12px;">
-                    Berechne hier dein Gehalt inkl. Provisionen im Voraus und wähle den Monat aus, in dem das Geld ausgezahlt wird!
-                </div>
-                <div class="grid">
-                    <div class="input-group full" style="background:#ffffff; padding:12px; border-radius:12px; border:1px solid #bae6fd;">
-                        <label style="color:var(--accent); font-weight:bold;">📅 Ziel-Monat für dieses Gehalt wählen:</label>
-                        <input type="month" id="bnTargetMonth" min="2026-12" style="font-weight:bold; color:var(--accent); background:#f0f9ff;">
-                    </div>
-                    <div class="input-group full"><label>Monatliches Bruttogehalt (€ inkl. Provision)</label><input type="number" id="bnBruttoInput" value="3500" placeholder="z.B. 3500" oninput="calcBrunoNetto()"></div>
-                    <div class="input-group">
-                        <label>Steuerklasse</label>
-                        <select id="bnSteuerklasse" onchange="calcBrunoNetto()">
-                            <option value="1" selected>Klasse 1 (Ledig)</option>
-                            <option value="2">Klasse 2 (Alleinerziehend)</option>
-                            <option value="3">Klasse 3 (Verheiratet - Günstig)</option>
-                            <option value="4">Klasse 4 (Verheiratet Standard)</option>
-                            <option value="5">Klasse 5 (Verheiratet Zweitverdiener)</option>
-                            <option value="6">Klasse 6 (Zweitjob)</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Bundesland</label>
-                        <select id="bnLand" onchange="calcBrunoNetto()">
-                            <option value="bayern" selected>Bayern (Kirche 8%)</option>
-                            <option value="bw">Baden-Württemberg (Kirche 8%)</option>
-                            <option value="andere">Andere Bundesländer (Kirche 9%)</option>
-                            <option value="sachsen">Sachsen (Sonderfall PV)</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Kirchensteuer</label>
-                        <select id="bnKirchen" onchange="calcBrunoNetto()">
-                            <option value="yes">Ja</option>
-                            <option value="no" selected>Nein</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Anzahl Kinder (für PV & Freibetrag)</label>
-                        <select id="bnKinder" onchange="calcBrunoNetto()">
-                            <option value="0" selected>Keine Kinder (Zuschlag ab 23 J.)</option>
-                            <option value="1">1 Kind</option>
-                            <option value="2">2 Kinder</option>
-                            <option value="3">3 Kinder</option>
-                            <option value="4">4 oder mehr Kinder</option>
-                        </select>
-                    </div>
-                    <div class="input-group full">
-                        <label>Krankenkassen-Zusatzbeitrag (%) [z.B. HKK = 2.59%]</label>
-                        <input type="number" id="bnZusatzKV" value="2.59" step="0.01" oninput="calcBrunoNetto()">
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📊 Detailliertes Bruno-Abrechnungsergebnis</div>
-                <div class="stat-row"><span>Bruttogehalt:</span><span id="bnResBrutto" style="font-weight:bold;">3.500,00 €</span></div>
-                <div class="stat-row"><span>Lohnsteuer:</span><span id="bnResSteuer" class="val-red">-421,75 €</span></div>
-                <div class="stat-row"><span>Solidaritätszuschlag:</span><span id="bnResSoli" class="val-red">-0,00 €</span></div>
-                <div class="stat-row"><span>Kirchensteuer:</span><span id="bnResKirche" class="val-red">-0,00 €</span></div>
-                <div class="stat-row"><span>Krankenversicherung (7,3% + Zusatz):</span><span id="bnResKV" class="val-red">-290,33 €</span></div>
-                <div class="stat-row"><span>Rentenversicherung (9,3%):</span><span id="bnResRV" class="val-red">-325,50 €</span></div>
-                <div class="stat-row"><span>Arbeitslosenversicherung (1,3%):</span><span id="bnResAV" class="val-red">-45,50 €</span></div>
-                <div class="stat-row"><span>Pflegeversicherung (2,2% + 0,6% Zuschlag):</span><span id="bnResPV" class="val-red">-79,83 €</span></div>
-                <div class="stat-row" style="font-weight: bold; background: #e0f2fe; padding: 8px 12px; border-radius: 10px; margin-top: 6px;">
-                    <span style="color:#0369a1;">Gesamte Abgaben:</span>
-                    <span id="bnResSVTotal" class="val-red">-1.162,91 €</span>
-                </div>
-                <div class="stat-row" style="font-weight: bold; font-size: 1.05rem; background: #f0fdf4; padding: 14px; border-radius: 12px; border: 1px solid #bbf7d0; margin-top: 10px;">
-                    <span style="color:#15803d;">🎉 Exakte Netto-Auszahlung:</span>
-                    <span id="bnResNetto" class="val-highlight" style="font-size:1.15rem;">2.337,09 €</span>
-                </div>
-                <button class="btn-add" style="margin-top: 12px; background: var(--accent);" onclick="applyNettoToTargetMonth()">📥 Nettowert als Gehalt für ausgewählten Monat übernehmen 🚀</button>
-            </div>
-        </div>
-
-        <!-- TAB 7: SPARZIELE -->
+        <!-- TAB 6: SPARZIELE -->
         <div id="ziele-view" class="view-section">
             <div class="card">
                 <div class="card-title">🎯 Neues Sparziel anlegen</div>
@@ -827,7 +747,7 @@
             </div>
         </div>
 
-        <!-- TAB 8: EIGENER RECHNER REITER -->
+        <!-- TAB 7: EIGENER RECHNER REITER -->
         <div id="rechner-view" class="view-section">
             <div class="card" style="border: 1px solid var(--accent);">
                 <div class="card-title" style="color:var(--accent);"><span>🧮 Finanz- & Prozentrechner</span></div>
@@ -907,11 +827,9 @@
         let currentModalGoalId = null;
         let currentMonthItems = [];
         let currentMonthPausedItems = [];
-        let lastCalculatedNetto = 0;
 
         document.getElementById('monthInput').value = "2026-12";
         document.getElementById('hhMonthInput').value = "2026-12";
-        document.getElementById('bnTargetMonth').value = "2026-12";
         document.getElementById('selectYear').value = new Date().getFullYear();
         document.getElementById('HHDate').valueAsDate = new Date();
 
@@ -930,7 +848,6 @@
         loadCashBreakdownToUI();
         updateLastUpdateDisplay();
         checkUrlaubTabVisibility();
-        calcBrunoNetto();
 
         if (cloudConfig.url) {
             pullFromCloudNow(true).then(() => {
@@ -940,88 +857,6 @@
         } else {
             loadMonthData();
             updateCloudStatusLabel();
-        }
-
-        /* BRUNO RECHNER FORMELN */
-        function calcBrunoNetto() {
-            const brutto = parseFloat(document.getElementById('bnBruttoInput').value) || 0;
-            const sk = parseInt(document.getElementById('bnSteuerklasse').value) || 1;
-            const land = document.getElementById('bnLand').value;
-            const hasChurch = document.getElementById('bnKirchen').value === 'yes';
-            const kids = parseInt(document.getElementById('bnKinder').value) || 0;
-            const zusatzKV = parseFloat(document.getElementById('bnZusatzKV').value) || 2.59;
-
-            if (brutto <= 0) {
-                document.getElementById('bnResBrutto').innerText = '0,00 €';
-                document.getElementById('bnResSteuer').innerText = '-0,00 €';
-                document.getElementById('bnResSoli').innerText = '-0,00 €';
-                document.getElementById('bnResKirche').innerText = '-0,00 €';
-                document.getElementById('bnResKV').innerText = '-0,00 €';
-                document.getElementById('bnResRV').innerText = '-0,00 €';
-                document.getElementById('bnResAV').innerText = '-0,00 €';
-                document.getElementById('bnResPV').innerText = '-0,00 €';
-                document.getElementById('bnResSVTotal').innerText = '0,00 €';
-                document.getElementById('bnResNetto').innerText = '0,00 €';
-                lastCalculatedNetto = 0;
-                return;
-            }
-
-            const BBG_KV = 5175.00;
-            const BBG_RV = 7550.00;
-
-            const kvBrutto = Math.min(brutto, BBG_KV);
-            const kvRate = 0.073 + ((zusatzKV / 2) / 100);
-            const kv = Math.round(kvBrutto * kvRate * 100) / 100;
-
-            const rvBrutto = Math.min(brutto, BBG_RV);
-            const rv = Math.round(rvBrutto * 0.093 * 100) / 100;
-            const av = Math.round(rvBrutto * 0.013 * 100) / 100;
-
-            let pvRateAN = 0.022;
-            if (land === 'sachsen') pvRateAN = 0.027;
-
-            if (kids === 0) {
-                pvRateAN += 0.006;
-            } else if (kids >= 2) {
-                let abzug = Math.min(kids - 1, 4) * 0.0025;
-                pvRateAN = Math.max(0.012, pvRateAN - abzug);
-            }
-            const pv = Math.round(kvBrutto * pvRateAN * 100) / 100;
-            const svTotal = kv + rv + av + pv;
-
-            let zvE = Math.max(0, brutto - (svTotal * 0.81) - 103);
-            let taxFactor = 0.1205;
-            if (sk === 2) taxFactor = 0.095;
-            if (sk === 3) taxFactor = 0.042; 
-            if (sk === 5) taxFactor = 0.245;
-            if (sk === 6) taxFactor = 0.28;
-
-            if (brutto > 3800) taxFactor += 0.03;
-            if (brutto > 5500) taxFactor += 0.05;
-
-            let steuer = Math.round(Math.max(0, zvE * taxFactor) * 100) / 100;
-            if (brutto === 3500 && sk === 1) steuer = 421.75;
-
-            let soli = 0;
-            if (steuer > 1510) soli = Math.round(steuer * 0.055 * 100) / 100;
-
-            let churchRate = (land === 'bayern' || land === 'bw') ? 0.08 : 0.09;
-            let kirche = hasChurch ? Math.round(steuer * churchRate * 100) / 100 : 0;
-
-            const totalAbgaben = steuer + soli + kirche + svTotal;
-            const netto = Math.max(0, brutto - totalAbgaben);
-            lastCalculatedNetto = Math.round(netto * 100) / 100;
-
-            document.getElementById('bnResBrutto').innerText = brutto.toFixed(2).replace('.', ',') + ' €';
-            document.getElementById('bnResSteuer').innerText = '-' + steuer.toFixed(2).replace('.', ',') + ' €';
-            document.getElementById('bnResSoli').innerText = '-' + soli.toFixed(2).replace('.', ',') + ' €';
-            document.getElementById('bnResKirche').innerText = '-' + kirche.toFixed(2).replace('.', ',') + ' €';
-            document.getElementById('bnResKV').innerText = '-' + kv.toFixed(2).replace('.', ',') + ' €';
-            document.getElementById('bnResRV').innerText = '-' + rv.toFixed(2).replace('.', ',') + ' €';
-            document.getElementById('bnResAV').innerText = '-' + av.toFixed(2).replace('.', ',') + ' €';
-            document.getElementById('bnResPV').innerText = '-' + pv.toFixed(2).replace('.', ',') + ' €';
-            document.getElementById('bnResSVTotal').innerText = '-' + totalAbgaben.toFixed(2).replace('.', ',') + ' €';
-            document.getElementById('bnResNetto').innerText = lastCalculatedNetto.toFixed(2).replace('.', ',') + ' €';
         }
 
         function checkUrlaubTabVisibility() {
@@ -1073,23 +908,6 @@
                 }
                 alert('Urlaubsplaner erfolgreich gelöscht! 🗑️');
             }
-        }
-
-        function applyNettoToTargetMonth() {
-            if(lastCalculatedNetto <= 0) return alert('Bitte zuerst ein gültiges Bruttogehalt eingeben!');
-            const targetM = document.getElementById('bnTargetMonth').value;
-            if(!targetM) return alert('Bitte einen gültigen Ziel-Monat auswählen!');
-
-            const existingData = getMonthDataOrFallback(targetM);
-            entries[targetM] = {
-                ...existingData,
-                gehalt: lastCalculatedNetto
-            };
-
-            saveLocally();
-            syncMonthInput(targetM);
-            alert(`Netto-Gehalt von ${lastCalculatedNetto.toFixed(2)} € für Monat ${targetM} übernommen! 🚀`);
-            switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);
         }
 
         function updateLastUpdateDisplay() {
@@ -1272,7 +1090,6 @@
         function syncMonthInput(val) {
             document.getElementById('monthInput').value = val;
             document.getElementById('hhMonthInput').value = val;
-            document.getElementById('bnTargetMonth').value = val;
             loadMonthData();
         }
 
@@ -1712,7 +1529,6 @@
             envelopeContainer.appendChild(itemRest);
         }
 
-        /* NEUE UMSCHLAG-GENAUE AUTOMATEN-STÜCKELUNG */
         function calcATMNotesRecommendation() {
             const m = getSelectedMonthKey();
             const item = getMonthDataOrFallback(m);
