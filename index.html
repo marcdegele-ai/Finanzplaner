@@ -31,232 +31,46 @@
             --shadow-md: 0 8px 20px rgba(15, 23, 42, 0.06);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            padding: 12px;
-            max-width: 620px;
-            margin: 0 auto;
-            padding-bottom: 90px;
-        }
-
-        header {
-            text-align: center;
-            padding: 14px 0 16px 0;
-            margin-bottom: 14px;
-        }
-
-        header h1 { 
-            font-size: 1.3rem; 
-            color: var(--accent); 
-            margin-bottom: 3px; 
-            font-weight: 800; 
-            letter-spacing: -0.02em;
-        }
-        
-        .app-creator-sub { 
-            font-size: 0.75rem; 
-            color: var(--text-sub); 
-            margin-bottom: 8px; 
-            font-weight: 500;
-        }
-
-        .user-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.74rem;
-            color: var(--text-sub);
-            margin-bottom: 12px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
-            padding: 10px 14px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 6px;
-            box-shadow: var(--shadow-sm);
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; max-width: 620px; margin: 0 auto; padding-bottom: 90px; }
+        header { text-align: center; padding: 14px 0 16px 0; margin-bottom: 14px; }
+        header h1 { font-size: 1.3rem; color: var(--accent); margin-bottom: 3px; font-weight: 800; letter-spacing: -0.02em; }
+        .app-creator-sub { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px; font-weight: 500; }
+        .user-bar { display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--text-sub); margin-bottom: 12px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); padding: 10px 14px; border-radius: var(--radius); border: 1px solid var(--border); flex-wrap: wrap; gap: 6px; box-shadow: var(--shadow-sm); }
         .cloud-status { color: var(--accent-green); font-weight: 600; cursor: pointer; }
         .cloud-status:hover { text-decoration: underline; }
-
-        .tab-bar {
-            display: flex;
-            background: #e2e8f0;
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 4px;
-            gap: 4px;
-            overflow-x: auto;
-            margin-top: 8px;
-            scrollbar-width: none;
-        }
+        .tab-bar { display: flex; background: #e2e8f0; border: 1px solid var(--border); border-radius: 14px; padding: 4px; gap: 4px; overflow-x: auto; margin-top: 8px; scrollbar-width: none; }
         .tab-bar::-webkit-scrollbar { display: none; }
-
-        .tab-btn {
-            flex: 1; 
-            padding: 9px 8px; 
-            border: none; 
-            border-radius: 10px;
-            background: transparent; 
-            color: var(--text-sub); 
-            font-weight: 600; 
-            font-size: 0.74rem;
-            cursor: pointer; 
-            white-space: nowrap; 
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .tab-btn.active { 
-            background: #ffffff; 
-            color: var(--accent); 
-            border: 1px solid rgba(0,0,0,0.05); 
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); 
-            font-weight: 700;
-        }
-
+        .tab-btn { flex: 1; padding: 9px 8px; border: none; border-radius: 10px; background: transparent; color: var(--text-sub); font-weight: 600; font-size: 0.74rem; cursor: pointer; white-space: nowrap; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .tab-btn.active { background: #ffffff; color: var(--accent); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); font-weight: 700; }
         .view-section { display: none; }
         .view-section.active { display: block; }
-
-        .card {
-            background: var(--card-bg); 
-            border-radius: var(--radius); 
-            padding: 18px;
-            margin-bottom: 14px; 
-            border: 1px solid var(--border); 
-            box-shadow: var(--shadow-md);
-            transition: transform 0.15s ease;
-        }
-
-        .card-title {
-            font-size: 1.05rem; 
-            font-weight: 800; 
-            margin-bottom: 14px;
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            color: var(--text-main);
-            letter-spacing: -0.01em;
-        }
-
+        .card { background: var(--card-bg); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-md); transition: transform 0.15s ease; }
+        .card-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); letter-spacing: -0.01em; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .input-group { display: flex; flex-direction: column; gap: 5px; text-align: left; margin-bottom: 10px; }
         .input-group.full { grid-column: span 2; }
-
         label { font-size: 0.78rem; color: var(--text-sub); font-weight: 700; }
-        input, select {
-            background: var(--card-sub); 
-            border: 1.5px solid var(--border); 
-            color: var(--text-main);
-            padding: 10px 12px; 
-            border-radius: 10px; 
-            font-size: 0.88rem; 
-            outline: none; 
-            width: 100%; 
-            transition: all 0.2s ease;
-        }
-        input:focus, select:focus { 
-            border-color: var(--accent); 
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); 
-            background: #ffffff; 
-        }
-
-        .checkbox-container {
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-            background: var(--card-sub);
-            padding: 12px; 
-            border-radius: 12px; 
-            border: 1px solid var(--border); 
-            cursor: pointer; 
-            text-align: left;
-            transition: background 0.2s ease;
-        }
+        input, select { background: var(--card-sub); border: 1.5px solid var(--border); color: var(--text-main); padding: 10px 12px; border-radius: 10px; font-size: 0.88rem; outline: none; width: 100%; transition: all 0.2s ease; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background: #ffffff; }
+        .checkbox-container { display: flex; align-items: center; gap: 10px; background: var(--card-sub); padding: 12px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; text-align: left; transition: background 0.2s ease; }
         .checkbox-container:hover { background: #f1f5f9; }
         .checkbox-container input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-green); cursor: pointer; }
-
-        .stat-row { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 10px 0; 
-            border-bottom: 1px solid var(--border); 
-            font-size: 0.88rem; 
-            color: var(--text-main); 
-        }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; color: var(--text-main); }
         .stat-row:last-child { border-bottom: none; }
         .stat-row.sub-row { font-size: 0.78rem; padding: 6px 0 6px 12px; border-bottom: 1px dashed #e2e8f0; color: var(--text-sub); }
-
         .val-highlight { font-weight: bold; color: var(--accent-green); }
         .val-orange { font-weight: bold; color: var(--accent-orange); }
         .val-red { font-weight: bold; color: var(--accent-red); }
-
-        .btn-add { 
-            background: var(--accent); 
-            color: #ffffff; 
-            font-weight: 700; 
-            border: none; 
-            padding: 12px; 
-            border-radius: 12px; 
-            width: 100%; 
-            font-size: 0.92rem; 
-            cursor: pointer; 
-            margin-top: 6px; 
-            box-shadow: 0 4px 14px rgba(2,132,199,0.25); 
-            transition: all 0.2s ease; 
-        }
+        .btn-add { background: var(--accent); color: #ffffff; font-weight: 700; border: none; padding: 12px; border-radius: 12px; width: 100%; font-size: 0.92rem; cursor: pointer; margin-top: 6px; box-shadow: 0 4px 14px rgba(2,132,199,0.25); transition: all 0.2s ease; }
         .btn-add:hover { opacity: 0.92; transform: translateY(-1px); }
-        .btn-secondary { 
-            background: #e2e8f0; 
-            color: var(--text-main); 
-            font-weight: 700; 
-            border: 1px solid var(--border); 
-            padding: 8px 12px; 
-            border-radius: 10px; 
-            font-size: 0.78rem; 
-            cursor: pointer; 
-            transition: background 0.2s ease; 
-        }
+        .btn-secondary { background: #e2e8f0; color: var(--text-main); font-weight: 700; border: 1px solid var(--border); padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; cursor: pointer; transition: background 0.2s ease; }
         .btn-secondary:hover { background: #cbd5e1; }
-
         .quick-btn-row { display: flex; gap: 6px; margin-bottom: 8px; }
-        .quick-btn { 
-            flex: 1; 
-            background: #e0f2fe; 
-            color: #0369a1; 
-            border: 1px solid #bae6fd; 
-            border-radius: 10px; 
-            padding: 8px; 
-            font-size: 0.78rem; 
-            font-weight: bold; 
-            cursor: pointer; 
-            text-align: center; 
-            transition: all 0.15s;
-        }
+        .quick-btn { flex: 1; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 10px; padding: 8px; font-size: 0.78rem; font-weight: bold; cursor: pointer; text-align: center; transition: all 0.15s; }
         .quick-btn:hover { background: #bae6fd; }
-
         .history-list { display: flex; flex-direction: column; gap: 10px; }
-        .history-item { 
-            background: var(--card-sub); 
-            padding: 14px; 
-            border-radius: 12px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border: 1px solid var(--border); 
-            color: var(--text-main); 
-            box-shadow: var(--shadow-sm); 
-        }
-
+        .history-item { background: var(--card-sub); padding: 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); color: var(--text-main); box-shadow: var(--shadow-sm); }
         .badge { font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; font-weight: 800; display: inline-block; margin-left: 4px; }
         .badge-dauer { background: #e0f2fe; color: #0369a1; }
         .badge-paused { background: #fee2e2; color: #991b1b; }
@@ -267,55 +81,32 @@
         .badge-urlaub { background: #fef3c7; color: #b45309; }
         .badge-cap { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
         .badge-gamification { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
-
-        .goal-card-box { 
-            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-            padding: 16px; 
-            border-radius: 14px; 
-            border: 1px solid var(--border); 
-            margin-bottom: 12px; 
-            cursor: pointer; 
-            transition: all 0.2s ease; 
-            box-shadow: var(--shadow-sm);
-        }
-        .goal-card-box:hover { 
-            border-color: var(--accent); 
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md); 
-        }
-
+        .goal-card-box { background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); padding: 16px; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 12px; cursor: pointer; transition: all 0.2s ease; box-shadow: var(--shadow-sm); }
+        .goal-card-box:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-md); }
         .history-date { font-weight: 800; font-size: 0.9rem; color: var(--accent); }
         .history-sub { font-size: 0.75rem; color: var(--text-sub); margin-top: 3px; line-height: 1.35; }
-
         .progress-bar-container { background: #e2e8f0; border-radius: 10px; height: 9px; width: 100%; margin-top: 8px; overflow: hidden; border: 1px solid rgba(0,0,0,0.04); }
         .progress-bar-fill { background: var(--accent-green); height: 100%; width: 0%; transition: width 0.4s ease; }
-
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 100; padding: 14px; }
         .modal.active { display: flex; }
         .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 22px; border-radius: 20px; width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
-
         .action-link { font-size: 0.72rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; background: #e2e8f0; color: var(--text-main); text-decoration: none; display: inline-block; font-weight: 700; }
-
         .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
         .month-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 520px; }
         .month-table th { text-align: left; padding: 11px; background: #e2e8f0; color: var(--accent); border-bottom: 1px solid var(--border); white-space: nowrap; font-weight: 800; }
         .month-table td { padding: 11px; border-bottom: 1px solid var(--border); color: var(--text-main); white-space: nowrap; }
         .month-table tr:hover { background: rgba(2, 132, 199, 0.04); cursor: pointer; }
-
         .cash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
         .cash-box { background: var(--card-sub); border: 1px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; }
         .cash-badge-img { width: 40px; height: 26px; object-fit: contain; border-radius: 6px; margin: 0 auto 4px auto; display: block; border: 1px solid var(--border); background: #e2e8f0; }
         .coin-badge-img { width: 26px; height: 26px; object-fit: contain; border-radius: 50%; margin: 0 auto 4px auto; display: block; border: 1px solid #facc15; background: #f59e0b; }
         .cash-box label { font-size: 0.72rem; display: block; margin-bottom: 4px; color: #b45309; font-weight: bold; cursor: pointer; }
         .cash-box input { width: 100%; text-align: center; padding: 6px; font-size: 0.88rem; cursor: pointer; }
-
         .chart-container { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
         .chart-bar-row { background: var(--card-sub); padding: 12px; border-radius: 12px; border: 1px solid var(--border); }
         .chart-label-line { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; }
-        
         .receipt-btn { font-size: 0.72rem; background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-weight: 700; }
         .storno-btn { font-size: 0.7rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 3px 6px; border-radius: 6px; cursor: pointer; font-weight: 700; margin-left: 6px; }
-
         .calc-display { background: #0f172a; color: #38bdf8; font-size: 1.6rem; font-family: monospace; text-align: right; padding: 16px; border-radius: 14px; margin-bottom: 12px; min-height: 60px; word-break: break-all; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5); }
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
         .calc-btn { background: #e2e8f0; border: 1px solid var(--border); padding: 14px; font-size: 1.1rem; font-weight: 800; border-radius: 12px; cursor: pointer; text-align: center; color: var(--text-main); transition: background 0.15s; }
@@ -323,26 +114,9 @@
         .calc-btn.op { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
         .calc-btn.eq { background: var(--accent); color: #fff; border-color: var(--accent); }
         .calc-btn.ac { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
-
-        .envelope-card-item {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-            border: 1px solid var(--border);
-            border-left: 5px solid var(--accent);
-            border-radius: 12px;
-            padding: 12px 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow-sm);
-        }
-        .envelope-card-item.special {
-            border-left-color: var(--accent-orange);
-            background: linear-gradient(135deg, #fffdfa 0%, #fffbf5 100%);
-        }
-        .envelope-card-item.rest {
-            border-left-color: var(--accent-green);
-            background: linear-gradient(135deg, #f0fdf4 0%, #e6f4ea 100%);
-        }
+        .envelope-card-item { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 1px solid var(--border); border-left: 5px solid var(--accent); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); }
+        .envelope-card-item.special { border-left-color: var(--accent-orange); background: linear-gradient(135deg, #fffdfa 0%, #fffbf5 100%); }
+        .envelope-card-item.rest { border-left-color: var(--accent-green); background: linear-gradient(135deg, #f0fdf4 0%, #e6f4ea 100%); }
     </style>
 </head>
 <body>
@@ -799,20 +573,12 @@
                 { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, targetDate: "2027-12", capAtTarget: false },
                 { id: "kassette", name: "Bargeld-Kassette (Tresor)", target: 1000, manualCurrent: 0, targetDate: "", capAtTarget: false }
             ];
-        } else {
-            goals.forEach(g => {
-                if (!['notfall', 'freizeit', 'kassette'].includes(g.id)) {
-                    if (g.fixedMonthly === undefined) g.fixedMonthly = 0;
-                }
-            });
         }
 
         let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || [];
         let activeUrlaubGoalId = localStorage.getItem('finanz_active_urlaub_goal_local') || null;
-
         let cashBreakdown = JSON.parse(localStorage.getItem('finanz_cash_local')) || { c100: 0, c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0 };
         let haushaltItems = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || [];
-        
         let cloudConfig = JSON.parse(localStorage.getItem('finanz_cloud_config')) || { url: '', key: '' };
         let lastUpdateTime = localStorage.getItem('finanz_last_update_time') || '-';
 
@@ -867,36 +633,24 @@
             }
         }
 
-        function switchActiveUrlaub(goalId) {
-            activeUrlaubGoalId = goalId;
-            saveLocally();
-            renderUrlaubView();
-        }
+        function switchActiveUrlaub(goalId) { activeUrlaubGoalId = goalId; saveLocally(); renderUrlaubView(); }
 
         function deleteCurrentUrlaubPlan() {
-            const u = getActiveUrlaub();
-            if(!u) return;
+            const u = getActiveUrlaub(); if(!u) return;
             const goal = goals.find(g => g.id === u.goalId);
             const goalName = goal ? goal.name : 'dieses Ziel';
 
             if(confirm(`Möchtest du den Urlaubsplaner für "${goalName}" wirklich löschen? Dein Sparziel bleibt dabei erhalten.`)) {
                 urlaubeList = urlaubeList.filter(item => item.goalId !== u.goalId);
                 activeUrlaubGoalId = urlaubeList.length > 0 ? urlaubeList[0].goalId : null;
-                saveLocally();
-                checkUrlaubTabVisibility();
-                renderGoals();
-                if(urlaubeList.length > 0) {
-                    renderUrlaubView();
-                } else {
-                    switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);
-                }
+                saveLocally(); checkUrlaubTabVisibility(); renderGoals();
+                if(urlaubeList.length > 0) renderUrlaubView();
+                else switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);
                 alert('Urlaubsplaner erfolgreich gelöscht! 🗑️');
             }
         }
 
-        function updateLastUpdateDisplay() {
-            document.getElementById('lastUpdateDisplay').innerText = `Stand: ${lastUpdateTime}`;
-        }
+        function updateLastUpdateDisplay() { document.getElementById('lastUpdateDisplay').innerText = `Stand: ${lastUpdateTime}`; }
 
         function setTimestampNow() {
             const now = new Date();
@@ -915,51 +669,31 @@
             setTimestampNow();
         }
 
-        function openCloudModal() {
-            document.getElementById('cloudSyncUrlInput').value = cloudConfig.url || '';
-            document.getElementById('cloudSyncKeyInput').value = cloudConfig.key || '';
-            document.getElementById('cloudModal').classList.add('active');
-        }
-
-        function closeCloudModal() {
-            document.getElementById('cloudModal').classList.remove('active');
-        }
+        function openCloudModal() { document.getElementById('cloudSyncUrlInput').value = cloudConfig.url || ''; document.getElementById('cloudSyncKeyInput').value = cloudConfig.key || ''; document.getElementById('cloudModal').classList.add('active'); }
+        function closeCloudModal() { document.getElementById('cloudModal').classList.remove('active'); }
 
         function saveCloudConfig() {
             cloudConfig.url = document.getElementById('cloudSyncUrlInput').value.trim();
             cloudConfig.key = document.getElementById('cloudSyncKeyInput').value.trim();
             localStorage.setItem('finanz_cloud_config', JSON.stringify(cloudConfig));
-            closeCloudModal();
-            updateCloudStatusLabel();
-            alert('Cloud-Einstellungen gespeichert! ☁️✨');
-            syncWithCloudNow();
+            closeCloudModal(); updateCloudStatusLabel(); alert('Cloud-Einstellungen gespeichert! ☁️✨'); syncWithCloudNow();
         }
 
         function updateCloudStatusLabel() {
             const label = document.getElementById('cloudStatusLabel');
-            if (cloudConfig.url) {
-                label.innerText = '⚡ Cloud-Sync aktiv (Verbunden)';
-                label.style.color = 'var(--accent-green)';
-            } else {
-                label.innerText = '⚡ Cloud-Sync einrichten';
-                label.style.color = 'var(--accent-orange)';
-            }
+            if (cloudConfig.url) { label.innerText = '⚡ Cloud-Sync aktiv (Verbunden)'; label.style.color = 'var(--accent-green)'; }
+            else { label.innerText = '⚡ Cloud-Sync einrichten'; label.style.color = 'var(--accent-orange)'; }
         }
 
         async function syncWithCloudNow(isBackground = false) {
-            if (!cloudConfig.url) {
-                if (!isBackground) openCloudModal();
-                return;
-            }
-            const payload = {
-                entries: entries, goals: goals, urlaubeList: urlaubeList, activeUrlaubGoalId: activeUrlaubGoalId, cashBreakdown: cashBreakdown, haushaltItems: haushaltItems, lastUpdated: new Date().toISOString()
-            };
+            if (!cloudConfig.url) { if (!isBackground) openCloudModal(); return; }
+            const payload = { entries, goals, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, lastUpdated: new Date().toISOString() };
             try {
                 let headers = { "Content-Type": "application/json" };
                 if (cloudConfig.key) { headers["X-Master-Key"] = cloudConfig.key; headers["X-Access-Key"] = cloudConfig.key; }
                 const response = await fetch(cloudConfig.url, { method: 'PUT', headers: headers, body: JSON.stringify(payload) });
                 if (response.ok && !isBackground) alert('Daten in der Cloud gespeichert! 📤☁️');
-            } catch (err) { console.error("Cloud Fehler:", err); if (!isBackground) alert('Cloud-Speichern fehlgeschlagen (Netzwerkfehler).'); }
+            } catch (err) { console.error("Cloud Fehler:", err); }
         }
 
         async function pullFromCloudNow(isSilent = false) {
@@ -974,10 +708,7 @@
                     if (remoteData.entries) {
                         entries = {};
                         Object.keys(remoteData.entries).forEach(k => { 
-                            if (k >= "2026-12") {
-                                entries[k] = remoteData.entries[k];
-                                entries[k].extraTransfers = entries[k].extraTransfers || [];
-                            } 
+                            if (k >= "2026-12") { entries[k] = remoteData.entries[k]; entries[k].extraTransfers = entries[k].extraTransfers || []; } 
                         });
                         if(remoteData.goals) goals = remoteData.goals;
                         if(remoteData.urlaubeList) urlaubeList = remoteData.urlaubeList;
@@ -988,7 +719,7 @@
                         if (!isSilent) alert('Daten aus Cloud geladen! 📥✨');
                     }
                 }
-            } catch (err) { console.error("Pull Fehler:", err); if (!isSilent) alert('Laden aus Cloud fehlgeschlagen.'); }
+            } catch (err) { console.error("Pull Fehler:", err); }
         }
 
         let calcVal = "0";
@@ -1009,33 +740,17 @@
         }
 
         function autoSaveLive() {
-            const m = getSelectedMonthKey();
-            if(!m) return;
+            const m = getSelectedMonthKey(); if(!m) return;
             const existingExtra = entries[m] ? entries[m].extraTransfers : [];
-            entries[m] = {
-                gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
-                bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0,
-                items: JSON.parse(JSON.stringify(currentMonthItems)),
-                pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
-                bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
-                taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
-                splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
-                splitMode: document.getElementById('splitModeSelect').value,
-                booked: document.getElementById('gehaltBookedInput').checked,
-                extraTransfers: existingExtra
-            };
-            saveLocally();
-            liveCalc();
+            entries[m] = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: JSON.parse(JSON.stringify(currentMonthItems)), pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)), bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, booked: document.getElementById('gehaltBookedInput').checked, extraTransfers: existingExtra };
+            saveLocally(); liveCalc();
         }
 
         function exportBackupJSON() {
             const data = { entries, goals, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", `Finanzplan_Backup_${new Date().toISOString().slice(0,10)}.json`);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click(); downloadAnchor.remove();
+            const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", `Finanzplan_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
         }
 
         function importBackupJSON(event) {
@@ -1045,15 +760,7 @@
                 fileReader.onload = (e) => {
                     try {
                         const parsed = JSON.parse(e.target.result);
-                        if(parsed.entries) { 
-                            entries = {}; 
-                            Object.keys(parsed.entries).forEach(k => { 
-                                if(k >= "2026-12") {
-                                    entries[k] = parsed.entries[k];
-                                    entries[k].extraTransfers = entries[k].extraTransfers || [];
-                                } 
-                            }); 
-                        }
+                        if(parsed.entries) { entries = {}; Object.keys(parsed.entries).forEach(k => { if(k >= "2026-12") { entries[k] = parsed.entries[k]; entries[k].extraTransfers = entries[k].extraTransfers || []; } }); }
                         if(parsed.goals) goals = parsed.goals;
                         if(parsed.urlaubeList) urlaubeList = parsed.urlaubeList;
                         if(parsed.activeUrlaubGoalId) activeUrlaubGoalId = parsed.activeUrlaubGoalId;
@@ -1065,39 +772,24 @@
             }
         }
 
-        function quickFillHH(amt) {
-            const current = parseFloat(document.getElementById('HHAmount').value) || 0;
-            document.getElementById('HHAmount').value = current + amt;
-        }
-
+        function quickFillHH(amt) { const current = parseFloat(document.getElementById('HHAmount').value) || 0; document.getElementById('HHAmount').value = current + amt; }
         function updateHHKategorien() {
-            const type = document.getElementById('HHType').value;
-            const select = document.getElementById('HHKategorie');
-            select.innerHTML = '';
+            const type = document.getElementById('HHType').value; const select = document.getElementById('HHKategorie'); select.innerHTML = '';
             const options = type === 'income' ? ["💵 Bargeld erhalten", "🎁 Geschenk / Taschengeld", "🔄 Rückerstattung", "📦 Verkäufe / Sonstiges"] : ["🛒 Lebensmittel", "🚗 Mobilität / Tanken", "🎉 Freizeit & Gastro", "💡 Haushalt & Drogerie", "📦 Sonstiges"];
             options.forEach(opt => { const el = document.createElement('option'); el.value = opt; el.innerText = opt; select.appendChild(el); });
         }
-
-        function syncMonthInput(val) {
-            document.getElementById('monthInput').value = val;
-            document.getElementById('hhMonthInput').value = val;
-            loadMonthData();
-        }
+        function syncMonthInput(val) { document.getElementById('monthInput').value = val; document.getElementById('hhMonthInput').value = val; loadMonthData(); }
 
         function compressImage(file, maxWidth = 800, quality = 0.7) {
             return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
+                const reader = new FileReader(); reader.readAsDataURL(file);
                 reader.onload = event => {
-                    const img = new Image();
-                    img.src = event.target.result;
+                    const img = new Image(); img.src = event.target.result;
                     img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width, height = img.height;
+                        const canvas = document.createElement('canvas'); let width = img.width, height = img.height;
                         if (width > maxWidth) { height = Math.round((height * maxWidth) / width); width = maxWidth; }
                         canvas.width = width; canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
+                        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
                         resolve(canvas.toDataURL('image/jpeg', quality));
                     };
                     img.onerror = error => reject(error);
@@ -1106,49 +798,25 @@
             });
         }
 
-        function showReceiptModal(imgDataUrl) {
-            document.getElementById('receiptModalImg').src = imgDataUrl;
-            document.getElementById('receiptModal').classList.add('active');
-        }
-
-        function closeReceiptModal() {
-            document.getElementById('receiptModal').classList.remove('active');
-            document.getElementById('receiptModalImg').src = '';
-        }
-
-        function loadCashBreakdownToUI() {
-            ['100','50','20','10','5','2','1','050','020'].forEach(k => {
-                document.getElementById('c' + k).value = cashBreakdown['c' + k] || 0;
-            });
-            calcCashBox(false);
-        }
-
-        function incrementCash(inputId) {
-            const input = document.getElementById(inputId);
-            input.value = (parseInt(input.value) || 0) + 1;
-            calcCashBox();
-        }
+        function showReceiptModal(imgDataUrl) { document.getElementById('receiptModalImg').src = imgDataUrl; document.getElementById('receiptModal').classList.add('active'); }
+        function closeReceiptModal() { document.getElementById('receiptModal').classList.remove('active'); document.getElementById('receiptModalImg').src = ''; }
+        function loadCashBreakdownToUI() { ['100','50','20','10','5','2','1','050','020'].forEach(k => { document.getElementById('c' + k).value = cashBreakdown['c' + k] || 0; }); calcCashBox(false); }
+        function incrementCash(inputId) { const input = document.getElementById(inputId); input.value = (parseInt(input.value) || 0) + 1; calcCashBox(); }
 
         function calcCashBox(shouldSave = true) {
-            ['100','50','20','10','5','2','1','050','020'].forEach(k => {
-                cashBreakdown['c' + k] = parseInt(document.getElementById('c' + k).value) || 0;
-            });
+            ['100','50','20','10','5','2','1','050','020'].forEach(k => { cashBreakdown['c' + k] = parseInt(document.getElementById('c' + k).value) || 0; });
             const total = (cashBreakdown.c100 * 100) + (cashBreakdown.c50 * 50) + (cashBreakdown.c20 * 20) + (cashBreakdown.c10 * 10) + (cashBreakdown.c5 * 5) + (cashBreakdown.c2 * 2) + (cashBreakdown.c1 * 1) + (cashBreakdown.c050 * 0.5) + (cashBreakdown.c020 * 0.2);
             document.getElementById('cashTotalBadge').innerText = total.toFixed(2) + ' €';
-            let kassetteGoal = goals.find(g => g.id === 'kassette');
-            if(kassetteGoal) kassetteGoal.manualCurrent = total;
+            let kassetteGoal = goals.find(g => g.id === 'kassette'); if(kassetteGoal) kassetteGoal.manualCurrent = total;
             if(shouldSave) { saveLocally(); renderHistory(); }
         }
 
-        function saveCashBoxLocally() {
-            calcCashBox(false); saveLocally(); alert('Bargeld-Stückelung gespeichert! 🪙'); renderHistory();
-        }
+        function saveCashBoxLocally() { calcCashBox(false); saveLocally(); alert('Bargeld-Stückelung gespeichert! 🪙'); renderHistory(); }
 
         function switchTab(viewId, btnEl) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active');
-            btnEl.classList.add('active');
+            document.getElementById(viewId).classList.add('active'); btnEl.classList.add('active');
             if(viewId === 'haushalt-view') renderHaushaltView();
             if(viewId === 'jahres-view') renderJahresView();
             if(viewId === 'urlaub-view') renderUrlaubView();
@@ -1156,41 +824,24 @@
         }
 
         function getSelectedMonthKey() { return document.getElementById('monthInput').value; }
-
-        function getNextMonthKey(currentKey) {
-            const parts = currentKey.split('-');
-            let y = parseInt(parts[0], 10);
-            let m = parseInt(parts[1], 10) + 1;
-            if (m > 12) { m = 1; y += 1; }
-            return `${y}-${String(m).padStart(2, '0')}`;
-        }
+        function getNextMonthKey(currentKey) { const parts = currentKey.split('-'); let y = parseInt(parts[0], 10); let m = parseInt(parts[1], 10) + 1; if (m > 12) { m = 1; y += 1; } return `${y}-${String(m).padStart(2, '0')}`; }
 
         function getMonthDataOrFallback(m) {
-            const sortedKeys = Object.keys(entries).sort();
-            const prevKey = sortedKeys.reverse().find(k => k < m);
+            const sortedKeys = Object.keys(entries).sort(); const prevKey = sortedKeys.reverse().find(k => k < m);
             let inheritedItems = [];
             if (prevKey && entries[prevKey] && entries[prevKey].items) {
-                inheritedItems = entries[prevKey].items.filter(i => {
-                    if (i.type !== 'dauer') return false;
-                    if (i.endDate && m > i.endDate) return false;
-                    return true;
-                });
+                inheritedItems = entries[prevKey].items.filter(i => { if (i.type !== 'dauer') return false; if (i.endDate && m > i.endDate) return false; return true; });
             }
             if (entries[m]) {
-                let existingItems = entries[m].items || [];
-                let existingNamesLower = new Set(existingItems.map(i => i.name.trim().toLowerCase()));
-                inheritedItems.forEach(inh => {
-                    if (!existingNamesLower.has(inh.name.trim().toLowerCase())) { existingItems.push(JSON.parse(JSON.stringify(inh))); }
-                });
-                entries[m].items = existingItems;
-                return entries[m];
+                let existingItems = entries[m].items || []; let existingNamesLower = new Set(existingItems.map(i => i.name.trim().toLowerCase()));
+                inheritedItems.forEach(inh => { if (!existingNamesLower.has(inh.name.trim().toLowerCase())) { existingItems.push(JSON.parse(JSON.stringify(inh))); } });
+                entries[m].items = existingItems; return entries[m];
             }
             return { gehalt: 0, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inheritedItems)), pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] };
         }
 
         function loadMonthData() {
-            const m = getSelectedMonthKey();
-            const item = getMonthDataOrFallback(m);
+            const m = getSelectedMonthKey(); const item = getMonthDataOrFallback(m);
             document.getElementById('gehaltBookedInput').checked = !!item.booked;
             document.getElementById('gehaltInput').value = item.gehalt || '';
             document.getElementById('bargeldEinnahmeInput').value = item.bargeldEinnahme || '';
@@ -1203,11 +854,7 @@
             updateTotalFixFromItems(); populateExtraTransferSelect(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView();
         }
 
-        function populateExtraTransferSelect() {
-            const select = document.getElementById('extraTransferGoalSelect');
-            if(!select) return; select.innerHTML = '';
-            goals.forEach(g => { const opt = document.createElement('option'); opt.value = g.id; opt.innerText = g.name; select.appendChild(opt); });
-        }
+        function populateExtraTransferSelect() { const select = document.getElementById('extraTransferGoalSelect'); if(!select) return; select.innerHTML = ''; goals.forEach(g => { const opt = document.createElement('option'); opt.value = g.id; opt.innerText = g.name; select.appendChild(opt); }); }
 
         function executeExtraTransfer() {
             const amount = parseFloat(document.getElementById('extraTransferAmount').value);
@@ -1215,14 +862,12 @@
             if(isNaN(amount) || amount <= 0) return alert('Bitte Betrag eingeben!');
             const restFreizeit = getRestFreizeitGeldCalculated();
             if(amount > restFreizeit && !confirm('Achtung: Höher als frei verfügbar! Trotzdem übertragen?')) return;
-            let goal = goals.find(g => g.id === targetId);
-            if(!goal) return;
+            let goal = goals.find(g => g.id === targetId); if(!goal) return;
             const m = getSelectedMonthKey();
             if(!entries[m]) { entries[m] = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0, bargeldEinnahme: 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }; }
             if(!entries[m].extraTransfers) entries[m].extraTransfers = [];
             entries[m].extraTransfers.push({ id: Date.now(), targetId: goal.id, targetName: goal.name, amount: amount });
-            saveLocally(); document.getElementById('extraTransferAmount').value = '';
-            alert(`${amount.toFixed(2)} € auf "${goal.name}" übertragen! 🚀`);
+            saveLocally(); document.getElementById('extraTransferAmount').value = ''; alert(`${amount.toFixed(2)} € auf "${goal.name}" übertragen! 🚀`);
             renderGoals(); renderHistory(); liveCalc();
         }
 
@@ -1234,67 +879,43 @@
             const keepAmount = parseFloat(keepInput) || 0;
             let distributable = restFreizeit - keepAmount;
             
-            if (distributable <= 0) {
-                alert(`Kein verteilbarer Restbetrag vorhanden! (Frei verfügbar: ${restFreizeit.toFixed(2)} €, Sockel: ${keepAmount.toFixed(2)} €)`);
-                return;
-            }
+            if (distributable <= 0) { alert(`Kein verteilbarer Restbetrag vorhanden!`); return; }
             
             let activeGoals = goals.filter(g => {
                 if (['notfall', 'freizeit', 'kassette'].includes(g.id)) return false;
                 if (!g.target || g.target <= 0) return true;
-                const currentVal = getSavedAmountForGoal(g);
-                return currentVal < g.target;
+                return getSavedAmountForGoal(g) < g.target;
             });
 
-            if (activeGoals.length === 0) {
-                alert("Glückwunsch! Alle deine Sparziele sind bereits zu 100 % voll! Das Geld bleibt komplett auf dem Freizeitkonto.");
-                return;
-            }
+            if (activeGoals.length === 0) { alert("Alle Sparziele sind bereits zu 100 % voll!"); return; }
 
             activeGoals.sort((a, b) => {
-                if (!a.targetDate) return 1;
-                if (!b.targetDate) return -1;
+                if (!a.targetDate) return 1; if (!b.targetDate) return -1;
                 return a.targetDate.localeCompare(b.targetDate);
             });
 
             const m = getSelectedMonthKey();
-            if (!entries[m]) {
-                entries[m] = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0, bargeldEinnahme: 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] };
-            }
+            if (!entries[m]) { entries[m] = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0, bargeldEinnahme: 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] }; }
             if (!entries[m].extraTransfers) entries[m].extraTransfers = [];
 
             let distributedSum = 0;
-
             activeGoals.forEach(goal => {
                 if (distributable <= 0) return;
-
                 const currentVal = getSavedAmountForGoal(goal);
                 const needed = goal.target > 0 ? (goal.target - currentVal) : distributable;
-
                 if (needed > 0) {
                     const allocation = Math.min(distributable, needed);
                     const roundedAlloc = Math.floor(allocation * 100) / 100;
-
                     if (roundedAlloc > 0) {
-                        entries[m].extraTransfers.push({
-                            id: Date.now() + Math.random(),
-                            targetId: goal.id,
-                            targetName: goal.name,
-                            amount: roundedAlloc
-                        });
-                        distributable -= roundedAlloc;
-                        distributedSum += roundedAlloc;
+                        entries[m].extraTransfers.push({ id: Date.now() + Math.random(), targetId: goal.id, targetName: goal.name, amount: roundedAlloc });
+                        distributable -= roundedAlloc; distributedSum += roundedAlloc;
                     }
                 }
             });
 
-            saveLocally();
-            liveCalc();
-
-            let message = `🎯 Smart verteilt:\n• ${distributedSum.toFixed(2)} € wurden intelligent auf deine offenen Ziele aufgeteilt!`;
-            if (distributable > 0) {
-                message += `\n• Restbetrag von ${distributable.toFixed(2)} € blieb als Puffer auf dem Freizeitkonto.`;
-            }
+            saveLocally(); liveCalc();
+            let message = `🎯 Smart verteilt:\n• ${distributedSum.toFixed(2)} € wurden verteilt!`;
+            if (distributable > 0) message += `\n• Restbetrag von ${distributable.toFixed(2)} € blieb als Puffer.`;
             alert(message);
         }
 
@@ -1303,8 +924,6 @@
             if(!entries[m] || !entries[m].extraTransfers) return;
             const trIndex = entries[m].extraTransfers.findIndex(t => t.id === transferId);
             if(trIndex === -1) return;
-            const tr = entries[m].extraTransfers[trIndex];
-            if(!confirm(`Überweisung von ${tr.amount.toFixed(2)} € stornieren?`)) return;
             entries[m].extraTransfers.splice(trIndex, 1);
             saveLocally(); alert('Storniert! ↩️'); renderGoals(); renderHistory(); liveCalc();
         }
@@ -1325,54 +944,67 @@
 
             haushaltItems.push({ id: Date.now(), name, amount, category, date, type: itemType, receipt: receiptDataUrl });
             if (isRepeat) {
-                const currentMonthKey = date.slice(0, 7);
-                const nextMKey = getNextMonthKey(currentMonthKey);
-                const [y, m] = nextMKey.split('-');
+                const currentMonthKey = date.slice(0, 7); const nextMKey = getNextMonthKey(currentMonthKey); const [y, m] = nextMKey.split('-');
                 haushaltItems.push({ id: Date.now() + 1, name, amount, category, date: `${y}-${m}-${date.slice(8, 10)}`, type: itemType, receipt: receiptDataUrl });
             }
             saveLocally(); document.getElementById('HHName').value = ''; document.getElementById('HHAmount').value = ''; document.getElementById('HHRepeatCheckbox').checked = false; document.getElementById('HHReceiptInput').value = ''; document.getElementById('HHDate').valueAsDate = new Date();
             renderHaushaltView(); renderJahresView();
         }
 
-        function deleteHaushaltItem(id) {
-            if(confirm('Buchung löschen?')) { haushaltItems = haushaltItems.filter(i => i.id !== id); saveLocally(); renderHaushaltView(); renderJahresView(); }
-        }
+        function deleteHaushaltItem(id) { if(confirm('Buchung löschen?')) { haushaltItems = haushaltItems.filter(i => i.id !== id); saveLocally(); renderHaushaltView(); renderJahresView(); } }
 
+        // GEGLÄTTETE INTELLIGENTE DYNAMISCHE DEDUCTION-LOGIK
         function getActiveDeductionsForGoal(goal, currentMonthKey) {
             if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
-            if (!goal.fixedMonthly || parseFloat(goal.fixedMonthly) <= 0) return 0;
-            if (goal.targetDate && currentMonthKey > goal.targetDate) return 0;
             
-            if (goal.capAtTarget && goal.target && goal.target > 0) { 
-                if (getSavedAmountForGoalUpTo(goal, currentMonthKey) >= goal.target) return 0; 
+            // Wenn explizit ein fixer Dauerauftrag eingegeben wurde:
+            if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
+                if (goal.targetDate && currentMonthKey > goal.targetDate) return 0;
+                if (goal.capAtTarget && goal.target && goal.target > 0) {
+                    if (getSavedAmountForGoalUpTo(goal, currentMonthKey) >= goal.target) return 0;
+                }
+                return parseFloat(goal.fixedMonthly);
             }
-            return parseFloat(goal.fixedMonthly);
+
+            // INTELLIGENTE GEGLÄTTETE RÜCKWÄRTS-BERECHNUNG:
+            if (goal.targetDate && goal.target && goal.target > 0) {
+                if (currentMonthKey > goal.targetDate) return 0;
+                const savedAlready = getSavedAmountForGoalUpTo(goal, currentMonthKey);
+                const remainingNeeded = goal.target - savedAlready;
+                if (remainingNeeded <= 0) return 0;
+
+                // Verbleibende Monate ab JETZT (Startmonat) berechnen für einen stabilen Pfad
+                const startM = getSelectedMonthKey();
+                const [tY, tM] = goal.targetDate.split('-').map(Number);
+                const [sY, sM] = startM.split('-').map(Number);
+                const totalMonthsFromStart = Math.max(1, (tY - sY) * 12 + (tM - sM) + 1);
+                
+                // Einheits-Monatsbeitrag basierend auf aktuellem Stand geglättet verteilen
+                const smoothMonthly = Math.ceil((remainingNeeded / totalMonthsFromStart) * 100) / 100;
+                return Math.min(remainingNeeded, smoothMonthly);
+            }
+
+            return 0;
         }
 
         function getRestFreizeitGeldCalculated() {
-            const m = getSelectedMonthKey();
-            const monthData = entries[m] || {};
+            const m = getSelectedMonthKey(); const monthData = entries[m] || {};
             const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, booked: document.getElementById('gehaltBookedInput').checked };
             const calc = calculateValuesFor(item);
-            let totalSparzielDeductions = 0;
-            goals.forEach(goal => { totalSparzielDeductions += getActiveDeductionsForGoal(goal, m); });
-            let extraTransfersSum = 0;
-            if(monthData.extraTransfers) { monthData.extraTransfers.forEach(tr => { extraTransfersSum += tr.amount; }); }
+            let totalSparzielDeductions = 0; goals.forEach(goal => { totalSparzielDeductions += getActiveDeductionsForGoal(goal, m); });
+            let extraTransfersSum = 0; if(monthData.extraTransfers) { monthData.extraTransfers.forEach(tr => { extraTransfersSum += tr.amount; }); }
             return Math.max(0, Math.round((calc.freizeitSparen - totalSparzielDeductions - extraTransfersSum) * 100) / 100);
         }
 
         function renderHaushaltView() {
-            const selectedM = getSelectedMonthKey();
-            document.getElementById('HHMonthDisplay').innerText = selectedM;
-            document.getElementById('hhMonthInput').value = selectedM;
+            const selectedM = getSelectedMonthKey(); document.getElementById('HHMonthDisplay').innerText = selectedM; document.getElementById('hhMonthInput').value = selectedM;
             const list = document.getElementById('HHList'); list.innerHTML = '';
             let totalSpent = 0, totalIncome = 0, categoryTotals = {};
             const filtered = (haushaltItems || []).filter(i => i.date && i.date.startsWith(selectedM));
             filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             filtered.forEach(item => {
-                const isIncome = item.type === 'income';
-                const amt = parseFloat(item.amount || 0);
+                const isIncome = item.type === 'income'; const amt = parseFloat(item.amount || 0);
                 if (isIncome) totalIncome += amt; else { totalSpent += amt; categoryTotals[item.category] = (categoryTotals[item.category] || 0) + amt; }
                 const div = document.createElement('div'); div.className = 'history-item';
                 let receiptBtnHtml = item.receipt ? `<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">🧾 Beleg</button>` : '';
@@ -1380,15 +1012,12 @@
                 list.appendChild(div);
             });
 
-            const chartCard = document.getElementById('categoryChartCard');
-            const chartContainer = document.getElementById('categoryChartContainer');
-            chartContainer.innerHTML = '';
+            const chartCard = document.getElementById('categoryChartCard'); const chartContainer = document.getElementById('categoryChartContainer'); chartContainer.innerHTML = '';
             const catKeys = Object.keys(categoryTotals);
             if (catKeys.length > 0 && totalSpent > 0) {
                 chartCard.style.display = 'block';
                 catKeys.forEach(cat => {
-                    const catVal = categoryTotals[cat];
-                    const percent = (catVal / totalSpent) * 100;
+                    const catVal = categoryTotals[cat]; const percent = (catVal / totalSpent) * 100;
                     const row = document.createElement('div'); row.className = 'chart-bar-row';
                     row.innerHTML = `<div class="chart-label-line"><span>${cat}</span><span class="val-red">${catVal.toFixed(2)} € (${percent.toFixed(1)}%)</span></div><div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${percent}%; background: var(--accent-orange);"></div></div>`;
                     chartContainer.appendChild(row);
@@ -1416,9 +1045,7 @@
             const restFreizeitBudget = getRestFreizeitGeldCalculated();
             document.getElementById('HHBudgetDisplay').innerText = restFreizeitBudget.toFixed(2) + ' €';
             const rest = restFreizeitBudget + totalIncome - totalSpent;
-            const restEl = document.getElementById('HHRestDisplay');
-            restEl.innerText = rest.toFixed(2) + ' €';
-            restEl.className = rest >= 0 ? 'val-highlight' : 'val-red';
+            const restEl = document.getElementById('HHRestDisplay'); restEl.innerText = rest.toFixed(2) + ' €'; restEl.className = rest >= 0 ? 'val-highlight' : 'val-red';
         }
 
         function getTotalFixForMonthData(itemData) {
@@ -1429,24 +1056,15 @@
 
         function updateTotalFixFromItems() {
             const total = currentMonthItems.reduce((sum, i) => currentMonthPausedItems.includes(i.name) ? sum : sum + parseFloat(i.amount || 0), 0);
-            document.getElementById('sumFixDisplay').innerText = total.toFixed(2) + ' €';
-            document.getElementById('fixkostenInput').value = total;
+            document.getElementById('sumFixDisplay').innerText = total.toFixed(2) + ' €'; document.getElementById('fixkostenInput').value = total;
         }
 
-        function toggleEndDateInput() {
-            document.getElementById('endDateGroup').style.display = (document.getElementById('expType').value === 'dauer') ? 'block' : 'none';
-        }
-
-        function openExpenseModal() {
-            document.getElementById('modalExpMonth').innerText = getSelectedMonthKey();
-            toggleEndDateInput(); renderExpenseItemsModal(); document.getElementById('expenseModal').classList.add('active');
-        }
-
+        function toggleEndDateInput() { document.getElementById('endDateGroup').style.display = (document.getElementById('expType').value === 'dauer') ? 'block' : 'none'; }
+        function openExpenseModal() { document.getElementById('modalExpMonth').innerText = getSelectedMonthKey(); toggleEndDateInput(); renderExpenseItemsModal(); document.getElementById('expenseModal').classList.add('active'); }
         function closeExpenseModal() { updateTotalFixFromItems(); document.getElementById('expenseModal').classList.remove('active'); autoSaveLive(); }
 
         function renderExpenseItemsModal() {
-            const list = document.getElementById('expenseItemsList'); list.innerHTML = '';
-            let total = 0;
+            const list = document.getElementById('expenseItemsList'); list.innerHTML = ''; let total = 0;
             currentMonthItems.forEach((item, index) => {
                 const isPaused = currentMonthPausedItems.includes(item.name);
                 if(!isPaused) total += parseFloat(item.amount || 0);
@@ -1467,10 +1085,7 @@
         }
 
         function addExpenseItem() {
-            const name = document.getElementById('expName').value.trim();
-            const amount = parseFloat(document.getElementById('expAmount').value);
-            const type = document.getElementById('expType').value;
-            const endDate = document.getElementById('expEndDate').value;
+            const name = document.getElementById('expName').value.trim(); const amount = parseFloat(document.getElementById('expAmount').value); const type = document.getElementById('expType').value; const endDate = document.getElementById('expEndDate').value;
             if(!name || isNaN(amount) || amount <= 0) return alert('Bitte Namen und Betrag eingeben!');
             currentMonthItems.push({ name, amount, type, endDate: type === 'dauer' ? endDate : null });
             document.getElementById('expName').value = ''; document.getElementById('expAmount').value = ''; document.getElementById('expEndDate').value = '';
@@ -1488,9 +1103,7 @@
             if (isDauer && deleteAll) {
                 const currentM = getSelectedMonthKey();
                 Object.keys(entries).forEach(mKey => {
-                    if (mKey >= currentM && entries[mKey] && entries[mKey].items) {
-                        entries[mKey].items = entries[mKey].items.filter(i => i.name.toLowerCase() !== deletedItem.name.toLowerCase());
-                    }
+                    if (mKey >= currentM && entries[mKey] && entries[mKey].items) { entries[mKey].items = entries[mKey].items.filter(i => i.name.toLowerCase() !== deletedItem.name.toLowerCase()); }
                 });
             }
             saveLocally(); renderExpenseItemsModal(); autoSaveLive();
@@ -1498,33 +1111,20 @@
 
         function calculateValuesFor(item) {
             if(!item) return { netto: 0, ueberschuss: 0, notfallSparen: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
-            const fix = getTotalFixForMonthData(item);
-            const g = (parseFloat(item.gehalt) || 0) + (parseFloat(item.bargeldEinnahme) || 0);
-            const netto = g - fix;
-            const ueberschuss = netto - (parseFloat(item.taschengeld) || 0);
-            let notfallSparen = 0;
-            const splitVal = parseFloat(item.splitNotfall) || 0;
-            const mode = item.splitMode || 'percent';
-            if (mode === 'fixed') notfallSparen = Math.max(0, Math.min(ueberschuss, splitVal));
-            else notfallSparen = ueberschuss * (splitVal / 100);
-
-            const bargeldSparen = parseFloat(item.bargeld) || 0;
-            const freizeitSparen = Math.max(0, ueberschuss - notfallSparen);
-            const gesamtSparen = notfallSparen + freizeitSparen + bargeldSparen;
+            const fix = getTotalFixForMonthData(item); const g = (parseFloat(item.gehalt) || 0) + (parseFloat(item.bargeldEinnahme) || 0);
+            const netto = g - fix; const ueberschuss = netto - (parseFloat(item.taschengeld) || 0);
+            let notfallSparen = 0; const splitVal = parseFloat(item.splitNotfall) || 0; const mode = item.splitMode || 'percent';
+            if (mode === 'fixed') notfallSparen = Math.max(0, Math.min(ueberschuss, splitVal)); else notfallSparen = ueberschuss * (splitVal / 100);
+            const bargeldSparen = parseFloat(item.bargeld) || 0; const freizeitSparen = Math.max(0, ueberschuss - notfallSparen); const gesamtSparen = notfallSparen + freizeitSparen + bargeldSparen;
             return { netto: Math.round(netto * 100) / 100, ueberschuss: Math.round(ueberschuss * 100) / 100, notfallSparen: Math.round(notfallSparen * 100) / 100, freizeitSparen: Math.round(freizeitSparen * 100) / 100, bargeldSparen: Math.round(bargeldSparen * 100) / 100, gesamtSparen: Math.round(gesamtSparen * 100) / 100 };
         }
 
         function liveCalc() {
-            const m = getSelectedMonthKey();
-            const monthData = entries[m] || {};
+            const m = getSelectedMonthKey(); const monthData = entries[m] || {};
             const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, booked: document.getElementById('gehaltBookedInput').checked };
             const calc = calculateValuesFor(item);
-            document.getElementById('displayMonth').innerText = m;
-            document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
-            document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
-            
-            let extraNotfallAmount = 0;
-            if (monthData.extraTransfers) { monthData.extraTransfers.forEach(tr => { if (tr.targetId === 'notfall') extraNotfallAmount += tr.amount; }); }
+            document.getElementById('displayMonth').innerText = m; document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €'; document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
+            let extraNotfallAmount = 0; if (monthData.extraTransfers) { monthData.extraTransfers.forEach(tr => { if (tr.targetId === 'notfall') extraNotfallAmount += tr.amount; }); }
             document.getElementById('resNotfall').innerText = (calc.notfallSparen + extraNotfallAmount).toFixed(2) + ' €';
             document.getElementById('resFreizeit').innerText = calc.freizeitSparen.toFixed(2) + ' €';
             
@@ -1593,121 +1193,62 @@
         }
 
         function calcATMNotesRecommendation() {
-            const m = getSelectedMonthKey();
-            const item = getMonthDataOrFallback(m);
-            const calc = calculateValuesFor(item);
-
-            let envelopes = [];
-            if (calc.notfallSparen > 0) {
-                envelopes.push({ name: "Notfallkonto", amount: Math.floor(calc.notfallSparen) });
-            }
-            goals.forEach(goal => {
-                let amt = getActiveDeductionsForGoal(goal, m);
-                if (amt > 0) {
-                    envelopes.push({ name: goal.name, amount: Math.floor(amt) });
-                }
-            });
+            const m = getSelectedMonthKey(); const item = getMonthDataOrFallback(m); const calc = calculateValuesFor(item);
+            let envelopes = []; if (calc.notfallSparen > 0) envelopes.push({ name: "Notfallkonto", amount: Math.floor(calc.notfallSparen) });
+            goals.forEach(goal => { let amt = getActiveDeductionsForGoal(goal, m); if (amt > 0) envelopes.push({ name: goal.name, amount: Math.floor(amt) }); });
             const monthData = entries[m] || {};
-            if (monthData.extraTransfers) {
-                monthData.extraTransfers.forEach(tr => {
-                    envelopes.push({ name: `Extra: ${tr.targetName}`, amount: Math.floor(tr.amount) });
-                });
-            }
-            let monthSparzielDeductions = 0;
-            goals.forEach(goal => { monthSparzielDeductions += getActiveDeductionsForGoal(goal, m); });
-            let extraTransfersSum = 0;
-            if (monthData.extraTransfers) { monthData.extraTransfers.forEach(tr => { extraTransfersSum += tr.amount; }); }
+            if (monthData.extraTransfers) { monthData.extraTransfers.forEach(tr => { envelopes.push({ name: `Extra: ${tr.targetName}`, amount: Math.floor(tr.amount) }); }); }
+            let monthSparzielDeductions = 0; goals.forEach(goal => { monthSparzielDeductions += getActiveDeductionsForGoal(goal, m); });
+            let extraTransfersSum = 0; if (monthData.extraTransfers) { monthData.extraTransfers.forEach(tr => { extraTransfersSum += tr.amount; }); }
             let freizeitRest = Math.max(0, calc.freizeitSparen - monthSparzielDeductions - extraTransfersSum);
-
-            if (freizeitRest > 0) {
-                envelopes.push({ name: "Frei verfügbar (Rest)", amount: Math.floor(freizeitRest) });
-            }
+            if (freizeitRest > 0) envelopes.push({ name: "Frei verfügbar (Rest)", amount: Math.floor(freizeitRest) });
 
             if (envelopes.length === 0) return alert('Keine Beträge zum Abheben vorhanden!');
-
-            const totalNotesCount = { 100: 0, 50: 0, 20: 0, 10: 0 };
-            let grandTotalToWithdraw = 0;
-
+            const totalNotesCount = { 100: 0, 50: 0, 20: 0, 10: 0 }; let grandTotalToWithdraw = 0;
             envelopes.forEach(env => {
-                let rem = env.amount;
-                grandTotalToWithdraw += env.amount;
-                [100, 50, 20, 10].forEach(note => {
-                    let count = Math.floor(rem / note);
-                    if (count > 0) {
-                        totalNotesCount[note] += count;
-                        rem -= count * note;
-                    }
-                });
+                let rem = env.amount; grandTotalToWithdraw += env.amount;
+                [100, 50, 20, 10].forEach(note => { let count = Math.floor(rem / note); if (count > 0) { totalNotesCount[note] += count; rem -= count * note; } });
             });
 
             document.getElementById('atmTotalDisplay').innerText = grandTotalToWithdraw.toFixed(2) + ' €';
-            const notesListEl = document.getElementById('atmNotesList'); 
-            notesListEl.innerHTML = '';
-
+            const notesListEl = document.getElementById('atmNotesList'); notesListEl.innerHTML = '';
             [100, 50, 20, 10].forEach(note => {
                 const count = totalNotesCount[note];
                 if (count > 0) {
-                    const div = document.createElement('div'); 
-                    div.className = 'history-item';
-                    div.innerHTML = `
-                        <div class="history-date">💵 ${note} € Scheine</div>
-                        <div><strong style="color:var(--accent); font-size:1.05rem;">${count}x</strong> (${count * note} €)</div>
-                    `;
+                    const div = document.createElement('div'); div.className = 'history-item';
+                    div.innerHTML = `<div class="history-date">💵 ${note} € Scheine</div><div><strong style="color:var(--accent); font-size:1.05rem;">${count}x</strong> (${count * note} €)</div>`;
                     notesListEl.appendChild(div);
                 }
             });
-
             document.getElementById('atmModal').classList.add('active');
         }
 
         function closeAtmModal() { document.getElementById('atmModal').classList.remove('active'); }
-
-        function saveCurrentMonthManual() {
-            autoSaveLive(); alert('Monat gesichert! 💾');
-            const m = getSelectedMonthKey();
-            if(entries[m] && entries[m].booked) checkAndOpenMonthClose(m);
-            renderHistory(); renderNextThree(m); renderJahresView();
-        }
+        function saveCurrentMonthManual() { autoSaveLive(); alert('Monat gesichert! 💾'); const m = getSelectedMonthKey(); if(entries[m] && entries[m].booked) checkAndOpenMonthClose(m); renderHistory(); renderNextThree(m); renderJahresView(); }
 
         function checkAndOpenMonthClose(monthKey) {
-            const selectedM = monthKey;
-            const tg = getRestFreizeitGeldCalculated();
-            let spent = 0, income = 0;
-            (haushaltItems || []).forEach(i => {
-                if(i.date && i.date.startsWith(selectedM)) {
-                    if(i.type === 'income') income += parseFloat(i.amount || 0); else spent += parseFloat(i.amount || 0);
-                }
-            });
+            const selectedM = monthKey; const tg = getRestFreizeitGeldCalculated(); let spent = 0, income = 0;
+            (haushaltItems || []).forEach(i => { if(i.date && i.date.startsWith(selectedM)) { if(i.type === 'income') income += parseFloat(i.amount || 0); else spent += parseFloat(i.amount || 0); } });
             const rest = tg + income - spent;
-            if(rest > 5) {
-                document.getElementById('closeRestAmount').innerText = rest.toFixed(2) + ' €';
-                document.getElementById('monthCloseModal').classList.add('active');
-            }
+            if(rest > 5) { document.getElementById('closeRestAmount').innerText = rest.toFixed(2) + ' €'; document.getElementById('monthCloseModal').classList.add('active'); }
         }
 
         function executeMonthClose() {
-            const restStr = document.getElementById('closeRestAmount').innerText;
-            const restAmount = parseFloat(restStr.replace(' €', '').replace(',', '.')) || 0;
+            const restStr = document.getElementById('closeRestAmount').innerText; const restAmount = parseFloat(restStr.replace(' €', '').replace(',', '.')) || 0;
             const targetChoice = document.getElementById('closeTargetSelect').value;
             if(targetChoice === 'kassette') { let g = goals.find(g => g.id === 'kassette'); if(g) g.manualCurrent = (parseFloat(g.manualCurrent) || 0) + restAmount; }
             else if(targetChoice === 'notfall') { let g = goals.find(g => g.id === 'notfall'); if(g) g.manualOffset = (parseFloat(g.manualOffset) || 0) + restAmount; }
             else if(targetChoice === 'freizeit') { let g = goals.find(g => g.id === 'freizeit'); if(g) g.manualOffset = (parseFloat(g.manualOffset) || 0) + restAmount; }
-            saveLocally(); document.getElementById('monthCloseModal').classList.remove('active');
-            alert(`${restAmount.toFixed(2)} € verbucht! 🎉`); renderGoals(); renderHistory();
+            saveLocally(); document.getElementById('monthCloseModal').classList.remove('active'); alert(`${restAmount.toFixed(2)} € verbucht! 🎉`); renderGoals(); renderHistory();
         }
 
         function closeMonthCloseModal() { document.getElementById('monthCloseModal').classList.remove('active'); }
-
         function selectMonthAndEdit(key) { syncMonthInput(key); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]); }
 
         function renderNextThree(currentMonthKey) {
-            const list = document.getElementById('nextThreeList'); list.innerHTML = '';
-            let tempKey = currentMonthKey;
+            const list = document.getElementById('nextThreeList'); list.innerHTML = ''; let tempKey = currentMonthKey;
             for(let i = 0; i < 3; i++) {
-                tempKey = getNextMonthKey(tempKey);
-                const item = getMonthDataOrFallback(tempKey);
-                const calc = calculateValuesFor(item);
-                const fix = getTotalFixForMonthData(item);
+                tempKey = getNextMonthKey(tempKey); const item = getMonthDataOrFallback(tempKey); const calc = calculateValuesFor(item); const fix = getTotalFixForMonthData(item);
                 const div = document.createElement('div'); div.className = 'history-item'; div.onclick = () => selectMonthAndEdit(tempKey);
                 div.innerHTML = `<div><div class="history-date">${tempKey} ${item.booked ? '<span class="badge badge-booked">Gebucht</span>' : ''}</div><div class="history-sub">Gehalt: ${item.gehalt || 0}€ | Fix: ${fix.toFixed(2)}€</div></div><div style="text-align:right;"><div class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</div><div class="history-sub">N:${calc.notfallSparen.toFixed(0)}€ | F:${calc.freizeitSparen.toFixed(0)}€</div></div>`;
                 list.appendChild(div);
@@ -1722,13 +1263,7 @@
             Object.keys(entries).sort().forEach(key => {
                 if (key < uptoMonthKey) {
                     const itemData = getMonthDataOrFallback(key);
-                    let add = 0;
-                    if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0 && (!goal.targetDate || key <= goal.targetDate)) {
-                        add = parseFloat(goal.fixedMonthly);
-                    }
-                    if (goal.capAtTarget && goal.target && goal.target > 0 && total >= goal.target) {
-                        add = 0;
-                    }
+                    let add = getActiveDeductionsForGoal(goal, key);
                     total += add;
                     if (itemData.extraTransfers) itemData.extraTransfers.forEach(tr => { if (tr.targetId === goal.id) total += tr.amount; });
                 }
@@ -1737,12 +1272,10 @@
         }
 
         function getGoalData(goalId) {
-            const sortedKeys = Object.keys(entries).sort();
-            const goal = goals.find(g => g.id === goalId);
+            const sortedKeys = Object.keys(entries).sort(); const goal = goals.find(g => g.id === goalId);
             if (!goal) return { total: 0, projectedTotal: 0, breakdown: [], avgMonthly: 0 };
             let runningSum = goalId === 'kassette' ? parseFloat(goal.manualCurrent || 0) : parseFloat(goal.manualOffset || goal.manualCurrent || 0);
-            let projectedSum = runningSum;
-            let breakdown = [];
+            let projectedSum = runningSum; let breakdown = [];
             let baseKey = document.getElementById('monthInput').value || "2026-12";
             let targetDateLimit = goal.targetDate ? goal.targetDate : "2028-12";
             let allMonths = new Set(sortedKeys); let simKey = baseKey;
@@ -1750,19 +1283,12 @@
             let totalContributedSoFar = 0, countMonths = 0;
 
             Array.from(allMonths).sort().forEach(key => {
-                const itemData = getMonthDataOrFallback(key);
-                const calc = calculateValuesFor(itemData);
+                const itemData = getMonthDataOrFallback(key); const calc = calculateValuesFor(itemData);
                 let regularMonthAdd = 0;
                 if(goalId === 'notfall') regularMonthAdd = calc.notfallSparen;
                 else if(goalId === 'freizeit') regularMonthAdd = calc.freizeitSparen;
                 else if(goalId === 'kassette') regularMonthAdd = calc.bargeldSparen;
-                else if (!goal.targetDate || key <= goal.targetDate) {
-                    if (goal.capAtTarget && goal.target > 0 && projectedSum >= goal.target) {
-                        regularMonthAdd = 0;
-                    } else {
-                        regularMonthAdd = parseFloat(goal.fixedMonthly) || 0;
-                    }
-                }
+                else regularMonthAdd = getActiveDeductionsForGoal(goal, key);
 
                 let extraThisMonth = 0;
                 if (itemData.extraTransfers) itemData.extraTransfers.forEach(tr => { if (tr.targetId === goalId) extraThisMonth += tr.amount; });
@@ -1788,14 +1314,12 @@
             
             let baseKey = document.getElementById('monthInput').value || "2026-12";
             let allMonthKeysSet = new Set(Object.keys(entries).sort());
-            let tempK = baseKey;
-            for(let i=0; i<12; i++) { allMonthKeysSet.add(tempK); tempK = getNextMonthKey(tempK); }
+            let tempK = baseKey; for(let i=0; i<12; i++) { allMonthKeysSet.add(tempK); tempK = getNextMonthKey(tempK); }
             let projRunningNotfall = runningNotfall, projRunningFreizeit = runningFreizeit, projRunningKassette = runningKassette;
             let netWorthHistory = [];
 
             Array.from(allMonthKeysSet).sort().forEach(key => {
-                const itemData = getMonthDataOrFallback(key);
-                const calc = calculateValuesFor(itemData);
+                const itemData = getMonthDataOrFallback(key); const calc = calculateValuesFor(itemData);
                 let extraNotfall = 0, extraFreizeit = 0, extraKassette = 0, extraTransfersMonthSum = 0;
                 if(itemData.extraTransfers) {
                     itemData.extraTransfers.forEach(tr => { 
@@ -1805,8 +1329,7 @@
                         extraTransfersMonthSum += tr.amount;
                     });
                 }
-                let monthSparzielDeductions = 0;
-                goals.forEach(goal => { monthSparzielDeductions += getActiveDeductionsForGoal(goal, key); });
+                let monthSparzielDeductions = 0; goals.forEach(goal => { monthSparzielDeductions += getActiveDeductionsForGoal(goal, key); });
                 let freiVerfubarMonat = Math.max(0, calc.freizeitSparen - monthSparzielDeductions - extraTransfersMonthSum);
 
                 if (itemData.booked) {
@@ -1814,9 +1337,7 @@
                     runningFreizeit += (calc.freizeitSparen + extraFreizeit);
                     runningKassette += (calc.bargeldSparen + extraKassette);
                 }
-                projRunningNotfall += (calc.notfallSparen + extraNotfall);
-                projRunningFreizeit += (calc.freizeitSparen + extraFreizeit);
-                projRunningKassette += (calc.bargeldSparen + extraKassette);
+                projRunningNotfall += (calc.notfallSparen + extraNotfall); projRunningFreizeit += (calc.freizeitSparen + extraFreizeit); projRunningKassette += (calc.bargeldSparen + extraKassette);
 
                 const totalMonthStand = itemData.booked ? (runningNotfall + runningFreizeit + runningKassette) : (projRunningNotfall + projRunningFreizeit + projRunningKassette);
                 netWorthHistory.push({ month: key, stand: totalMonthStand, booked: itemData.booked });
@@ -1847,9 +1368,7 @@
 
             for(let m = 1; m <= 12; m++) {
                 const monthKey = `${selectedYear}-${String(m).padStart(2, '0')}`;
-                const item = getMonthDataOrFallback(monthKey);
-                const calc = calculateValuesFor(item);
-                const fix = getTotalFixForMonthData(item);
+                const item = getMonthDataOrFallback(monthKey); const calc = calculateValuesFor(item); const fix = getTotalFixForMonthData(item);
                 const einnahmen = (parseFloat(item.gehalt) || 0) + (parseFloat(item.bargeldEinnahme) || 0);
                 let hhSpent = 0, hhIncome = 0;
                 (haushaltItems || []).forEach(hi => {
@@ -1871,10 +1390,7 @@
             document.getElementById('jahrEchteSparquote').innerText = (totalEinnahmen > 0 ? (totalEchtesSparen / totalEinnahmen) * 100 : 0).toFixed(1) + '%';
         }
 
-        function getActiveUrlaub() {
-            if (!urlaubeList || urlaubeList.length === 0) return null;
-            return urlaubeList.find(u => u.goalId === activeUrlaubGoalId) || urlaubeList[0];
-        }
+        function getActiveUrlaub() { if (!urlaubeList || urlaubeList.length === 0) return null; return urlaubeList.find(u => u.goalId === activeUrlaubGoalId) || urlaubeList[0]; }
 
         function openUrlaubPlanerForCurrentGoal() {
             if(!currentModalGoalId) return;
@@ -2034,7 +1550,7 @@
                     const m = getSelectedMonthKey();
                     const [tY, tM] = goal.targetDate.split('-').map(Number); const [mY, mM] = m.split('-').map(Number);
                     const diffMonths = (tY - mY) * 12 + (tM - mM) + 1;
-                    if (diffMonths > 0) monthlyNeededText = `Rückwärts: ca. ${Math.ceil(remaining / diffMonths)} €/Mo.`;
+                    if (diffMonths > 0) monthlyNeededText = `Geglättet: ca. ${(remaining / diffMonths).toFixed(2)} €/Mo.`;
                 }
 
                 let badgeGamification = percent >= 100 ? `<span class="badge badge-gamification">👑 100%! 🎉</span>` : (percent >= 75 ? `<span class="badge badge-gamification">🥇 75%</span>` : (percent >= 50 ? `<span class="badge badge-gamification">🥈 50%</span>` : (percent >= 25 ? `<span class="badge badge-gamification">🥉 25%</span>` : '')));
