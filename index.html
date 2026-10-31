@@ -782,8 +782,7 @@
             Object.keys(rawEntries).forEach(k => {
                 if (k >= "2026-12") {
                     entries[k] = rawEntries[k];
-                    // KOMPLETT BEREINIGT: Alle Extra-Transfers für jeden Monat löschen
-                    entries[k].extraTransfers = [];
+                    entries[k].extraTransfers = entries[k].extraTransfers || [];
                 }
             });
         }
@@ -794,9 +793,6 @@
             };
         }
 
-        localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
-
-        // HIER GEHT DER RESET DER SPARZIEL-DAUERAUFTRÄGE LOS:
         let goals = JSON.parse(localStorage.getItem('finanz_goals_local'));
         if (!goals) {
             goals = [
@@ -804,15 +800,12 @@
                 { id: "kassette", name: "Bargeld-Kassette (Tresor)", target: 1000, manualCurrent: 0, targetDate: "", capAtTarget: false }
             ];
         } else {
-            // Alle automatischen fixen Monats-Beträge (fixedMonthly) bei benutzerdefinierten Zielen auf 0 setzen,
-            // damit sie sich nicht ungefragt Beträge in die Monate ziehen!
             goals.forEach(g => {
                 if (!['notfall', 'freizeit', 'kassette'].includes(g.id)) {
-                    g.fixedMonthly = 0;
+                    if (g.fixedMonthly === undefined) g.fixedMonthly = 0;
                 }
             });
         }
-        localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
 
         let urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || [];
         let activeUrlaubGoalId = localStorage.getItem('finanz_active_urlaub_goal_local') || null;
@@ -847,16 +840,8 @@
         loadCashBreakdownToUI();
         updateLastUpdateDisplay();
         checkUrlaubTabVisibility();
-
-        if (cloudConfig.url) {
-            pullFromCloudNow(true).then(() => {
-                loadMonthData();
-                updateCloudStatusLabel();
-            });
-        } else {
-            loadMonthData();
-            updateCloudStatusLabel();
-        }
+        loadMonthData();
+        updateCloudStatusLabel();
 
         function checkUrlaubTabVisibility() {
             const tabBtn = document.getElementById('urlaubTabBtn');
@@ -928,7 +913,6 @@
             localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
             localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
             setTimestampNow();
-            triggerCloudSyncBackground();
         }
 
         function openCloudModal() {
@@ -962,11 +946,6 @@
             }
         }
 
-        function triggerCloudSyncBackground() {
-            if (!cloudConfig.url) return;
-            setTimeout(() => { syncWithCloudNow(true); }, 500);
-        }
-
         async function syncWithCloudNow(isBackground = false) {
             if (!cloudConfig.url) {
                 if (!isBackground) openCloudModal();
@@ -980,11 +959,11 @@
                 if (cloudConfig.key) { headers["X-Master-Key"] = cloudConfig.key; headers["X-Access-Key"] = cloudConfig.key; }
                 const response = await fetch(cloudConfig.url, { method: 'PUT', headers: headers, body: JSON.stringify(payload) });
                 if (response.ok && !isBackground) alert('Daten in der Cloud gespeichert! 📤☁️');
-            } catch (err) { console.error("Cloud Fehler:", err); }
+            } catch (err) { console.error("Cloud Fehler:", err); if (!isBackground) alert('Cloud-Speichern fehlgeschlagen (Netzwerkfehler).'); }
         }
 
         async function pullFromCloudNow(isSilent = false) {
-            if (!cloudConfig.url) return;
+            if (!cloudConfig.url) { if(!isSilent) openCloudModal(); return; }
             try {
                 let headers = {};
                 if (cloudConfig.key) { headers["X-Master-Key"] = cloudConfig.key; headers["X-Access-Key"] = cloudConfig.key; }
@@ -997,22 +976,19 @@
                         Object.keys(remoteData.entries).forEach(k => { 
                             if (k >= "2026-12") {
                                 entries[k] = remoteData.entries[k];
-                                entries[k].extraTransfers = [];
+                                entries[k].extraTransfers = entries[k].extraTransfers || [];
                             } 
                         });
-                        if(remoteData.goals) {
-                            goals = remoteData.goals;
-                            goals.forEach(g => { if (!['notfall', 'freizeit', 'kassette'].includes(g.id)) g.fixedMonthly = 0; });
-                        }
+                        if(remoteData.goals) goals = remoteData.goals;
                         if(remoteData.urlaubeList) urlaubeList = remoteData.urlaubeList;
                         if(remoteData.activeUrlaubGoalId) activeUrlaubGoalId = remoteData.activeUrlaubGoalId;
                         if(remoteData.cashBreakdown) cashBreakdown = remoteData.cashBreakdown;
                         if(remoteData.haushaltItems) haushaltItems = remoteData.haushaltItems;
                         saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI();
-                        if (!isSilent) alert('Daten geladen! 📥✨');
+                        if (!isSilent) alert('Daten aus Cloud geladen! 📥✨');
                     }
                 }
-            } catch (err) { console.error("Pull Fehler:", err); }
+            } catch (err) { console.error("Pull Fehler:", err); if (!isSilent) alert('Laden aus Cloud fehlgeschlagen.'); }
         }
 
         let calcVal = "0";
@@ -1074,19 +1050,16 @@
                             Object.keys(parsed.entries).forEach(k => { 
                                 if(k >= "2026-12") {
                                     entries[k] = parsed.entries[k];
-                                    entries[k].extraTransfers = [];
+                                    entries[k].extraTransfers = entries[k].extraTransfers || [];
                                 } 
                             }); 
                         }
-                        if(parsed.goals) {
-                            goals = parsed.goals;
-                            goals.forEach(g => { if (!['notfall', 'freizeit', 'kassette'].includes(g.id)) g.fixedMonthly = 0; });
-                        }
+                        if(parsed.goals) goals = parsed.goals;
                         if(parsed.urlaubeList) urlaubeList = parsed.urlaubeList;
                         if(parsed.activeUrlaubGoalId) activeUrlaubGoalId = parsed.activeUrlaubGoalId;
                         if(parsed.cashBreakdown) cashBreakdown = parsed.cashBreakdown;
                         if(parsed.haushaltItems) haushaltItems = parsed.haushaltItems;
-                        saveLocally(); alert('Backup eingespielt! 📂✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility();
+                        saveLocally(); alert('Backup eingespielt! 📂✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI();
                     } catch (err) { alert('Fehler: ' + err.message); }
                 };
             }
@@ -1253,7 +1226,6 @@
             renderGoals(); renderHistory(); liveCalc();
         }
 
-        // DER SMARTE RESTGELD-VERTEILER (Nach deinem Wunsch: Chronologisch vollmachen, Rest bleibt auf Freizeit)
         function distributeRestToGoals() {
             const restFreizeit = getRestFreizeitGeldCalculated();
             const keepInput = prompt(`Aktuell frei verfügbar: ${restFreizeit.toFixed(2)} €\n\nWie viel Betrag soll als Sockel auf dem Freizeitkonto BLEIBEN?`, "50");
@@ -1279,7 +1251,6 @@
                 return;
             }
 
-            // Sortierung nach Ziel-Datum oder Erstellung (chronologisch)
             activeGoals.sort((a, b) => {
                 if (!a.targetDate) return 1;
                 if (!b.targetDate) return -1;
@@ -1320,7 +1291,7 @@
             saveLocally();
             liveCalc();
 
-            let message = `🎯 Smart verteilt:\n• ${distributedSum.toFixed(2)} € wurden intelligent auf deine offenen Ziele aufgeteilt (chronologisch bis zum Anschlag)!`;
+            let message = `🎯 Smart verteilt:\n• ${distributedSum.toFixed(2)} € wurden intelligent auf deine offenen Ziele aufgeteilt!`;
             if (distributable > 0) {
                 message += `\n• Restbetrag von ${distributable.toFixed(2)} € blieb als Puffer auf dem Freizeitkonto.`;
             }
@@ -2165,7 +2136,7 @@
             const fixedMonthly = parseFloat(document.getElementById('zielFixedMonthly').value) || 0;
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
             const targetDate = document.getElementById('zielDatum').value;
-            const capAtTarget = document.getElementById('zielCapAtTargetCheckbox'].checked;
+            const capAtTarget = document.getElementById('zielCapAtTargetCheckbox').checked;
             const goalType = document.getElementById('zielTypeSelect').value;
             const autoUrlaub = document.getElementById('zielAutoUrlaubCheckbox').checked;
             const startDate = document.getElementById('zielStartDateInput').value;
