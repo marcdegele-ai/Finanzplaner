@@ -194,6 +194,16 @@
                         <input type="number" id="kontoPufferInput" value="200" min="0" oninput="autoSaveLive()">
                     </div>
 
+                    <div class="input-group full">
+                        <label class="checkbox-container" style="background:#f0fdf4; border-color:#a7f3d0;">
+                            <input type="checkbox" id="globalAutoDistributeCheckbox" onchange="autoSaveLive()">
+                            <div>
+                                <strong style="color:#065f46; font-size:0.85rem;">🔄 Restgeld-Automatik für alle Monate aktivieren</strong>
+                                <div style="font-size:0.72rem; color:var(--text-sub);">Verteilt das Restgeld über dem Puffer vollautomatisch auf offene Ziele & Notfallkonto.</div>
+                            </div>
+                        </label>
+                    </div>
+
                     <div class="input-group full" style="margin-top: 6px;"><button class="btn-add" style="background: var(--accent-green);" onclick="saveCurrentMonthManual()">💾 Monat manuell sichern</button></div>
                 </div>
             </div>
@@ -229,9 +239,9 @@
                 </div>
 
                 <div style="background: var(--card-sub); border: 1px solid var(--accent); padding: 14px; border-radius: 12px; margin: 10px 0;">
-                    <label style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 6px;">⚡ Restgeld-Verteiler (Smart)</label>
-                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Nimmt das variable Restgeld (über deinem Puffer) und füllt offene Ziele exakt bis zum Zielbetrag auf. Volle Ziele stoppen automatisch!</div>
-                    <button class="btn-secondary" style="width: 100%; background: var(--accent-orange); color: #fff; border: none; font-weight: bold; padding: 12px; border-radius:10px;" onclick="distributeRestToGoals()">🔄 Restgeld intelligent auf offene Sparziele verteilen</button>
+                    <label style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 6px;">⚡ Restgeld-Verteiler (Manuell)</label>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Nimmt das variable Restgeld (über deinem Puffer) und füllt offene Ziele exakt bis zum Zielbetrag auf.</div>
+                    <button class="btn-secondary" style="width: 100%; background: var(--accent-orange); color: #fff; border: none; font-weight: bold; padding: 12px; border-radius:10px;" onclick="distributeRestToGoals()">🔄 Restgeld jetzt manuell verteilen</button>
                 </div>
 
                 <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
@@ -562,7 +572,7 @@
 
         if (Object.keys(entries).length === 0) {
             entries = {
-                "2026-12": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', kontoPuffer: 200, booked: false, extraTransfers: [] }
+                "2026-12": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', kontoPuffer: 200, globalAutoDistribute: false, booked: false, extraTransfers: [] }
             };
         }
 
@@ -762,6 +772,7 @@
                 splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
                 splitMode: document.getElementById('splitModeSelect').value,
                 kontoPuffer: parseFloat(document.getElementById('kontoPufferInput').value) || 200,
+                globalAutoDistribute: document.getElementById('globalAutoDistributeCheckbox').checked,
                 booked: document.getElementById('gehaltBookedInput').checked,
                 extraTransfers: existingExtra
             };
@@ -869,7 +880,7 @@
                 inheritedItems.forEach(inh => { if (!existingNamesLower.has(inh.name.trim().toLowerCase())) { existingItems.push(JSON.parse(JSON.stringify(inh))); } });
                 entries[m].items = existingItems; return entries[m];
             }
-            return { gehalt: 0, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inheritedItems)), pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', kontoPuffer: 200, booked: false, extraTransfers: [] };
+            return { gehalt: 0, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inheritedItems)), pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', kontoPuffer: 200, globalAutoDistribute: false, booked: false, extraTransfers: [] };
         }
 
         function loadMonthData() {
@@ -882,6 +893,7 @@
             document.getElementById('splitModeSelect').value = item.splitMode || 'percent';
             document.getElementById('splitNotfallInput').value = item.splitNotfall ?? 15;
             document.getElementById('kontoPufferInput').value = item.kontoPuffer ?? 200;
+            document.getElementById('globalAutoDistributeCheckbox').checked = !!item.globalAutoDistribute;
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView();
@@ -909,13 +921,101 @@
 
         function getRestFreizeitGeldCalculated() {
             const m = getSelectedMonthKey(); const monthData = entries[m] || {};
-            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, kontoPuffer: parseFloat(document.getElementById('kontoPufferInput').value) || 200, booked: document.getElementById('gehaltBookedInput').checked };
+            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, kontoPuffer: parseFloat(document.getElementById('kontoPufferInput').value) || 200, globalAutoDistribute: document.getElementById('globalAutoDistributeCheckbox').checked, booked: document.getElementById('gehaltBookedInput').checked };
             const calc = calculateValuesFor(item);
             let totalSparzielDeductions = 0; goals.forEach(goal => { totalSparzielDeductions += getActiveDeductionsForGoal(goal, m); });
-            let extraTransfersSum = 0; if(monthData.extraTransfers) { monthData.extraTransfers.forEach(tr => { extraTransfersSum += tr.amount; }); }
+            let extraTransfersSum = 0; 
+            
+            let autoTrs = getAutoDistributedTransfersForMonth(m, item);
+            autoTrs.forEach(tr => extraTransfersSum += tr.amount);
+
+            if(monthData.extraTransfers) { 
+                monthData.extraTransfers.forEach(tr => { extraTransfersSum += tr.amount; }); 
+            }
             
             const kontoPuffer = parseFloat(document.getElementById('kontoPufferInput').value) || 200;
             return Math.max(0, Math.round((calc.freizeitSparen - totalSparzielDeductions - extraTransfersSum - kontoPuffer) * 100) / 100);
+        }
+
+        function getAutoDistributedTransfersForMonth(mKey, monthData) {
+            if (!monthData || !monthData.globalAutoDistribute) return [];
+            const calc = calculateValuesFor(monthData);
+            const kontoPuffer = parseFloat(monthData.kontoPuffer) || 200;
+
+            let totalSparzielDeductions = 0; goals.forEach(goal => { totalSparzielDeductions += getActiveDeductionsForGoal(goal, mKey); });
+            let manualExtraSum = 0; if (monthData.extraTransfers) monthData.extraTransfers.forEach(tr => manualExtraSum += tr.amount);
+
+            let distributable = calc.freizeitSparen - totalSparzielDeductions - kontoPuffer - manualExtraSum;
+            if (distributable <= 0) return [];
+
+            let activeGoals = goals.filter(g => {
+                if (['notfall', 'freizeit', 'kassette'].includes(g.id)) return false;
+                const u = urlaubeList.find(item => item.goalId === g.id);
+                if (u && u.endDate && mKey > u.endDate.slice(0, 7)) return false;
+                
+                if (g.target && g.target > 0) {
+                    const currentVal = getSavedAmountForGoalUpTo(g, mKey);
+                    if (currentVal >= g.target) return false;
+                }
+                return true;
+            });
+
+            let generatedTransfers = [];
+            let allocatedToNotfall = 0;
+
+            if (activeGoals.length === 0) {
+                allocatedToNotfall = distributable;
+                generatedTransfers.push({ id: 'auto_notfall_' + mKey, targetId: 'notfall', targetName: 'Notfallkonto', amount: allocatedToNotfall });
+                return generatedTransfers;
+            }
+
+            let workingDistributable = distributable;
+            while (workingDistributable > 0.01) {
+                let trulyActive = activeGoals.filter(g => {
+                    if (!g.target || g.target <= 0) return true;
+                    let currentVal = getSavedAmountForGoalUpTo(g, mKey);
+                    let addedThisRound = generatedTransfers.filter(tr => tr.targetId === g.id).reduce((s, tr) => s + tr.amount, 0);
+                    let manualAdded = (monthData.extraTransfers || []).filter(tr => tr.targetId === g.id).reduce((s, tr) => s + tr.amount, 0);
+                    return (currentVal + manualAdded + addedThisRound) < g.target;
+                });
+
+                if (trulyActive.length === 0) {
+                    allocatedToNotfall = workingDistributable;
+                    generatedTransfers.push({ id: 'auto_notfall_' + mKey, targetId: 'notfall', targetName: 'Notfallkonto', amount: allocatedToNotfall });
+                    workingDistributable = 0;
+                    break;
+                }
+
+                let sharePerGoal = Math.floor((workingDistributable / trulyActive.length) * 100) / 100;
+                if (sharePerGoal < 0.01) sharePerGoal = workingDistributable;
+
+                let allocatedInThisPass = 0;
+                for (let i = 0; i < trulyActive.length; i++) {
+                    let goal = trulyActive[i];
+                    let currentVal = getSavedAmountForGoalUpTo(goal, mKey);
+                    let manualAdded = (monthData.extraTransfers || []).filter(tr => tr.targetId === goal.id).reduce((s, tr) => s + tr.amount, 0);
+                    let addedThisRound = generatedTransfers.filter(tr => tr.targetId === goal.id).reduce((s, tr) => s + tr.amount, 0);
+                    let needed = goal.target > 0 ? (goal.target - (currentVal + manualAdded + addedThisRound)) : workingDistributable;
+
+                    let amountToAdd = Math.min(workingDistributable, sharePerGoal, needed);
+                    amountToAdd = Math.floor(amountToAdd * 100) / 100;
+
+                    if (amountToAdd > 0) {
+                        let existingTr = generatedTransfers.find(tr => tr.targetId === goal.id);
+                        if (existingTr) {
+                            existingTr.amount = Math.round((existingTr.amount + amountToAdd) * 100) / 100;
+                        } else {
+                            generatedTransfers.push({ id: 'auto_' + goal.id + '_' + mKey, targetId: goal.id, targetName: goal.name, amount: amountToAdd });
+                        }
+                        workingDistributable = Math.round((workingDistributable - amountToAdd) * 100) / 100;
+                        allocatedInThisPass += amountToAdd;
+                    }
+                }
+
+                if (allocatedInThisPass === 0) break;
+            }
+
+            return generatedTransfers;
         }
 
         function distributeRestToGoals() {
@@ -934,44 +1034,60 @@
                 return;
             }
 
-            // Exakter Filter: Nur Ziele, die noch nicht voll sind
             let activeGoals = goals.filter(g => {
                 if (['notfall', 'freizeit', 'kassette'].includes(g.id)) return false;
                 const u = urlaubeList.find(item => item.goalId === g.id);
                 if (u && u.endDate && m > u.endDate.slice(0, 7)) return false;
                 
                 if (g.target && g.target > 0) {
-                    const currentVal = getSavedAmountForGoalUpTo(g, m); // Bisheriger Stand vor diesem Restgeld
+                    const currentVal = getSavedAmountForGoalUpTo(g, m);
                     if (currentVal >= g.target) return false;
                 }
                 return true;
             });
 
-            if (activeGoals.length === 0) {
-                alert("Alle Sparziele sind bereits zu 100 % voll! Das Restgeld bleibt sicher als Puffer auf dem Konto. 👍");
-                return;
-            }
-
-            if (!entries[m]) { entries[m] = { gehalt: item.gehalt, bargeldEinnahme: item.bargeldEinnahme, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: item.bargeld, taschengeld: item.taschengeld, splitNotfall: item.splitNotfall, splitMode: item.splitMode, kontoPuffer: kontoPuffer, booked: item.booked, extraTransfers: [] }; }
+            if (!entries[m]) { entries[m] = { gehalt: item.gehalt, bargeldEinnahme: item.bargeldEinnahme, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: item.bargeld, taschengeld: item.taschengeld, splitNotfall: item.splitNotfall, splitMode: item.splitMode, kontoPuffer: kontoPuffer, globalAutoDistribute: item.globalAutoDistribute, booked: item.booked, extraTransfers: [] }; }
             if (!entries[m].extraTransfers) entries[m].extraTransfers = [];
 
             let distributedSum = 0;
+            let allocatedToNotfall = 0;
 
-            // Intelligente Verteilung mit strengem Max-Cap pro Ziel (stoppt exakt bei Erreichung des Zielbetrags!)
+            if (activeGoals.length === 0) {
+                allocatedToNotfall = distributable;
+                let existingTr = entries[m].extraTransfers.find(tr => tr.targetId === 'notfall');
+                if (existingTr) {
+                    existingTr.amount = Math.round((existingTr.amount + allocatedToNotfall) * 100) / 100;
+                } else {
+                    entries[m].extraTransfers.push({ id: Date.now() + Math.random(), targetId: 'notfall', targetName: 'Notfallkonto', amount: allocatedToNotfall });
+                }
+                saveLocally();
+                liveCalc();
+                alert(`🎯 Alle regulären Sparziele sind bereits voll!\n• Das gesamte Restgeld (${allocatedToNotfall.toFixed(2)} €) wurde intelligent auf dein Notfallkonto (als 2. Ziel) gebucht.`);
+                return;
+            }
+
             while (distributable > 0.01) {
-                // Nur die Ziele nehmen, die in dieser Runde noch Luft nach oben haben
                 let trulyActive = activeGoals.filter(g => {
                     if (!g.target || g.target <= 0) return true;
                     let currentVal = getSavedAmountForGoalUpTo(g, m);
-                    // Bereits zugeteilte Beträge aus dieser Runde einrechnen
                     let addedThisRound = entries[m].extraTransfers.filter(tr => tr.targetId === g.id).reduce((s, tr) => s + tr.amount, 0);
                     return (currentVal + addedThisRound) < g.target;
                 });
 
-                if (trulyActive.length === 0) break;
+                if (trulyActive.length === 0) {
+                    allocatedToNotfall = distributable;
+                    let existingTr = entries[m].extraTransfers.find(tr => tr.targetId === 'notfall');
+                    if (existingTr) {
+                        existingTr.amount = Math.round((existingTr.amount + allocatedToNotfall) * 100) / 100;
+                    } else {
+                        entries[m].extraTransfers.push({ id: Date.now() + Math.random(), targetId: 'notfall', targetName: 'Notfallkonto', amount: allocatedToNotfall });
+                    }
+                    distributable = 0;
+                    break;
+                }
 
                 let sharePerGoal = Math.floor((distributable / trulyActive.length) * 100) / 100;
-                if (sharePerGoal < 0.01) sharePerGoal = distributable; // Rest-Cent mitnehmen
+                if (sharePerGoal < 0.01) sharePerGoal = distributable;
 
                 let allocatedInThisPass = 0;
                 for (let i = 0; i < trulyActive.length; i++) {
@@ -1001,7 +1117,11 @@
 
             saveLocally();
             liveCalc();
-            alert(`🎯 Smart verteilt:\n• ${distributedSum.toFixed(2)} € wurden exakt bis zum Erreichen auf deine offenen Sparziele verteilt!\n• Volle Ziele wurden automatisch gestoppt.\n• Dein Puffer bleibt sicher erhalten.`);
+            let msg = `🎯 Smart verteilt:\n• Restgeld wurde exakt bis zum Zielbetrag auf deine offenen Sparziele verteilt!`;
+            if (allocatedToNotfall > 0) {
+                msg += `\n• Da die Ziele voll waren, wurden ${allocatedToNotfall.toFixed(2)} € automatisch auf das Notfallkonto gebucht.`;
+            }
+            alert(msg);
         }
 
         function cancelExtraTransfer(transferId) {
@@ -1067,15 +1187,25 @@
             } else chartCard.style.display = 'none';
 
             const monthData = entries[selectedM];
-            if(monthData && monthData.extraTransfers) {
-                monthData.extraTransfers.forEach(tr => {
-                    const div = document.createElement('div'); div.className = 'history-item'; div.style.background = '#f0f9ff'; div.style.borderColor = '#bae6fd';
-                    div.innerHTML = `<div><div class="history-date" style="color:var(--accent);">⚡ Restgeld-Verteilung: ${tr.targetName}</div><div class="history-sub">Automatisch zugewiesen</div></div><div style="text-align:right;"><span class="val-red" style="font-weight:bold;">-${tr.amount.toFixed(2)} €</span></div>`;
-                    list.appendChild(div);
+            let allExtraTrs = [];
+            if (monthData) {
+                if (monthData.extraTransfers) allExtraTrs = allExtraTrs.concat(monthData.extraTransfers);
+                let autoTrs = getAutoDistributedTransfersForMonth(selectedM, monthData);
+                autoTrs.forEach(atr => {
+                    if (!allExtraTrs.some(et => et.targetId === atr.targetId && et.amount === atr.amount)) {
+                        allExtraTrs.push(atr);
+                    }
                 });
             }
 
-            if(filtered.length === 0 && (!monthData || !monthData.extraTransfers || monthData.extraTransfers.length === 0)) {
+            allExtraTrs.forEach(tr => {
+                const div = document.createElement('div'); div.className = 'history-item'; div.style.background = '#f0f9ff'; div.style.borderColor = '#bae6fd';
+                let isAuto = String(tr.id).startsWith('auto_');
+                div.innerHTML = `<div><div class="history-date" style="color:var(--accent);">⚡ Restgeld-Verteilung${isAuto ? ' (Auto)' : ''}: ${tr.targetName}</div><div class="history-sub">Automatisch zugewiesen</div></div><div style="text-align:right;"><span class="val-red" style="font-weight:bold;">-${tr.amount.toFixed(2)} €</span></div>`;
+                list.appendChild(div);
+            });
+
+            if(filtered.length === 0 && allExtraTrs.length === 0) {
                 list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px; font-size:0.8rem;">Keine Haushalts-Buchungen vorhanden.</div>';
             }
 
@@ -1163,11 +1293,15 @@
 
         function liveCalc() {
             const m = getSelectedMonthKey(); const monthData = entries[m] || {};
-            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, kontoPuffer: parseFloat(document.getElementById('kontoPufferInput').value) || 200, booked: document.getElementById('gehaltBookedInput').checked };
+            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, kontoPuffer: parseFloat(document.getElementById('kontoPufferInput').value) || 200, globalAutoDistribute: document.getElementById('globalAutoDistributeCheckbox').checked, booked: document.getElementById('gehaltBookedInput').checked };
             const calc = calculateValuesFor(item);
             document.getElementById('displayMonth').innerText = m; document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €'; document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
             
-            let extraNotfallAmount = 0; if (monthData.extraTransfers) { monthData.extraTransfers.forEach(tr => { if (tr.targetId === 'notfall') extraNotfallAmount += tr.amount; }); }
+            let extraNotfallAmount = 0; 
+            let autoTrs = getAutoDistributedTransfersForMonth(m, item);
+            autoTrs.forEach(tr => { if (tr.targetId === 'notfall') extraNotfallAmount += tr.amount; });
+
+            if (monthData.extraTransfers) { monthData.extraTransfers.forEach(tr => { if (tr.targetId === 'notfall') extraNotfallAmount += tr.amount; }); }
             document.getElementById('resNotfall').innerText = (calc.notfallSparen + extraNotfallAmount).toFixed(2) + ' €';
             document.getElementById('resFreizeit').innerText = calc.freizeitSparen.toFixed(2) + ' €';
             
@@ -1181,6 +1315,12 @@
                     row.innerHTML = `<span>↳ Pflicht Dauerauftrag: <strong>${goal.name}</strong></span><span class="val-red">-${monthlyShare.toFixed(2)} €</span>`;
                     container.appendChild(row);
                 }
+            });
+
+            autoTrs.forEach(tr => {
+                const row = document.createElement('div'); row.className = 'stat-row sub-row';
+                row.innerHTML = `<span>⚡ Automatik-Verteilung: <strong>${tr.targetName}</strong></span><span class="val-red">-${tr.amount.toFixed(2)} €</span>`;
+                container.appendChild(row);
             });
 
             if(monthData.extraTransfers) {
@@ -1298,6 +1438,8 @@
                     let add = getActiveDeductionsForGoal(goal, key);
                     total += add;
                     if (itemData.extraTransfers) itemData.extraTransfers.forEach(tr => { if (tr.targetId === goal.id) total += tr.amount; });
+                    let autoTrs = getAutoDistributedTransfersForMonth(key, itemData);
+                    autoTrs.forEach(atr => { if (atr.targetId === goal.id) total += atr.amount; });
                 }
             });
             return total;
@@ -1332,6 +1474,9 @@
                 if (itemData.extraTransfers) {
                     itemData.extraTransfers.forEach(tr => { if (tr.targetId === goalId) extraForThisMonth += tr.amount; });
                 }
+                let autoTrs = getAutoDistributedTransfersForMonth(key, itemData);
+                autoTrs.forEach(atr => { if (atr.targetId === goalId) extraForThisMonth += atr.amount; });
+
                 totalMonthAdd += extraForThisMonth;
 
                 if (totalMonthAdd > 0 || itemData.booked || key <= baseKey) {
@@ -1362,6 +1507,15 @@
             Array.from(allMonthKeysSet).sort().forEach(key => {
                 const itemData = getMonthDataOrFallback(key); const calc = calculateValuesFor(itemData);
                 let extraNotfall = 0, extraFreizeit = 0, extraKassette = 0, extraTransfersMonthSum = 0;
+                
+                let autoTrs = getAutoDistributedTransfersForMonth(key, itemData);
+                autoTrs.forEach(tr => {
+                    if(tr.targetId === 'notfall') extraNotfall += tr.amount;
+                    if(tr.targetId === 'freizeit') extraFreizeit += tr.amount;
+                    if(tr.targetId === 'kassette') extraKassette += tr.amount;
+                    extraTransfersMonthSum += tr.amount;
+                });
+
                 if(itemData.extraTransfers) {
                     itemData.extraTransfers.forEach(tr => { 
                         if(tr.targetId === 'notfall') extraNotfall += tr.amount;
