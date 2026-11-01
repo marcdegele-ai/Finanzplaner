@@ -132,8 +132,8 @@
                         <label class="checkbox-container">
                             <input type="checkbox" id="gehaltBookedInput" onchange="autoSaveLive()">
                             <div>
-                                <strong style="color:var(--accent-green); font-size:0.85rem;">Gehalt für diesen Monat gebucht / erhalten ✅</strong>
-                                <div style="font-size:0.72rem; color:var(--text-sub);">Haken setzen, sobald das Geld da ist. Erst ab dann greifen Sparziele.</div>
+                                <strong style="color:var(--accent-green); font-size:0.85rem;">Gehalt für diesen Monat gebucht / erhalten ✅[span_0](start_span)[span_0](end_span)</strong>
+                                <div style="font-size:0.72rem; color:var(--text-sub);">Haken setzen, sobald das Geld da ist. Erst ab dann greifen Sparziele[span_1](start_span)[span_1](end_span).</div>
                             </div>
                         </label>
                     </div>
@@ -258,8 +258,8 @@
             <div class="card">
                 <div class="card-title">📊 Monats-Bilanz (<span id="HHMonthDisplay">-</span>)</div>
                 <div class="stat-row"><span>Fixkosten-Quote:</span><span id="fixQuoteDisplay" class="val-red">0.0%</span></div>
-                <div class="stat-row"><span>Ausgaben:</span><span id="HHTotalDisplay" class="val-red">0,00 €</span></div>
-                <div class="stat-row"><span>Einnahmen (extra):</span><span id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</span></div>
+                <div class="stat-row"><span>Ausgaben (Ist / Geplant):</span><span><strong id="HHTotalDisplay" class="val-red">0,00 €</strong> / <span id="HHPlannedExpenseDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
+                <div class="stat-row"><span>Einnahmen (Ist / Geplant):</span><span><strong id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</strong> / <span id="HHPlannedIncomeDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
                 <div class="stat-row" style="font-weight:bold;"><span>Rest-Budget:</span><span id="HHRestDisplay">0,00 €</span></div>
             </div>
 
@@ -303,10 +303,10 @@
             </div>
 
             <div class="card">
-                <div class="card-title">📈 Monatsübersicht</div>
+                <div class="card-title">📈 Monatsübersicht (Ist vs. Geplant)</div>
                 <div class="table-wrapper">
                     <table class="month-table">
-                        <thead><tr><th>Monat</th><th>Status</th><th>Sparrate</th><th>Notfall</th><th>Freizeit</th><th>Frei</th><th>Gesamt</th></tr></thead>
+                        <thead><tr><th>Monat</th><th>Status</th><th>Sparrate (Geplant)</th><th>Notfall</th><th>Freizeit</th><th>Frei</th><th>Gesamt</th></tr></thead>
                         <tbody id="monthSavingsTableBody"></tbody>
                     </table>
                 </div>
@@ -322,7 +322,7 @@
                         <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
                     </select>
                 </div>
-                <div class="stat-row"><span>Gesamteinnahmen:</span><span id="jahrEinnahmen" class="val-highlight">0,00 €</span></div>
+                <div class="stat-row"><span>Gesamteinnahmen (Ist / Geplant):</span><span><strong id="jahrEinnahmen" class="val-highlight">0,00 €</strong> / <span id="jahrGeplantEinnahmen" style="color:var(--text-sub);">0,00 €</span></span></div>
                 <div class="stat-row"><span>Fixkosten:</span><span id="jahrFix" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Haushalt-Ausgaben:</span><span id="jahrHaushaltAusgaben" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Echtes Sparen (Netto):</span><span id="jahrEchtesSparen" class="val-highlight">0,00 €</span></div>
@@ -341,7 +341,7 @@
             <div class="card">
                 <div class="card-title"><span id="uHeaderTitle">✈️ Urlaub</span></div>
                 <div class="stat-row"><span>Ziel:</span><strong id="uTargetGoalName" style="color:var(--accent);">-</strong></div>
-                <div class="stat-row"><span>Gesamtbudget:</span><span id="uTargetBudgetDisplay" class="val-highlight">0,00 €</span></div>
+                <div class="stat-row"><span>Gesamtbudget (Aktuell / Geplant):</span><span><strong id="uTargetBudgetDisplay" class="val-highlight">0,00 €</strong> / <span id="uPlannedBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
                 <button class="btn-secondary" style="width:100%; margin-top:10px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-weight:bold;" onclick="deleteCurrentUrlaubPlan()">🗑️ Planer löschen</button>
             </div>
             <div class="card">
@@ -433,7 +433,8 @@
             <div class="input-group" style="margin-bottom: 8px;"><label>Zielbetrag (€):</label><input type="number" id="modalTargetInput"></div>
             <div class="input-group" style="margin-bottom: 8px;"><label>Dauerauftrag (€/Mo):</label><input type="number" id="modalFixedMonthlyInput"></div>
             <div class="input-group" style="margin-bottom: 8px;"><label>End-Monat:</label><input type="month" id="modalEndMonthInput"></div>
-            <div class="input-group" style="margin-bottom: 8px;"><label>Stand (€):</label><input type="number" id="modalCurrentInput"></div>
+            <div class="input-group" style="margin-bottom: 8px;"><label>Stand (Aktuell / Geplant):</label><span><strong id="modalCurrentInputDisplay">0</strong> / <span id="modalPlannedStandDisplay">0</span></span></div>
+            <div class="input-group" style="margin-bottom: 8px;"><input type="number" id="modalCurrentInput" style="display:none;"></div>
             <div style="background:#e0f2fe; padding:10px; border-radius:10px; margin-bottom:12px;">
                 <label style="color:#0369a1; font-weight:bold;">🔄 Umbuchung</label>
                 <div class="grid" style="gap:6px; margin-top:4px;">
@@ -874,7 +875,12 @@
 
         function renderHaushaltView() {
             const m = getSelectedMonthKey(); document.getElementById('HHMonthDisplay').innerText = m; document.getElementById('hhMonthInput').value = m;
-            const list = document.getElementById('HHList'); list.innerHTML = ''; let totalSpent = 0, totalIncome = 0, catTotals = {};
+            const list = document.getElementById('HHList'); list.innerHTML = ''; let totalSpent = 0, totalIncome = 0, plannedExpense = 0, plannedIncome = 0, catTotals = {};
+            
+            // Geplante Fixkosten als geplante Ausgaben einbeziehen
+            const itemData = getMonthDataOrFallback(m);
+            plannedExpense += getTotalFixForMonthData(itemData);
+
             (haushaltItems || []).filter(i => i.date?.startsWith(m)).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(item => {
                 const isInc = item.type === 'income', amt = parseFloat(item.amount || 0);
                 if (isInc) totalIncome += amt; else { totalSpent += amt; catTotals[item.category] = (catTotals[item.category] || 0) + amt; }
@@ -898,7 +904,9 @@
             const gehalt = parseFloat(document.getElementById('gehaltInput').value) || 2300, fix = parseFloat(document.getElementById('fixkostenInput').value) || 0;
             document.getElementById('fixQuoteDisplay').innerText = `${(gehalt > 0 ? (fix / gehalt) * 100 : 0).toFixed(1)}% (${fix.toFixed(2)} €)`;
             document.getElementById('HHTotalDisplay').innerText = totalSpent.toFixed(2) + ' €';
+            document.getElementById('HHPlannedExpenseDisplay').innerText = plannedExpense.toFixed(2) + ' €';
             document.getElementById('HHIncomeTotalDisplay').innerText = '+' + totalIncome.toFixed(2) + ' €';
+            document.getElementById('HHPlannedIncomeDisplay').innerText = '+' + gehalt.toFixed(2) + ' €';
             const rest = getRestFreizeitGeldCalculated() + totalIncome - totalSpent;
             const restEl = document.getElementById('HHRestDisplay'); restEl.innerText = rest.toFixed(2) + ' €'; restEl.className = rest >= 0 ? 'val-highlight' : 'val-red';
         }
@@ -1063,7 +1071,8 @@
             Array.from(allM).sort().forEach(k => {
                 const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
                 let add = 0;
-                if(item.booked) {
+                // Zeige geplante Beträge für die Zukunft, Ist-Beträge für vergangene/gebuchte Monate
+                if(item.booked || k >= getSelectedMonthKey()) {
                     if(goalId === 'notfall') add = calc.notfallSparen;
                     else if(goalId === 'kassette') add = calc.bargeldSparen;
                     else if(goalId !== 'freizeit') add = getActiveDeductionsForGoal(goal, k);
@@ -1093,10 +1102,10 @@
 
             Array.from(allM).sort().forEach(k => {
                 const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
-                let extraN = 0; (item.extraTransfers || []).forEach(tr => { if(tr.targetId === 'notfall') extraN += tr.amount; });
-                if(item.booked) { runningNotfall += calc.notfallSparen + extraN; runningFreizeit += calc.freizeitSparen; runningKassette += calc.bargeldSparen; }
+                let extraN = 0; (item.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall') extraN += tr.amount; });
+                if(item.booked || k >= getSelectedMonthKey()) { runningNotfall += calc.notfallSparen + extraN; runningFreizeit += calc.freizeitSparen; runningKassette += calc.bargeldSparen; }
                 const total = runningNotfall + runningFreizeit + runningKassette; netWorth.push({ month: k, stand: total, booked: item.booked });
-                tableBody.innerHTML += `<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'⏳'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</td><td>${runningNotfall.toFixed(2)} €</td><td>${calc.freizeitSparen.toFixed(2)} €</td><td>${total.toFixed(2)} €</td></tr>`;
+                tableBody.innerHTML += `<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'⏳'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} € (Geplant)</td><td>${runningNotfall.toFixed(2)} €</td><td>${calc.freizeitSparen.toFixed(2)} €</td><td>${total.toFixed(2)} €</td></tr>`;
             });
             renderNetWorthChart(netWorth); renderGoals();
         }
@@ -1106,23 +1115,27 @@
             const max = Math.max(...data.map(d=>d.stand), 1);
             data.forEach(d => {
                 const pct = (d.stand / max) * 100;
-                container.innerHTML += `<div class="chart-bar-row"><div class="chart-line"><span>${d.month} ${d.booked?'✅':''}</span><span class="val-highlight">${d.stand.toFixed(2)} €</span></div><div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div></div>`;
+                container.innerHTML += `<div class="chart-bar-row"><div class="chart-line"><span>${d.month} ${d.booked?'✅':'(Geplant)'}</span><span class="val-highlight">${d.stand.toFixed(2)} €</span></div><div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div></div>`;
             });
         }
 
         function renderJahresView() {
-            const yr = document.getElementById('selectYear').value; let einnahmen = 0, fix = 0, spent = 0, echt = 0;
+            const yr = document.getElementById('selectYear').value; let einnahmen = 0, geplantEinnahmen = 0, fix = 0, spent = 0, echt = 0;
             for(let m=1; m<=12; m++) {
                 const mk = `${yr}-${String(m).padStart(2,'0')}`, item = getMonthDataOrFallback(mk), calc = calculateValuesFor(item);
-                einnahmen += (item.gehalt || 2300) + (item.bargeldEinnahme || 0); fix += getTotalFixForMonthData(item);
+                let e = (item.gehalt || 2300) + (item.bargeldEinnahme || 0);
+                geplantEinnahmen += e;
+                if(item.booked) einnahmen += e;
+                fix += getTotalFixForMonthData(item);
                 (haushaltItems || []).forEach(hi => { if(hi.date?.startsWith(mk) && hi.type !== 'income') spent += parseFloat(hi.amount || 0); });
                 echt += calc.gesamtSparen - spent;
             }
             document.getElementById('jahrEinnahmen').innerText = einnahmen.toFixed(2) + ' €';
+            document.getElementById('jahrGeplantEinnahmen').innerText = geplantEinnahmen.toFixed(2) + ' € (Geplant)';
             document.getElementById('jahrFix').innerText = fix.toFixed(2) + ' €';
             document.getElementById('jahrHaushaltAusgaben').innerText = spent.toFixed(2) + ' €';
             document.getElementById('jahrEchtesSparen').innerText = echt.toFixed(2) + ' €';
-            document.getElementById('jahrEchteSparquote').innerText = (einnahmen > 0 ? (echt / einnahmen) * 100 : 0).toFixed(1) + '%';
+            document.getElementById('jahrEchteSparquote').innerText = (geplantEinnahmen > 0 ? (echt / geplantEinnahmen) * 100 : 0).toFixed(1) + '%';
         }
 
         function getActiveUrlaub() { return urlaubeList.find(u => u.goalId === activeUrlaubGoalId) || urlaubeList[0]; }
@@ -1132,14 +1145,16 @@
             const goal = goals.find(g => g.id === u.goalId);
             document.getElementById('uHeaderTitle').innerText = goal ? goal.name : 'Urlaub';
             document.getElementById('uTargetGoalName').innerText = goal ? goal.name : '-';
-            const target = goal ? goal.target : 0; document.getElementById('uTargetBudgetDisplay').innerText = target.toFixed(2) + ' €';
+            const target = goal ? goal.target : 0; 
+            document.getElementById('uTargetBudgetDisplay').innerText = getSavedAmountForGoal(goal).toFixed(2) + ' € (Aktuell)';
+            document.getElementById('uPlannedBudgetDisplay').innerText = target.toFixed(2) + ' € (Ziel)';
             document.getElementById('uFixHotel').value = u.fixHotel || 0; document.getElementById('uFixKurtaxe').value = u.fixKurtaxe || 0;
             document.getElementById('uFixSupermarkt').value = u.fixSupermarkt || 0; document.getElementById('uFixBusHin').value = u.fixBusHin || 0;
             document.getElementById('uFixAbreisePuffer').value = u.fixAbreisePuffer || 0;
 
             let days = 4; if (u.startDate && u.endDate) days = Math.max(1, Math.floor((new Date(u.endDate) - new Date(u.startDate))/(1000*60*60*24))+1);
             const fixSum = (u.fixHotel||0) + (u.fixKurtaxe||0) + (u.fixSupermarkt||0) + (u.fixBusHin||0) + (u.fixAbreisePuffer||0);
-            const net = Math.max(0, getSavedAmountForGoal(goal) - fixSum), base = net / days;
+            const net = Math.max(0, target - fixSum), base = net / days;
             
             const tbody = document.getElementById('urlaubTableBody'); tbody.innerHTML = '';
             for(let i=0; i<days; i++) {
@@ -1161,7 +1176,7 @@
             goals.forEach((g, idx) => {
                 const cur = getSavedAmountForGoal(g), pct = g.target > 0 ? Math.min(100, (cur / g.target) * 100) : 0;
                 const data = getGoalData(g.id);
-                list.innerHTML += `<div class="goal-card-box" onclick="openModal('${g.id}')"><div style="display:flex; justify-content:space-between;"><div><strong>${g.name}</strong></div><div><strong>${pct.toFixed(1)}%</strong></div></div><div class="history-sub">Stand: ${cur.toFixed(2)} € / ${g.target.toFixed(2)} €</div><div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div><div class="history-sub" style="margin-top:4px;">Prognose: <strong>${data.projectedTotal.toFixed(2)} €</strong></div></div>`;
+                list.innerHTML += `<div class="goal-card-box" onclick="openModal('${g.id}')"><div style="display:flex; justify-content:space-between;"><div><strong>${g.name}</strong></div><div><strong>${pct.toFixed(1)}%</strong></div></div><div class="history-sub">Stand: ${cur.toFixed(2)} € / Ziel: ${g.target.toFixed(2)} €</div><div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div><div class="history-sub" style="margin-top:4px;">Geplante Endsumme: <strong>${data.projectedTotal.toFixed(2)} €</strong></div></div>`;
             });
             populateManualDistributeDropdown();
         }
@@ -1172,14 +1187,19 @@
             document.getElementById('modalTargetInput').value = g.target;
             document.getElementById('modalFixedMonthlyInput').value = g.fixedMonthly || '';
             document.getElementById('modalEndMonthInput').value = g.endDate || '';
-            document.getElementById('modalCurrentInput').value = ['notfall','freizeit'].includes(g.id) ? g.manualOffset : g.manualCurrent;
+            
+            const cur = ['notfall','freizeit'].includes(g.id) ? g.manualOffset : g.manualCurrent;
+            const planned = getGoalData(gid).projectedTotal;
+            document.getElementById('modalCurrentInputDisplay').innerText = cur.toFixed(2) + ' €';
+            document.getElementById('modalPlannedStandDisplay').innerText = planned.toFixed(2) + ' €';
+            document.getElementById('modalCurrentInput').value = cur;
             
             const sel = document.getElementById('transferTargetSelect'); sel.innerHTML = '';
             goals.forEach(x => { if(x.id !== gid) sel.add(new Option(x.name, x.id)); });
 
             const hist = document.getElementById('modalHistoryList'); hist.innerHTML = '';
             getGoalData(gid).breakdown.forEach(b => {
-                hist.innerHTML += `<div class="history-item"><div>${b.month}</div><div class="val-highlight">+${b.amount.toFixed(2)} €</div></div>`;
+                hist.innerHTML += `<div class="history-item"><div>${b.month}</div><div class="val-highlight">+${b.amount.toFixed(2)} € (Geplant)</div></div>`;
             });
             document.getElementById('goalModal').classList.add('active');
         }
@@ -1218,7 +1238,7 @@
             const id = 'goal_' + Date.now(), type = document.getElementById('zielTypeSelect').value;
             goals.push({ id, name, target, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), endDate: document.getElementById('zielAutoDivideCheckbox').checked?document.getElementById('zielEndMonthInput').value:null, manualCurrent: parseFloat(document.getElementById('zielStart').value)||0, manualOffset:0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked });
             if(document.getElementById('zielAutoUrlaubCheckbox').checked) {
-                urlaubeList.push({ goalId: id, startDate: document.getElementById('zielStartDateInput').value, endDate: document.getElementById('zielEndDateInput').value });
+                urlaubeList.push({ goalId: id, startDate: document.getElementById('zielStartDateInput').value, endDate: document.getElementById('zielEndDateInput'].value });
                 activeUrlaubGoalId = id;
             }
             saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = '';
