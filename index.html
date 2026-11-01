@@ -347,12 +347,12 @@
             <div class="card">
                 <div class="card-title">📌 Fixkosten & Verpflegung</div>
                 <div class="grid">
-                    <div class="input-group"><label>Hotel (€)</label><input type="number" id="uFixHotel" oninput="saveUrlaubConfigDynamic()"></div>
-                    <div class="input-group"><label>Kurtaxe (€)</label><input type="number" id="uFixKurtaxe" oninput="saveUrlaubConfigDynamic()"></div>
-                    <div class="input-group"><label>Supermarkt (€)</label><input type="number" id="uFixSupermarkt" oninput="saveUrlaubConfigDynamic()"></div>
-                    <div class="input-group"><label>Anreise (€)</label><input type="number" id="uFixBusHin" oninput="saveUrlaubConfigDynamic()"></div>
-                    <div class="input-group"><label>Puffer (€)</label><input type="number" id="uFixAbreisePuffer" oninput="saveUrlaubConfigDynamic()"></div>
-                    <div class="input-group"><label>Abreisetag Fix (€)</label><input type="number" id="uFixAbreiseTag" placeholder="z.B. 30" oninput="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Hotel (€)</label><input type="number" id="uFixHotel" onchange="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Kurtaxe (€)</label><input type="number" id="uFixKurtaxe" onchange="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Supermarkt (€)</label><input type="number" id="uFixSupermarkt" onchange="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Anreise (€)</label><input type="number" id="uFixBusHin" onchange="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Puffer (€)</label><input type="number" id="uFixAbreisePuffer" onchange="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Abreisetag Fix (€)</label><input type="number" id="uFixAbreiseTag" placeholder="z.B. 30" onchange="saveUrlaubConfigDynamic()"></div>
                 </div>
             </div>
             <div class="card">
@@ -1340,7 +1340,7 @@
             const id = 'goal_' + Date.now(), type = document.getElementById('zielTypeSelect').value;
             goals.push({ id, name, target, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), endDate: document.getElementById('zielAutoDivideCheckbox').checked?document.getElementById('zielEndMonthInput').value:null, manualCurrent: parseFloat(document.getElementById('zielStart').value)||0, manualOffset:0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked });
             if(document.getElementById('zielAutoUrlaubCheckbox').checked) {
-                urlaubeList.push({ goalId: id, startDate: document.getElementById('zielStartDateInput').value, endDate: document.getElementById('zielEndDateInput'].value });
+                urlaubeList.push({ goalId: id, startDate: document.getElementById('zielStartDateInput').value, endDate: document.getElementById('zielEndDateInput').value });
                 activeUrlaubGoalId = id;
             }
             saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = '';
