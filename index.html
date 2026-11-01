@@ -132,8 +132,8 @@
                         <label class="checkbox-container">
                             <input type="checkbox" id="gehaltBookedInput" onchange="autoSaveLive()">
                             <div>
-                                <strong style="color:var(--accent-green); font-size:0.85rem;">Gehalt für diesen Monat gebucht / erhalten ✅[span_0](start_span)[span_0](end_span)</strong>
-                                <div style="font-size:0.72rem; color:var(--text-sub);">Haken setzen, sobald das Geld da ist. Erst ab dann greifen Sparziele[span_1](start_span)[span_1](end_span).</div>
+                                <strong style="color:var(--accent-green); font-size:0.85rem;">Gehalt für diesen Monat gebucht / erhalten ✅</strong>
+                                <div style="font-size:0.72rem; color:var(--text-sub);">Haken setzen, sobald das Geld da ist. Erst ab dann greifen Sparziele.</div>
                             </div>
                         </label>
                     </div>
@@ -504,9 +504,21 @@
         let lastUpdateTime = localStorage.getItem('finanz_last_update_time') || '-';
         let currentModalGoalId = null, currentMonthItems = [], currentMonthPausedItems = [], syncTimeout = null;
 
-        document.getElementById('monthInput').value = "2026-12";
-        document.getElementById('hhMonthInput').value = "2026-12";
-        document.getElementById('HHDate').valueAsDate = new Date();
+        window.addEventListener('DOMContentLoaded', () => {
+            const mInput = document.getElementById('monthInput');
+            const hhInput = document.getElementById('hhMonthInput');
+            const hhDate = document.getElementById('HHDate');
+            if(mInput) mInput.value = "2026-12";
+            if(hhInput) hhInput.value = "2026-12";
+            if(hhDate) hhDate.valueAsDate = new Date();
+
+            updateHHKategorien();
+            loadCashBreakdownToUI();
+            updateLastUpdateDisplay();
+            checkUrlaubTabVisibility();
+            loadMonthData();
+            updateCloudStatusLabel();
+        });
 
         function toggleAutoUrlaubFields() {
             const isChecked = document.getElementById('zielAutoUrlaubCheckbox').checked;
@@ -524,8 +536,6 @@
             document.getElementById('zielEndMonthGroup').style.display = document.getElementById('zielAutoDivideCheckbox').checked ? 'block' : 'none';
             autoCalculateMonthlyRate();
         }
-
-        updateHHKategorien(); loadCashBreakdownToUI(); updateLastUpdateDisplay(); checkUrlaubTabVisibility(); loadMonthData(); updateCloudStatusLabel();
 
         function autoCalculateMonthlyRate() {
             const target = parseFloat(document.getElementById('zielBetrag').value) || 0;
@@ -877,7 +887,6 @@
             const m = getSelectedMonthKey(); document.getElementById('HHMonthDisplay').innerText = m; document.getElementById('hhMonthInput').value = m;
             const list = document.getElementById('HHList'); list.innerHTML = ''; let totalSpent = 0, totalIncome = 0, plannedExpense = 0, plannedIncome = 0, catTotals = {};
             
-            // Geplante Fixkosten als geplante Ausgaben einbeziehen
             const itemData = getMonthDataOrFallback(m);
             plannedExpense += getTotalFixForMonthData(itemData);
 
@@ -1071,7 +1080,6 @@
             Array.from(allM).sort().forEach(k => {
                 const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
                 let add = 0;
-                // Zeige geplante Beträge für die Zukunft, Ist-Beträge für vergangene/gebuchte Monate
                 if(item.booked || k >= getSelectedMonthKey()) {
                     if(goalId === 'notfall') add = calc.notfallSparen;
                     else if(goalId === 'kassette') add = calc.bargeldSparen;
