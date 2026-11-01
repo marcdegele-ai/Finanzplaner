@@ -1344,7 +1344,7 @@
             const id = 'goal_' + Date.now(), type = document.getElementById('zielTypeSelect').value;
             goals.push({ id, name, target, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), endDate: document.getElementById('zielAutoDivideCheckbox').checked?document.getElementById('zielEndMonthInput').value:null, manualCurrent: parseFloat(document.getElementById('zielStart').value)||0, manualOffset:0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked });
             if(document.getElementById('zielAutoUrlaubCheckbox').checked) {
-                urlaubeList.push({ goalId: id, startDate: document.getElementById('zielStartDateInput').value, endDate: document.getElementById('zielEndDateInput'].value });
+                urlaubeList.push({ goalId: id, startDate: document.getElementById('zielStartDateInput').value, endDate: document.getElementById('zielEndDateInput').value });
                 activeUrlaubGoalId = id;
             }
             saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = '';
