@@ -1155,7 +1155,7 @@
 
         function executeSmartDistribution() {
             const restFreizeit = getRestFreizeitGeldCalculated();
-            if (restFreizeit <= 0) return alert('Du hast aktuell kein frei verfügbares Restgeld zum Verteilen!');
+            if (restFreizeit <= 0) return alert('Du aktuell kein frei verfügbares Restgeld zum Verteilen!');
             
             const goal1Id = document.getElementById('smartDistGoal1').value;
             const goal2Id = document.getElementById('smartDistGoal2').value;
@@ -1576,9 +1576,13 @@
             }
 
             if(goal.id === 'freizeit') return getGoalData(goal.id).total;
-            let total = parseFloat(goal.manualCurrent || goal.manualOffset || 0);
+            
+            let total = parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             Object.keys(entries).sort().forEach(key => {
                 if (key < uptoMonthKey) {
+                    if (goal.startMonth && key < goal.startMonth) {
+                        return;
+                    }
                     const itemData = getMonthDataOrFallback(key);
                     let add = getActiveDeductionsForGoal(goal, key);
                     total += add;
@@ -1664,6 +1668,9 @@
             let finalSum = goalId === 'kassette' ? parseFloat(goal.manualCurrent || 0) : parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             if (goalId !== 'notfall' && goalId !== 'kassette') {
                 Object.keys(entries).sort().forEach(key => {
+                    if (goal && goal.startMonth && key < goal.startMonth) {
+                        return;
+                    }
                     if (key <= baseKey || entries[key].booked) {
                         finalSum += getActiveDeductionsForGoal(goal, key);
                         let itemData = getMonthDataOrFallback(key);
