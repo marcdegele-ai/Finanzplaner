@@ -189,7 +189,7 @@
                         <input type="number" id="splitNotfallInput" min="0" placeholder="z.B. 15 oder 150" oninput="autoSaveLive()">
                     </div>
 
-                    <!-- NEU: Fester Mindestpuffer auf dem Konto -->
+                    <!-- Fester Mindestpuffer auf dem Konto -->
                     <div class="input-group full">
                         <label>🛡️ Fester Mindest-Puffer auf dem Konto (€) (bleibt frei verfügbar)</label>
                         <input type="number" id="kontoPufferInput" value="200" min="0" oninput="autoSaveLive()">
@@ -231,7 +231,7 @@
 
                 <div style="background: var(--card-sub); border: 1px solid var(--accent); padding: 14px; border-radius: 12px; margin: 10px 0;">
                     <label style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 6px;">⚡ Restgeld-Verteiler (Smart)</label>
-                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Behält deinen festen Puffer (z.B. 200€) auf dem Konto und verteilt alles darüber automatisch auf deine offenen Sparziele!</div>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Behält deinen festen Puffer auf dem Konto und verteilt alles darüber automatisch auf deine offenen Sparziele!</div>
                     <button class="btn-secondary" style="width: 100%; background: var(--accent-orange); color: #fff; border: none; font-weight: bold; padding: 12px; border-radius:10px;" onclick="distributeRestToGoals()">🔄 Restgeld intelligent auf Sparziele verteilen</button>
                 </div>
 
@@ -546,7 +546,7 @@
     <div id="expenseModal" class="modal"><div class="modal-content"><div class="card-title">Ausgaben für <span id="modalExpMonth" style="color:var(--accent);">-</span></div><div class="grid" style="gap: 8px; margin-bottom: 12px;"><div class="input-group full"><label>Bezeichnung</label><input type="text" id="expName" placeholder="Name der Ausgabe..."></div><div class="input-group"><label>Betrag (€)</label><input type="number" id="expAmount" placeholder="z.B. 750"></div><div class="input-group"><label>Art der Ausgabe</label><select id="expType" onchange="toggleEndDateInput()"><option value="dauer">🔄 Dauerauftrag</option><option value="einmalig">⚡ Einmalig</option></select></div><div class="input-group full" id="endDateGroup"><label>Gültig bis Monat (optional)</label><input type="month" id="expEndDate"></div><div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Ausgabe hinzufügen</button></div></div><div style="font-weight: 600; margin-bottom: 6px; font-size: 0.82rem; color: var(--accent);">Aktuelle Ausgabenliste:</div><div class="history-list" id="expenseItemsList" style="margin-bottom: 14px;"></div><div class="stat-row" style="font-weight: bold; margin-bottom: 14px;"><span>Gesamtsumme Ausgaben:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div><button class="btn-add" onclick="closeExpenseModal()">Übernehmen & Schließen</button></div></div>
     <div id="monthCloseModal" class="modal"><div class="modal-content"><div class="card-title">🏁 Monatsabschluss & Kassensturz</div><p style="font-size:0.85rem; color:var(--text-sub); margin-bottom:14px;">Restliches Budget übertragen?</p><div class="stat-row" style="margin-bottom:14px;"><span>Verbleibender Restbetrag:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div><div class="input-group" style="margin-bottom: 14px;"><label>Ziel:</label><select id="closeTargetSelect"><option value="kassette">🪙 Bargeld-Kassette</option><option value="notfall">🛡️ Notfallkonto</option><option value="freizeit">🎉 Freizeitkonto</option></select></div><button class="btn-add" onclick="executeMonthClose()" style="background:var(--accent-green); margin-bottom: 8px;">Restbetrag buchen 🚀</button><button class="btn-secondary" onclick="closeMonthCloseModal()" style="width:100%;">Überspringen</button></div></div>
     <div id="cloudModal" class="modal"><div class="modal-content"><div class="card-title">☁️ Cloud-Sync & Einstellungen</div><div class="input-group" style="margin-bottom: 8px;"><label>Cloud Sync URL:</label><input type="text" id="cloudSyncUrlInput"></div><div class="input-group" style="margin-bottom: 14px;"><label>API Key:</label><input type="password" id="cloudSyncKeyInput"></div><button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 8px;">Speichern ☁️</button><button class="btn-secondary" onclick="pullFromCloudNow()" style="width:100%; margin-bottom: 6px;">Laden (Pull) 📥</button><button class="btn-secondary" onclick="syncWithCloudNow()" style="width:100%; margin-bottom: 8px;">Speichern (Push) 📤</button><button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button></div></div>
-    <div id="goalModal" class="modal"><div class="modal-content"><div class="card-title" id="modalTitle">Ziel-Details</div><div class="input-group" style="margin-bottom: 10px;"><label>Zielbetrag (€):</label><input type="number" id="modalTargetInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>Fixer monatlicher Dauerauftrag (Pflicht) (€):</label><input type="number" id="modalFixedMonthlyInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>Aktueller Stand (€):</label><input type="number" id="modalCurrentInput"></div><div class="input-group full" style="margin-bottom: 10px;"><label class="checkbox-container" style="background:#f0fdf4; border-color:#a7f3d0;"><input type="checkbox" id="modalCapAtTargetCheckbox"><div><strong style="color:#065f46; font-size:0.85rem;">🛑 Automatic-Stopp bei 100%</strong></div></label></div><div id="modalUrlaubLinkRow" style="display:none; margin-bottom:14px;"><button class="btn-secondary" style="width:100%; background:#fef3c7; color:#b45309; font-weight:bold; padding:10px; border-radius:10px;" onclick="openUrlaubPlanerForCurrentGoal()">✈️ Zum Urlaubs-Planer 🌴</button></div><div style="background:var(--card-sub); border:1px solid var(--accent-green); padding:12px; border-radius:12px; margin-bottom:14px;"><label style="color:var(--accent-green); font-weight:bold;">➕ Einzahlen</label><div style="display:flex; gap:6px; margin-top:4px;"><input type="number" id="manualDepositAmount" placeholder="Betrag (€)" style="flex:1;"><button class="btn-secondary" style="background:var(--accent-green); color:#fff;" onclick="addManualDepositToGoal()">Einzahlen</button></div></div><div style="background:var(--card-sub); border:1px solid #ef4444; padding:12px; border-radius:12px; margin-bottom:14px;"><label style="color:#ef4444; font-weight:bold;">➖ Abheben</label><div style="display:flex; gap:6px; margin-top:4px;"><input type="number" id="manualWithdrawAmount" placeholder="Betrag (€)" style="flex:1;"><button class="btn-secondary" style="background:#ef4444; color:#fff;" onclick="withdrawManualFromGoal()">Abheben</button></div></div><div id="cashTransferBox" style="display:none; background:var(--card-sub); border:1px solid var(--accent-orange); padding:12px; border-radius:12px; margin-bottom:14px;"><label style="color:var(--accent-orange); font-weight:bold;">💵 Umbuchung in Bargeld-Kassette</label><div style="display:flex; gap:6px; margin-top:4px;"><input type="number" id="transferCashAmount" style="flex:1;"><button class="btn-secondary" style="background:#ef4444; color:#fff;" onclick="transferFreizeitToKassette()">Einzahlen 🪙</button></div></div><button class="btn-add" onclick="saveModalChanges()" style="margin-bottom: 10px;">Speichern</button><button class="btn-add" onclick="deleteCurrentModalGoal()" style="background:#ef4444; color:#fff; margin-bottom: 14px;">🗑️ Löschen</button><div style="font-weight: 600; margin-bottom: 6px; font-size: 0.82rem;">📅 Zuweisungen:</div><div class="history-list" id="modalHistoryList"></div><button class="btn-add" onclick="closeModal()" style="background: var(--border); color: var(--text-main); margin-top: 14px;">Schließen</button></div></div>
+    <div id="goalModal" class="modal"><div class="modal-content"><div class="card-title" id="modalTitle">Ziel-Details</div><div class="input-group" style="margin-bottom: 10px;"><label>Zielbetrag (€):</label><input type="number" id="modalTargetInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>Fixer monatlicher Dauerauftrag (Pflicht) (€):</label><input type="number" id="modalFixedMonthlyInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>Aktueller Stand (€):</label><input type="number" id="modalCurrentInput"></div><div id="modalUrlaubDatesGroup" style="display:none; gap:8px; margin-bottom:10px;"><div class="input-group"><label>Urlaub Start:</label><input type="date" id="modalStartDateInput"></div><div class="input-group"><label>Urlaub Ende:</label><input type="date" id="modalEndDateInput"></div></div><div class="input-group full" style="margin-bottom: 10px;"><label class="checkbox-container" style="background:#f0fdf4; border-color:#a7f3d0;"><input type="checkbox" id="modalCapAtTargetCheckbox"><div><strong style="color:#065f46; font-size:0.85rem;">🛑 Automatic-Stopp bei 100%</strong></div></label></div><div id="modalUrlaubLinkRow" style="display:none; margin-bottom:14px;"><button class="btn-secondary" style="width:100%; background:#fef3c7; color:#b45309; font-weight:bold; padding:10px; border-radius:10px;" onclick="openUrlaubPlanerForCurrentGoal()">✈️ Zum Urlaubs-Planer 🌴</button></div><div style="background:var(--card-sub); border:1px solid var(--accent-green); padding:12px; border-radius:12px; margin-bottom:14px;"><label style="color:var(--accent-green); font-weight:bold;">➕ Einzahlen</label><div style="display:flex; gap:6px; margin-top:4px;"><input type="number" id="manualDepositAmount" placeholder="Betrag (€)" style="flex:1;"><button class="btn-secondary" style="background:var(--accent-green); color:#fff;" onclick="addManualDepositToGoal()">Einzahlen</button></div></div><div style="background:var(--card-sub); border:1px solid #ef4444; padding:12px; border-radius:12px; margin-bottom:14px;"><label style="color:#ef4444; font-weight:bold;">➖ Abheben</label><div style="display:flex; gap:6px; margin-top:4px;"><input type="number" id="manualWithdrawAmount" placeholder="Betrag (€)" style="flex:1;"><button class="btn-secondary" style="background:#ef4444; color:#fff;" onclick="withdrawManualFromGoal()">Abheben</button></div></div><div id="cashTransferBox" style="display:none; background:var(--card-sub); border:1px solid var(--accent-orange); padding:12px; border-radius:12px; margin-bottom:14px;"><label style="color:var(--accent-orange); font-weight:bold;">💵 Umbuchung in Bargeld-Kassette</label><div style="display:flex; gap:6px; margin-top:4px;"><input type="number" id="transferCashAmount" style="flex:1;"><button class="btn-secondary" style="background:#ef4444; color:#fff;" onclick="transferFreizeitToKassette()">Einzahlen 🪙</button></div></div><button class="btn-add" onclick="saveModalChanges()" style="margin-bottom: 10px;">Speichern</button><button class="btn-add" onclick="deleteCurrentModalGoal()" style="background:#ef4444; color:#fff; margin-bottom: 14px;">🗑️ Löschen</button><div style="font-weight: 600; margin-bottom: 6px; font-size: 0.82rem;">📅 Zuweisungen:</div><div class="history-list" id="modalHistoryList"></div><button class="btn-add" onclick="closeModal()" style="background: var(--border); color: var(--text-main); margin-top: 14px;">Schließen</button></div></div>
     <div id="receiptModal" class="modal"><div class="modal-content" style="text-align:center;"><div class="card-title">🧾 Beleg-Vorschau</div><div style="max-height:60vh; overflow:auto; margin-bottom:12px; border:1px solid var(--border); border-radius:12px; padding:6px;"><img id="receiptModalImg" src="" style="max-width:100%; border-radius:8px; display:block; margin:0 auto;" alt="Kassenbon"></div><button class="btn-add" onclick="closeReceiptModal()" style="background:var(--accent);">Schließen</button></div></div>
 
     <script>
@@ -869,7 +869,6 @@
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView();
         }
 
-        // PFLICHT-DAUERAUFTRÄGE ALS FESTER ABZUG
         function getActiveDeductionsForGoal(goal, currentMonthKey) {
             if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
             if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
@@ -888,12 +887,10 @@
             let totalSparzielDeductions = 0; goals.forEach(goal => { totalSparzielDeductions += getActiveDeductionsForGoal(goal, m); });
             let extraTransfersSum = 0; if(monthData.extraTransfers) { monthData.extraTransfers.forEach(tr => { extraTransfersSum += tr.amount; }); }
             
-            // Puffer abziehen, damit der Rest exakt das ist, was über dem Puffer frei ist
             const kontoPuffer = parseFloat(document.getElementById('kontoPufferInput').value) || 200;
             return Math.max(0, Math.round((calc.freizeitSparen - totalSparzielDeductions - extraTransfersSum - kontoPuffer) * 100) / 100);
         }
 
-        // INTELLIGENTER RESTGELD-VERTEILER (Puffer bleibt unangetastet, Rest wandert in Sparziele)
         function distributeRestToGoals() {
             const m = getSelectedMonthKey();
             const item = getMonthDataOrFallback(m);
@@ -902,7 +899,6 @@
 
             let totalSparzielDeductions = 0; goals.forEach(goal => { totalSparzielDeductions += getActiveDeductionsForGoal(goal, m); });
             
-            // Berechne echtes verteilbares Geld über dem Puffer (inkl. bisheriger Extra-Transfers)
             let extraTransfersSum = 0; if(entries[m] && entries[m].extraTransfers) { entries[m].extraTransfers.forEach(tr => extraTransfersSum += tr.amount); }
             let distributable = calc.freizeitSparen - totalSparzielDeductions - kontoPuffer - extraTransfersSum;
 
@@ -1341,7 +1337,7 @@
 
             for(let m = 1; m <= 12; m++) {
                 const monthKey = `${selectedYear}-${String(m).padStart(2, '0')}`;
-                const item = getMonthDataOrFallback(monthKey); const calc = calculateValuesFor(item); const fix = getTotalFixForMonthData(item);
+                const item = getMonthDataOrFallback(monthKey); const calc = calculateValuesFor(item); const fix = getTotalFixForMonthData(monthKey);
                 const einnahmen = (parseFloat(item.gehalt) || 0) + (parseFloat(item.bargeldEinnahme) || 0);
                 let hhSpent = 0, hhIncome = 0;
                 (haushaltItems || []).forEach(hi => {
@@ -1514,7 +1510,18 @@
             document.getElementById('manualDepositAmount').value = ''; 
             document.getElementById('manualWithdrawAmount').value = '';
             
-            document.getElementById('modalUrlaubLinkRow').style.display = urlaubeList.some(u => u.goalId === goal.id) ? 'block' : 'none';
+            const urlaubMatch = urlaubeList.find(u => u.goalId === goal.id);
+            const urlaubDatesGroup = document.getElementById('modalUrlaubDatesGroup');
+            if (urlaubMatch) {
+                urlaubDatesGroup.style.display = 'grid';
+                document.getElementById('modalStartDateInput').value = urlaubMatch.startDate || '';
+                document.getElementById('modalEndDateInput').value = urlaubMatch.endDate || '';
+                document.getElementById('modalUrlaubLinkRow').style.display = 'block';
+            } else {
+                urlaubDatesGroup.style.display = 'none';
+                document.getElementById('modalUrlaubLinkRow').style.display = 'none';
+            }
+
             document.getElementById('cashTransferBox').style.display = (goal.id === 'freizeit') ? 'block' : 'none';
             document.getElementById('modalCurrentInput').value = ['notfall', 'freizeit'].includes(goal.id) ? (goal.manualOffset || 0) : (goal.manualCurrent || 0);
 
@@ -1568,6 +1575,13 @@
                 goal.target = parseFloat(document.getElementById('modalTargetInput').value) || goal.target;
                 goal.fixedMonthly = parseFloat(document.getElementById('modalFixedMonthlyInput').value) || 0;
                 goal.capAtTarget = document.getElementById('modalCapAtTargetCheckbox').checked;
+                
+                const urlaubMatch = urlaubeList.find(u => u.goalId === goal.id);
+                if (urlaubMatch) {
+                    urlaubMatch.startDate = document.getElementById('modalStartDateInput').value || urlaubMatch.startDate;
+                    urlaubMatch.endDate = document.getElementById('modalEndDateInput').value || urlaubMatch.endDate;
+                }
+
                 const newCurrent = parseFloat(document.getElementById('modalCurrentInput').value);
                 if(['notfall', 'freizeit'].includes(goal.id)) goal.manualOffset = isNaN(newCurrent) ? 0 : newCurrent;
                 else goal.manualCurrent = isNaN(newCurrent) ? 0 : newCurrent;
@@ -1603,7 +1617,7 @@
 
             if(autoUrlaub) {
                 urlaubeList = urlaubeList.filter(u => u.goalId !== newId);
-                urlaubeList.push({ goalId: newId, startDate: startDate || "2027-06-03", endDate: endDate || "2027-06-06", fixHotel: 0, fixKurtaxe: 0, fixSupermarkt: 0, fixBusHin: 0, fixAbreisePuffer: 0, dayExpenses: [], dayReceipts: [] });
+                urlaubeList.push({ goalId: newId, startDate: startDate || "2027-08-26", endDate: endDate || "2027-08-30", fixHotel: 0, fixKurtaxe: 0, fixSupermarkt: 0, fixBusHin: 0, fixAbreisePuffer: 0, dayExpenses: [], dayReceipts: [] });
                 activeUrlaubGoalId = newId;
             }
             saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; document.getElementById('zielFixedMonthly').value = ''; document.getElementById('zielStart').value = '0'; document.getElementById('zielAutoUrlaubCheckbox').checked = false; document.getElementById('zielStartDateGroup').style.display = 'none'; document.getElementById('zielEndDateGroup').style.display = 'none';
