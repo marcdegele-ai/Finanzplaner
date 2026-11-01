@@ -497,7 +497,7 @@
                         <label class="checkbox-container" style="background:#fef3c7; border-color:#f59e0b;">
                             <input type="checkbox" id="zielAutoUrlaubCheckbox" onchange="toggleAutoUrlaubFields()">
                             <div>
-                                <strong style="color:#b45309; font-size:0.85rem;">✨ Automatischen Urlaubs- & Tagesplaner für dieses Ziel generieren</strong>
+                                <strong style="color:#b45309; font-size:0.85rem;">✨ Automatischen Urlaubs- & Tagesplaner for dieses Ziel generieren</strong>
                                 <div style="font-size:0.72rem; color:var(--text-sub);">Erstellt automatisch einen tagesgenauen Urlaubsplaner (inkl. Start- und Enddatum).</div>
                             </div>
                         </label>
@@ -1316,7 +1316,23 @@
         function getSavedAmountForGoalUpTo(goal, uptoMonthKey) {
             if(!goal) return 0;
             if(goal.id === 'kassette') return parseFloat(goal.manualCurrent || 0);
-            if(goal.id === 'notfall' || goal.id === 'freizeit') return getGoalData(goal.id).total;
+            
+            // KORREKTUR: Notfallkonto-Berechnung über alle Vormonate einbeziehen
+            if(goal.id === 'notfall') {
+                let totalNotfall = parseFloat(goal.manualOffset || 0);
+                Object.keys(entries).sort().forEach(key => {
+                    if (key < uptoMonthKey) {
+                        const itemData = getMonthDataOrFallback(key);
+                        const calc = calculateValuesFor(itemData);
+                        let extraNotfall = 0;
+                        if(itemData.extraTransfers) itemData.extraTransfers.forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
+                        totalNotfall += (calc.notfallSparen + extraNotfall);
+                    }
+                });
+                return totalNotfall;
+            }
+
+            if(goal.id === 'freizeit') return getGoalData(goal.id).total;
             let total = parseFloat(goal.manualCurrent || goal.manualOffset || 0);
             Object.keys(entries).sort().forEach(key => {
                 if (key < uptoMonthKey) {
@@ -1345,7 +1361,10 @@
                 let totalMonthAdd = 0;
 
                 if(goalId === 'notfall') {
-                    totalMonthAdd = 0; 
+                    // KORREKTUR: Notfallkonto-Sparbetrag des Monats automatisch einlesen!
+                    let extraNotfall = 0;
+                    if(itemData.extraTransfers) { itemData.extraTransfers.forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; }); }
+                    totalMonthAdd = calc.notfallSparen + extraNotfall;
                 } else if(goalId === 'freizeit') {
                     totalMonthAdd = 0;
                 } else if(goalId === 'kassette') {
@@ -1354,20 +1373,36 @@
                     totalMonthAdd = getActiveDeductionsForGoal(goal, key);
                 }
 
-                let extraForThisMonth = 0;
-                if (itemData.extraTransfers) {
-                    itemData.extraTransfers.forEach(tr => { if (tr.targetId === goalId) extraForThisMonth += tr.amount; });
+                if (goalId !== 'notfall') {
+                    let extraForThisMonth = 0;
+                    if (itemData.extraTransfers) {
+                        itemData.extraTransfers.forEach(tr => { if (tr.targetId === goalId) extraForThisMonth += tr.amount; });
+                    }
+                    totalMonthAdd += extraForThisMonth;
                 }
-
-                totalMonthAdd += extraForThisMonth;
 
                 if (totalMonthAdd > 0 || itemData.booked || key <= baseKey) {
                     projectedSum += totalMonthAdd;
-                    if (itemData.booked) runningSum += totalMonthAdd;
+                    if (itemData.booked && goalId !== 'notfall') runningSum += totalMonthAdd; 
                     if (totalMonthAdd > 0) { totalContributedSoFar += totalMonthAdd; countMonths++; }
                     breakdown.push({ month: key, status: itemData.booked ? "Gebucht ✅" : "Plan ⏳", amount: totalMonthAdd, totalSoFar: projectedSum });
                 }
             });
+
+            // Für das Notfallkonto läuft der echte Stand genau über die Summe der Monats-Sparraten
+            if (goalId === 'notfall') {
+                let exactRunning = parseFloat(goal.manualOffset || 0);
+                Array.from(allMonths).sort().forEach(key => {
+                    const itemData = getMonthDataOrFallback(key);
+                    if (itemData.booked || key <= baseKey) {
+                        const c = calculateValuesFor(itemData);
+                        let ex = 0; if(itemData.extraTransfers) itemData.extraTransfers.forEach(tr => { if(tr.targetId==='notfall') ex+=tr.amount; });
+                        if (itemData.booked) exactRunning += (c.notfallSparen + ex);
+                    }
+                });
+                runningSum = exactRunning;
+            }
+
             return { total: runningSum, projectedTotal: projectedSum, breakdown, avgMonthly: parseFloat(goal.fixedMonthly) || (countMonths > 0 ? (totalContributedSoFar / countMonths) : 0) };
         }
 
@@ -1588,14 +1623,15 @@
                 let monthlyNeededText = "";
                 const goalData = getGoalData(goal.id);
 
-                if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) monthlyNeededText = `Pflicht-Dauerauftrag: ${goal.fixedMonthly.toFixed(2)} €/Mo.`;
+                if (goal.id === 'notfall') monthlyNeededText = "Monatlicher Sparbetrag (Auto)";
+                else if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) monthlyNeededText = `Pflicht-Dauerauftrag: ${goal.fixedMonthly.toFixed(2)} €/Mo.`;
 
                 let badgeGamification = percent >= 100 ? `<span class="badge badge-gamification">👑 100%! 🎉</span>` : (percent >= 75 ? `<span class="badge badge-gamification">🥇 75%</span>` : (percent >= 50 ? `<span class="badge badge-gamification">🥈 50%</span>` : (percent >= 25 ? `<span class="badge badge-gamification">🥉 25%</span>` : '')));
                 let urlaubBadge = urlaubeList.some(u => u.goalId === goal.id) ? `<span class="badge badge-urlaub">✈️ Urlaubsplan</span>` : '';
                 let capBadge = goal.capAtTarget ? `<span class="badge badge-cap">🛑 Auto-Stopp</span>` : '';
 
                 const div = document.createElement('div'); div.className = 'goal-card-box'; div.onclick = () => openModal(goal.id);
-                div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;"><div><div class="history-date">${goal.name} ${['notfall', 'freizeit', 'kassette'].includes(goal.id) ? '<span class="badge badge-dauer">Auto</span>' : ''} ${urlaubBadge} ${capBadge} ${badgeGamification}</div><div class="history-sub" style="margin-top:3px;">Stand: <strong>${currentVal.toFixed(2)} €</strong> ${goal.target > 0 ? '/ ' + goal.target.toFixed(2) + ' €' : ''}</div></div><div style="text-align:right;">${goal.target > 0 ? `<div class="val-highlight" style="font-size:0.88rem;">${percent.toFixed(1)}%</div>` : ''}<span class="history-sub" style="color:#ef4444; cursor:pointer;" onclick="event.stopPropagation(); deleteGoalDirect(${index})">Löschen</span></div></div>${goal.target > 0 ? `<div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${percent}%;"></div></div>` : ''}<div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-sub); margin-top:6px;"><span>${goal.target > 0 ? (remaining > 0 ? 'Rest: ' + remaining.toFixed(2) + ' €' : 'Erreicht! 🎉') : ''}</span><span style="color:var(--accent); font-weight:600;">${monthlyNeededText} (Ende-Prognose: <strong>${goalData.projectedTotal.toFixed(2)} €</strong>)</span></div>`;
+                div.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;"><div><div class="history-date">${goal.name} ${['notfall', 'freizeit', 'kassette'].includes(goal.id) ? '<span class="badge badge-dauer">Auto</span>' : ''} ${urlaubBadge} ${capBadge} ${badgeGamification}</div><div class="history-sub" style="margin-top:3px;">Stand: <strong>${currentVal.toFixed(2)} €</strong> ${goal.target > 0 ? '/ ' + goal.target.toFixed(2) + ' €' : ''}</div></div><div style="text-align:right;">${goal.target > 0 ? `<div class="val-highlight" style="font-size:0.88rem;">${percent.toFixed(1)}%</div>` : ''}<span class="history-sub" style="color:#ef4444; cursor:pointer;" onclick="event.stopPropagation(); deleteGoalDirect(${index})">${['notfall', 'freizeit', 'kassette'].includes(goal.id) ? '' : 'Löschen'}</span></div></div>${goal.target > 0 ? `<div class="progress-bar-container"><div class="progress-bar-fill" style="width: ${percent}%;"></div></div>` : ''}<div style="display:flex; justify-content:space-between; font-size:0.72rem; color:var(--text-sub); margin-top:6px;"><span>${goal.target > 0 ? (remaining > 0 ? 'Rest: ' + remaining.toFixed(2) + ' €' : 'Erreicht! 🎉') : ''}</span><span style="color:var(--accent); font-weight:600;">${monthlyNeededText} (Ende-Prognose: <strong>${goalData.projectedTotal.toFixed(2)} €</strong>)</span></div>`;
                 list.appendChild(div);
             });
             if (goals.length === 0) list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px;">Keine Sparziele.</div>';
@@ -1692,6 +1728,7 @@
 
         function deleteCurrentModalGoal() {
             if(!currentModalGoalId) return;
+            if(['notfall', 'freizeit', 'kassette'].includes(currentModalGoalId)) return alert('Systemziele können nicht gelöscht werden!');
             if(confirm('Sparziel löschen?')) {
                 goals = goals.filter(g => g.id !== currentModalGoalId);
                 urlaubeList = urlaubeList.filter(u => u.goalId !== currentModalGoalId);
@@ -1726,8 +1763,9 @@
         }
 
         function deleteGoalDirect(index) {
+            const goalToDelete = goals[index];
+            if(goalToDelete && ['notfall', 'freizeit', 'kassette'].includes(goalToDelete.id)) return alert('Systemziele können nicht gelöscht werden!');
             if(confirm('Sparziel löschen?')) {
-                const goalToDelete = goals[index];
                 if(goalToDelete) { urlaubeList = urlaubeList.filter(u => u.goalId !== goalToDelete.id); if(activeUrlaubGoalId === goalToDelete.id) activeUrlaubGoalId = null; }
                 goals.splice(index, 1); saveLocally(); renderGoals(); renderHistory(); checkUrlaubTabVisibility();
             }
