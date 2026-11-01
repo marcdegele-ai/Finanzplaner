@@ -230,7 +230,7 @@
 
                 <div style="background: var(--card-sub); border: 1px solid var(--accent); padding: 14px; border-radius: 12px; margin: 10px 0;">
                     <label style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 6px;">⚡ Restgeld-Verteiler (Smart)</label>
-                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Nimmt das variable Restgeld (über deinem Puffer) und verteilt es intelligent *nur* auf Sparziele, die noch nicht voll sind! Volle Ziele stoppen automatisch.</div>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Nimmt das variable Restgeld (über deinem Puffer) und füllt offene Ziele exakt bis zum Zielbetrag auf. Volle Ziele stoppen automatisch!</div>
                     <button class="btn-secondary" style="width: 100%; background: var(--accent-orange); color: #fff; border: none; font-weight: bold; padding: 12px; border-radius:10px;" onclick="distributeRestToGoals()">🔄 Restgeld intelligent auf offene Sparziele verteilen</button>
                 </div>
 
@@ -934,50 +934,74 @@
                 return;
             }
 
-            // STRENGER FILTER: Nur Ziele, die ein Ziel haben und NOCH NICHT VOLL SIND (bzw. offene Ziele ohne Zielbetrag)
+            // Exakter Filter: Nur Ziele, die noch nicht voll sind
             let activeGoals = goals.filter(g => {
                 if (['notfall', 'freizeit', 'kassette'].includes(g.id)) return false;
                 const u = urlaubeList.find(item => item.goalId === g.id);
                 if (u && u.endDate && m > u.endDate.slice(0, 7)) return false;
                 
-                // Wenn ein Ziel ein Target hat und bereits erreicht/überschritten ist, wird es VOLLSTÄNDIG IGNORIERT!
                 if (g.target && g.target > 0) {
-                    const currentVal = getSavedAmountForGoal(g);
-                    if (currentVal >= g.target) return false; // Voll -> ignorieren!
+                    const currentVal = getSavedAmountForGoalUpTo(g, m); // Bisheriger Stand vor diesem Restgeld
+                    if (currentVal >= g.target) return false;
                 }
                 return true;
             });
 
             if (activeGoals.length === 0) {
-                alert("Alle Sparziele sind bereits zu 100 % voll oder abgelaufen! Das Restgeld bleibt sicher auf deinem Konto als Puffer. 👍");
+                alert("Alle Sparziele sind bereits zu 100 % voll! Das Restgeld bleibt sicher als Puffer auf dem Konto. 👍");
                 return;
             }
 
             if (!entries[m]) { entries[m] = { gehalt: item.gehalt, bargeldEinnahme: item.bargeldEinnahme, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: item.bargeld, taschengeld: item.taschengeld, splitNotfall: item.splitNotfall, splitMode: item.splitMode, kontoPuffer: kontoPuffer, booked: item.booked, extraTransfers: [] }; }
             if (!entries[m].extraTransfers) entries[m].extraTransfers = [];
 
-            // GERICHTETE AUFTEILUNG NUR AUF DIE NOCH OFFENEN ZIELE
-            let perGoalShare = Math.floor((distributable / activeGoals.length) * 100) / 100;
             let distributedSum = 0;
 
-            activeGoals.forEach((goal, idx) => {
-                if (distributable <= 0) return;
-                const currentVal = getSavedAmountForGoal(goal);
-                const needed = goal.target > 0 ? (goal.target - currentVal) : distributable;
-                
-                let allocation = (idx === activeGoals.length - 1) ? distributable : Math.min(distributable, perGoalShare, needed);
-                const roundedAlloc = Math.floor(allocation * 100) / 100;
+            // Intelligente Verteilung mit strengem Max-Cap pro Ziel (stoppt exakt bei Erreichung des Zielbetrags!)
+            while (distributable > 0.01) {
+                // Nur die Ziele nehmen, die in dieser Runde noch Luft nach oben haben
+                let trulyActive = activeGoals.filter(g => {
+                    if (!g.target || g.target <= 0) return true;
+                    let currentVal = getSavedAmountForGoalUpTo(g, m);
+                    // Bereits zugeteilte Beträge aus dieser Runde einrechnen
+                    let addedThisRound = entries[m].extraTransfers.filter(tr => tr.targetId === g.id).reduce((s, tr) => s + tr.amount, 0);
+                    return (currentVal + addedThisRound) < g.target;
+                });
 
-                if (roundedAlloc > 0) {
-                    entries[m].extraTransfers.push({ id: Date.now() + Math.random(), targetId: goal.id, targetName: goal.name, amount: roundedAlloc });
-                    distributable -= roundedAlloc;
-                    distributedSum += roundedAlloc;
+                if (trulyActive.length === 0) break;
+
+                let sharePerGoal = Math.floor((distributable / trulyActive.length) * 100) / 100;
+                if (sharePerGoal < 0.01) sharePerGoal = distributable; // Rest-Cent mitnehmen
+
+                let allocatedInThisPass = 0;
+                for (let i = 0; i < trulyActive.length; i++) {
+                    let goal = trulyActive[i];
+                    let currentVal = getSavedAmountForGoalUpTo(goal, m);
+                    let addedThisRound = entries[m].extraTransfers.filter(tr => tr.targetId === goal.id).reduce((s, tr) => s + tr.amount, 0);
+                    let needed = goal.target > 0 ? (goal.target - (currentVal + addedThisRound)) : distributable;
+
+                    let amountToAdd = Math.min(distributable, sharePerGoal, needed);
+                    amountToAdd = Math.floor(amountToAdd * 100) / 100;
+
+                    if (amountToAdd > 0) {
+                        let existingTr = entries[m].extraTransfers.find(tr => tr.targetId === goal.id);
+                        if (existingTr) {
+                            existingTr.amount = Math.round((existingTr.amount + amountToAdd) * 100) / 100;
+                        } else {
+                            entries[m].extraTransfers.push({ id: Date.now() + Math.random(), targetId: goal.id, targetName: goal.name, amount: amountToAdd });
+                        }
+                        distributable = Math.round((distributable - amountToAdd) * 100) / 100;
+                        distributedSum = Math.round((distributedSum + amountToAdd) * 100) / 100;
+                        allocatedInThisPass += amountToAdd;
+                    }
                 }
-            });
+
+                if (allocatedInThisPass === 0) break;
+            }
 
             saveLocally();
             liveCalc();
-            alert(`🎯 Smart verteilt:\n• ${distributedSum.toFixed(2)} € wurden exakt auf deine noch offenen Sparziele verteilt!\n• Volle Ziele wurden automatisch in Ruhe gelassen.\n• Dein Puffer von ${kontoPuffer.toFixed(2)} € bleibt sicher auf dem Konto.`);
+            alert(`🎯 Smart verteilt:\n• ${distributedSum.toFixed(2)} € wurden exakt bis zum Erreichen auf deine offenen Sparziele verteilt!\n• Volle Ziele wurden automatisch gestoppt.\n• Dein Puffer bleibt sicher erhalten.`);
         }
 
         function cancelExtraTransfer(transferId) {
