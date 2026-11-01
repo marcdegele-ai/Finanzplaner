@@ -230,7 +230,7 @@
 
                 <div style="background: var(--card-sub); border: 1px solid var(--accent); padding: 14px; border-radius: 12px; margin: 10px 0;">
                     <label style="color: var(--accent); font-weight: bold; display: block; margin-bottom: 6px;">⚡ Restgeld-Verteiler (Smart)</label>
-                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Nimmt das variable Restgeld aus dem Freizeitkonto (über deinem Puffer) und verteilt es automatisch auf deine offenen Sparziele!</div>
+                    <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px;">Nimmt das variable Restgeld aus dem Freizeitkonto (über deinem Puffer) und verteilt es gleichmäßig & intelligent auf *alle* deine offenen Sparziele (egal ob Köln, Mallorca etc.)!</div>
                     <button class="btn-secondary" style="width: 100%; background: var(--accent-orange); color: #fff; border: none; font-weight: bold; padding: 12px; border-radius:10px;" onclick="distributeRestToGoals()">🔄 Restgeld intelligent auf Sparziele verteilen</button>
                 </div>
 
@@ -454,7 +454,7 @@
             <div class="card">
                 <div class="card-title">🎯 Neues Sparziel anlegen</div>
                 <div class="grid">
-                    <div class="input-group full"><label>Bezeichnung des Ziels</label><input type="text" id="zielName" placeholder="z.B. Mallorca Sommerurlaub, Neues Handy..."></div>
+                    <div class="input-group full"><label>Bezeichnung des Ziels</label><input type="text" id="zielName" placeholder="z.B. Mallorca Sommerurlaub, Köln-Trip, Neues Handy..."></div>
                     <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="zielBetrag" placeholder="z.B. 800"></div>
                     <div class="input-group"><label>Fixer monatlicher Dauerauftrag (Pflicht) (€)</label><input type="number" id="zielFixedMonthly" placeholder="z.B. 50"></div>
                     <div class="input-group"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0"></div>
@@ -934,6 +934,7 @@
                 return;
             }
 
+            // NEUTRALER & GLEICHBERECHTIGTER FILTER FÜR ALLE AKTIVEN ZIELE (Köln, Mallorca, etc.)
             let activeGoals = goals.filter(g => {
                 if (['notfall', 'freizeit', 'kassette'].includes(g.id)) return false;
                 const u = urlaubeList.find(item => item.goalId === g.id);
@@ -950,25 +951,29 @@
             if (!entries[m]) { entries[m] = { gehalt: item.gehalt, bargeldEinnahme: item.bargeldEinnahme, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: item.bargeld, taschengeld: item.taschengeld, splitNotfall: item.splitNotfall, splitMode: item.splitMode, kontoPuffer: kontoPuffer, booked: item.booked, extraTransfers: [] }; }
             if (!entries[m].extraTransfers) entries[m].extraTransfers = [];
 
+            // GERICHTETE, GLEICHMÄSSIGE AUFTEILUNG AUF ALLE AKTIVEN ZIELE
+            let perGoalShare = Math.floor((distributable / activeGoals.length) * 100) / 100;
             let distributedSum = 0;
-            activeGoals.forEach(goal => {
+
+            activeGoals.forEach((goal, idx) => {
                 if (distributable <= 0) return;
                 const currentVal = getSavedAmountForGoal(goal);
                 const needed = goal.target > 0 ? (goal.target - currentVal) : distributable;
-                if (needed > 0) {
-                    const allocation = Math.min(distributable, needed);
-                    const roundedAlloc = Math.floor(allocation * 100) / 100;
-                    if (roundedAlloc > 0) {
-                        entries[m].extraTransfers.push({ id: Date.now() + Math.random(), targetId: goal.id, targetName: goal.name, amount: roundedAlloc });
-                        distributable -= roundedAlloc;
-                        distributedSum += roundedAlloc;
-                    }
+                
+                // Beim letzten Ziel den Restbetrag exakt auffangen, damit kein Cent verloren geht
+                let allocation = (idx === activeGoals.length - 1) ? distributable : Math.min(distributable, perGoalShare, needed);
+                const roundedAlloc = Math.floor(allocation * 100) / 100;
+
+                if (roundedAlloc > 0) {
+                    entries[m].extraTransfers.push({ id: Date.now() + Math.random(), targetId: goal.id, targetName: goal.name, amount: roundedAlloc });
+                    distributable -= roundedAlloc;
+                    distributedSum += roundedAlloc;
                 }
             });
 
             saveLocally();
             liveCalc();
-            alert(`🎯 Smart verteilt:\n• ${distributedSum.toFixed(2)} € wurden vom Restgeld auf deine offenen Sparziele verteilt!\n• Dein Puffer von ${kontoPuffer.toFixed(2)} € bleibt sicher auf dem Konto.`);
+            alert(`🎯 Smart verteilt:\n• ${distributedSum.toFixed(2)} € wurden gleichmäßig auf deine aktiven Sparziele (z.B. Köln, Mallorca) verteilt!\n• Dein Puffer von ${kontoPuffer.toFixed(2)} € bleibt sicher auf dem Konto.`);
         }
 
         function cancelExtraTransfer(transferId) {
@@ -1295,7 +1300,6 @@
                     totalMonthAdd = getActiveDeductionsForGoal(goal, key);
                 }
 
-                // HIER KORRIGIERT: Bezieht die extraTransfers (Restgeld-Zuweisung) exakt in das jeweilige Monatsergebnis mit ein!
                 let extraForThisMonth = 0;
                 if (itemData.extraTransfers) {
                     itemData.extraTransfers.forEach(tr => { if (tr.targetId === goalId) extraForThisMonth += tr.amount; });
