@@ -474,7 +474,7 @@
                     </div>
                     <div class="input-group full">
                         <label class="checkbox-container" style="background:#fef3c7; border-color:#f59e0b;">
-                            <input type="checkbox" id="zielAutoUrlaubCheckbox">
+                            <input type="checkbox" id="zielAutoUrlaubCheckbox" onchange="toggleAutoUrlaubFields()">
                             <div>
                                 <strong style="color:#b45309; font-size:0.85rem;">✨ Automatischen Urlaubs- & Tagesplaner für dieses Ziel generieren</strong>
                                 <div style="font-size:0.72rem; color:var(--text-sub);">Erstellt automatisch einen tagesgenauen Urlaubsplaner (inkl. Start- und Enddatum).</div>
@@ -601,17 +601,17 @@
         document.getElementById('selectYear').value = new Date().getFullYear();
         document.getElementById('HHDate').valueAsDate = new Date();
 
-        document.getElementById('zielAutoUrlaubCheckbox').addEventListener('change', function() {
-            const isChecked = this.checked;
+        function toggleAutoUrlaubFields() {
+            const isChecked = document.getElementById('zielAutoUrlaubCheckbox').checked;
             document.getElementById('zielStartDateGroup').style.display = isChecked ? 'flex' : 'none';
             document.getElementById('zielEndDateGroup').style.display = isChecked ? 'flex' : 'none';
             if(isChecked) {
                 const today = new Date().toISOString().slice(0,10);
-                document.getElementById('zielStartDateInput').value = today;
-                document.getElementById('zielEndDateInput').value = today;
+                if(!document.getElementById('zielStartDateInput').value) document.getElementById('zielStartDateInput').value = today;
+                if(!document.getElementById('zielEndDateInput').value) document.getElementById('zielEndDateInput').value = today;
             }
             autoCalculateMonthlyRate();
-        });
+        }
 
         updateHHKategorien();
         loadCashBreakdownToUI();
