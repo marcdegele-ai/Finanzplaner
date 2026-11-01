@@ -2131,15 +2131,15 @@
             if (autoDivide && endMonthVal) goalEndDate = endMonthVal;
             if (autoUrlaub && endDate) goalEndDate = endDate.slice(0, 7);
 
+            // Startet direkt im aktuell ausgewählten Monat (z.B. Dezember 2026)
             const currentM = getSelectedMonthKey();
-            const startMonthKey = getNextMonthKey(currentM);
 
             goals.push({ 
                 id: newId, 
                 name, 
                 target, 
                 fixedMonthly, 
-                startMonth: startMonthKey, 
+                startMonth: currentM, // Startet ab dem gewählten Monat
                 endDate: goalEndDate, 
                 manualCurrent: ['notfall', 'freizeit'].includes(newId) ? 0 : startVal, 
                 manualOffset: ['notfall', 'freizeit'].includes(newId) ? startVal : 0, 
@@ -2151,8 +2151,8 @@
                 urlaubeList.push({ goalId: newId, startDate: startDate || "2027-08-25", endDate: endDate || "2027-08-30", fixHotel: 0, fixKurtaxe: 0, fixSupermarkt: 0, fixBusHin: 0, fixAbreisePuffer: 0, dayExpenses: [], dayReceipts: [] });
                 activeUrlaubGoalId = newId;
             }
-            saveLocally(); document.getElementById('monthInput').value = initialMonth; loadMonthData(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; document.getElementById('zielFixedMonthly').value = ''; document.getElementById('zielStart').value = '0'; document.getElementById('zielAutoDivideCheckbox').checked = false; document.getElementById('zielAutoUrlaubCheckbox').checked = false; document.getElementById('zielEndMonthGroup').style.display = 'none'; document.getElementById('zielStartDateGroup').style.display = 'none'; document.getElementById('zielEndDateGroup').style.display = 'none';
-            renderGoals(); renderHistory(); checkUrlaubTabVisibility(); alert('Sparziel angelegt! Startet ab dem kommenden Monat 🎯');
+            saveLocally(); loadMonthData(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; document.getElementById('zielFixedMonthly').value = ''; document.getElementById('zielStart').value = '0'; document.getElementById('zielAutoDivideCheckbox').checked = false; document.getElementById('zielAutoUrlaubCheckbox').checked = false; document.getElementById('zielEndMonthGroup').style.display = 'none'; document.getElementById('zielStartDateGroup').style.display = 'none'; document.getElementById('zielEndDateGroup').style.display = 'none';
+            renderGoals(); renderHistory(); checkUrlaubTabVisibility(); alert('Sparziel angelegt und ab sofort aktiv! 🎯');
         }
 
         function deleteGoalDisct(index) {
