@@ -213,6 +213,27 @@
                 <button class="btn-secondary" style="width: 100%; margin-top: 6px; background: var(--accent-orange); color: #fff; border: none; font-weight: bold; padding: 12px; border-radius:12px;" onclick="calcATMNotesRecommendation()">🏧 Automaten-Stückelung berechnen (Passend für Umschläge) 💵</button>
             </div>
 
+            <!-- MANUELLER RESTGELD-VERTEILER (SPARKONTO / ZIELE) -->
+            <div class="card" style="border: 2px solid var(--accent-green); background: #f0fdf4;">
+                <div class="card-title" style="color: var(--accent-green);">
+                    <span>🎯 Restgeld manuell auf Sparziel buchen</span>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-sub); margin-bottom: 12px;">
+                    💡 Du hast diesen Monat z.B. 45 € übrig und möchtest sie direkt auf ein Sparkonto/Ziel schieben? Wähle dein Ziel und trage den Betrag ein:
+                </div>
+                <div class="grid">
+                    <div class="input-group full">
+                        <label>Ziel auswählen</label>
+                        <select id="manualDistributeGoalSelect" style="background:#ffffff; font-weight:bold;"></select>
+                    </div>
+                    <div class="input-group full">
+                        <label>Betrag (€)</label>
+                        <input type="number" id="manualDistributeAmountInput" placeholder="z.B. 45" style="background:#ffffff;">
+                    </div>
+                </div>
+                <button class="btn-add" style="background:var(--accent-green); margin-top:8px;" onclick="executeManualDistribution()">🚀 Betrag auf Ziel buchen</button>
+            </div>
+
             <div class="card">
                 <div class="card-title">Ergebnis for <span id="displayMonth" style="color:var(--accent);">-</span></div>
                 <div class="stat-row"><span>Netto nach Ausgaben:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
@@ -929,7 +950,45 @@
             document.getElementById('kontoPufferInput').value = item.kontoPuffer ?? 200;
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
-            updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView();
+            updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView(); populateManualDistributeDropdown();
+        }
+
+        function populateManualDistributeDropdown() {
+            const select = document.getElementById('manualDistributeGoalSelect'); if(!select) return;
+            select.innerHTML = '';
+            goals.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.innerText = g.name;
+                select.appendChild(opt);
+            });
+        }
+
+        function executeManualDistribution() {
+            const m = getSelectedMonthKey();
+            const goalId = document.getElementById('manualDistributeGoalSelect').value;
+            const amount = parseFloat(document.getElementById('manualDistributeAmountInput').value);
+            if(!goalId || isNaN(amount) || amount <= 0) return alert('Bitte ein Ziel und einen gültigen Betrag eingeben!');
+
+            const goal = goals.find(g => g.id === goalId);
+            const goalName = goal ? goal.name : goalId;
+
+            if(!entries[m]) entries[m] = getMonthDataOrFallback(m);
+            if(!entries[m].extraTransfers) entries[m].extraTransfers = [];
+
+            entries[m].extraTransfers.push({
+                id: Date.now(),
+                targetId: goalId,
+                targetName: goalName,
+                amount: amount
+            });
+
+            document.getElementById('manualDistributeAmountInput').value = '';
+            saveLocally();
+            liveCalc();
+            renderHistory();
+            renderGoals();
+            alert(`${amount.toFixed(2)} € erfolgreich auf "${goalName}" gebucht! 🎯🚀`);
         }
 
         function getActiveDeductionsForGoal(goal, currentMonthKey) {
@@ -1286,7 +1345,7 @@
                 let totalMonthAdd = 0;
 
                 if(goalId === 'notfall') {
-                    totalMonthAdd = 0; // Notfall wird separat berechnet
+                    totalMonthAdd = 0; 
                 } else if(goalId === 'freizeit') {
                     totalMonthAdd = 0;
                 } else if(goalId === 'kassette') {
@@ -1540,6 +1599,7 @@
                 list.appendChild(div);
             });
             if (goals.length === 0) list.innerHTML = '<div style="color:var(--text-sub); text-align:center; padding:15px;">Keine Sparziele.</div>';
+            populateManualDistributeDropdown();
         }
 
         function openModal(goalId) {
