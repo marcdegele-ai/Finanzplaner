@@ -754,9 +754,9 @@
                 if (diffMonths < 1) diffMonths = 1;
                 document.getElementById('zielFixedMonthly').value = (remaining / diffMonths).toFixed(2);
             } else if (autoDivide) {
-                const endMonthStr = document.getElementById('zielEndMonthInput').value; // z.B. "2027-12"
+                const endMonthStr = document.getElementById('zielEndMonthInput').value;
                 if (target <= 0 || !endMonthStr) return;
-                const currentM = getSelectedMonthKey(); // z.B. "2026-12"
+                const currentM = getSelectedMonthKey();
                 const [sY, sM] = currentM.split('-').map(Number);
                 const [eY, eM] = endMonthStr.split('-').map(Number);
                 let diffMonths = (eY - sY) * 12 + (eM - sM) + 1;
@@ -1110,6 +1110,11 @@
 
         function getActiveDeductionsForGoal(goal, currentMonthKey) {
             if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
+            
+            // Startet den Abzug erst ab dem definierten Startmonat (Standard: Folgemonat der Erstellung)
+            if (goal.startMonth && currentMonthKey < goal.startMonth) {
+                return 0;
+            }
             
             // Strikter Stopp, falls ein Endmonat für das Ziel definiert ist
             if (goal.endDate) {
@@ -2007,7 +2012,21 @@
             if (autoDivide && endMonthVal) goalEndDate = endMonthVal;
             if (autoUrlaub && endDate) goalEndDate = endDate.slice(0, 7);
 
-            goals.push({ id: newId, name, target, fixedMonthly, endDate: goalEndDate, manualCurrent: ['notfall', 'freizeit'].includes(newId) ? 0 : startVal, manualOffset: ['notfall', 'freizeit'].includes(newId) ? startVal : 0, capAtTarget });
+            // Startet den automatischen Abzug erst ab dem kommenden Monat statt im aktuellen
+            const currentM = getSelectedMonthKey();
+            const startMonthKey = getNextMonthKey(currentM);
+
+            goals.push({ 
+                id: newId, 
+                name, 
+                target, 
+                fixedMonthly, 
+                startMonth: startMonthKey, 
+                endDate: goalEndDate, 
+                manualCurrent: ['notfall', 'freizeit'].includes(newId) ? 0 : startVal, 
+                manualOffset: ['notfall', 'freizeit'].includes(newId) ? startVal : 0, 
+                capAtTarget 
+            });
 
             if(autoUrlaub) {
                 urlaubeList = urlaubeList.filter(u => u.goalId !== newId);
@@ -2015,7 +2034,7 @@
                 activeUrlaubGoalId = newId;
             }
             saveLocally(); document.getElementById('monthInput').value = initialMonth; loadMonthData(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; document.getElementById('zielFixedMonthly').value = ''; document.getElementById('zielStart').value = '0'; document.getElementById('zielAutoDivideCheckbox').checked = false; document.getElementById('zielAutoUrlaubCheckbox').checked = false; document.getElementById('zielEndMonthGroup').style.display = 'none'; document.getElementById('zielStartDateGroup').style.display = 'none'; document.getElementById('zielEndDateGroup').style.display = 'none';
-            renderGoals(); renderHistory(); checkUrlaubTabVisibility(); alert('Sparziel angelegt! 🎯');
+            renderGoals(); renderHistory(); checkUrlaubTabVisibility(); alert('Sparziel angelegt! Startet ab dem kommenden Monat 🎯');
         }
 
         function deleteGoalDisct(index) {
