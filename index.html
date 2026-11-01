@@ -540,7 +540,7 @@
                             </div>
                         </label>
                     </div>
-                    <div class="input-group full" id="zielEndMonthGroup" style="display:none;"><label>Ende / Ziel-Monat (z.B. 12/2027)</label><input type="month" id="zielEndMonthInput" value="2027-12" onchange="autoCalculateMonthlyRate()"></div>
+                    <div class="input-group full" id="zielEndMonthGroup" style="display:none;"><label>Ende / Ziel-Monat (z.B. 12/2027)</label><input type="month" id="zielEndMonthInput" value="2027-12" onchange="autoCalculateMonthlyRate()" oninput="autoCalculateMonthlyRate()"></div>
 
                     <div class="input-group full">
                         <label class="checkbox-container" style="background:#fef3c7; border-color:#f59e0b;">
@@ -550,8 +550,8 @@
                             </div>
                         </label>
                     </div>
-                    <div class="input-group" id="zielStartDateGroup" style="display:none;"><label>Start / Anreise Datum</label><input type="date" id="zielStartDateInput" onchange="autoCalculateMonthlyRate()"></div>
-                    <div class="input-group" id="zielEndDateGroup" style="display:none;"><label>Ende / Abreise Datum</label><input type="date" id="zielEndDateInput" onchange="autoCalculateMonthlyRate()"></div>
+                    <div class="input-group" id="zielStartDateGroup" style="display:none;"><label>Start / Anreise Datum</label><input type="date" id="zielStartDateInput" onchange="autoCalculateMonthlyRate()" oninput="autoCalculateMonthlyRate()"></div>
+                    <div class="input-group" id="zielEndDateGroup" style="display:none;"><label>Ende / Abreise Datum</label><input type="date" id="zielEndDateInput" onchange="autoCalculateMonthlyRate()" oninput="autoCalculateMonthlyRate()"></div>
                 </div>
                 <button class="btn-add" onclick="saveGoal()">Sparziel Hinzufügen</button>
             </div>
