@@ -588,7 +588,6 @@
         let currentMonthPausedItems = [];
         let syncTimeout = null;
 
-        // Sicherstellen, dass das Monat-Eingabefeld niemals leer startet
         const initialMonth = "2026-12";
         document.getElementById('monthInput').value = initialMonth;
         document.getElementById('hhMonthInput').value = initialMonth;
@@ -888,7 +887,6 @@
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView();
         }
 
-        // Berechnung der Pflicht-Daueraufträge inkl. Zielbetrag-Cap und Enddatum-Prüfung
         function getActiveDeductionsForGoal(goal, currentMonthKey) {
             if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
             if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
@@ -920,7 +918,6 @@
             return Math.max(0, Math.round((calc.freizeitSparen - totalSparzielDeductions - extraTransfersSum - kontoPuffer) * 100) / 100);
         }
 
-        // Smart-Verteilung des variablen Restgeldes aus dem Freizeitkonto auf offene Ziele
         function distributeRestToGoals() {
             const m = getSelectedMonthKey();
             const item = getMonthDataOrFallback(m);
@@ -1257,7 +1254,6 @@
             }
         }
 
-        // Berechnet den exakt ersparten Gesamtbetrag für ein Ziel unter voller Berücksichtigung der variablen Extra-Verteilungen!
         function getSavedAmountForGoalUpTo(goal, uptoMonthKey) {
             if(!goal) return 0;
             if(goal.id === 'kassette') return parseFloat(goal.manualCurrent || 0);
@@ -1274,7 +1270,6 @@
             return total;
         }
 
-        // Inkludiert sowohl Pflicht-Daueraufträge als auch die Smart-Restgeld-Extraverteilung aus dem Freizeitkonto
         function getGoalData(goalId) {
             const sortedKeys = Object.keys(entries).sort(); const goal = goals.find(g => g.id === goalId);
             if (!goal) return { total: 0, projectedTotal: 0, breakdown: [], avgMonthly: 0 };
@@ -1300,10 +1295,12 @@
                     totalMonthAdd = getActiveDeductionsForGoal(goal, key);
                 }
 
-                // Hier fließen die variablen Restgeld-Verteilungen (aus dem Freizeitkonto) direkt in die Zielberechnung ein!
+                // HIER KORRIGIERT: Bezieht die extraTransfers (Restgeld-Zuweisung) exakt in das jeweilige Monatsergebnis mit ein!
+                let extraForThisMonth = 0;
                 if (itemData.extraTransfers) {
-                    itemData.extraTransfers.forEach(tr => { if (tr.targetId === goalId) totalMonthAdd += tr.amount; });
+                    itemData.extraTransfers.forEach(tr => { if (tr.targetId === goalId) extraForThisMonth += tr.amount; });
                 }
+                totalMonthAdd += extraForThisMonth;
 
                 if (totalMonthAdd > 0 || itemData.booked || key <= baseKey) {
                     projectedSum += totalMonthAdd;
