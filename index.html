@@ -616,7 +616,7 @@
             
             <div class="input-group" style="margin-bottom: 10px;"><label>Zielbetrag (€):</label><input type="number" id="modalTargetInput" oninput="recalcModalMonthlyRate()"></div>
             <div class="input-group" style="margin-bottom: 10px;"><label>Fixer monatlicher Dauerauftrag (€):</label><input type="number" id="modalFixedMonthlyInput"></div>
-            <div class="input-group" style="margin-bottom: 10px;"><label>End-Monat (z.B. 2027-12):</label><input type="month" id="modalEndMonthInput" oninput="recalcModalMonthlyRate()"></div>
+            <div class="input-group" style="margin-bottom: 10px;"><label>End-Monat (z.B. 2027-12):</label><input type="month" id="modalEndMonthInput" oninput="recalcModalMonthlyRate()" onchange="recalcModalMonthlyRate()"></div>
             <div class="input-group" style="margin-bottom: 10px;"><label>Aktueller Stand (€):</label><input type="number" id="modalCurrentInput"></div>
             
             <div id="modalUrlaubDatesGroup" style="display:none; gap:8px; margin-bottom:10px;">
