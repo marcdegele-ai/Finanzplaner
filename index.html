@@ -196,10 +196,10 @@
 
                     <div class="input-group full">
                         <label class="checkbox-container" style="background:#f0fdf4; border-color:#a7f3d0;">
-                            <input type="checkbox" id="globalAutoDistributeCheckbox" onchange="autoSaveLive()">
+                            <input type="checkbox" id="globalAutoDistributeCheckbox" checked onchange="toggleGlobalAutoDistribute(this.checked)">
                             <div>
-                                <strong style="color:#065f46; font-size:0.85rem;">🔄 Restgeld-Automatik für alle Monate aktivieren</strong>
-                                <div style="font-size:0.72rem; color:var(--text-sub);">Verteilt das Restgeld über dem Puffer vollautomatisch auf offene Ziele & Notfallkonto.</div>
+                                <strong style="color:#065f46; font-size:0.85rem;">🔄 Restgeld-Automatik für alle Monate aktivieren (Global)</strong>
+                                <div style="font-size:0.72rem; color:var(--text-sub);">Verteilt das Restgeld über dem Puffer vollautomatisch auf offene Ziele & Notfallkonto in ALLEN Monaten.</div>
                             </div>
                         </label>
                     </div>
@@ -572,7 +572,7 @@
 
         if (Object.keys(entries).length === 0) {
             entries = {
-                "2026-12": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', kontoPuffer: 200, globalAutoDistribute: false, booked: false, extraTransfers: [] }
+                "2026-12": { gehalt: 0, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', kontoPuffer: 200, globalAutoDistribute: true, booked: false, extraTransfers: [] }
             };
         }
 
@@ -762,6 +762,8 @@
         function autoSaveLive() {
             const m = getSelectedMonthKey(); if(!m) return;
             const existingExtra = entries[m] ? entries[m].extraTransfers : [];
+            const isGlobalAuto = document.getElementById('globalAutoDistributeCheckbox').checked;
+            
             entries[m] = {
                 gehalt: parseFloat(document.getElementById('gehaltInput').value) || 0,
                 bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0,
@@ -772,11 +774,23 @@
                 splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
                 splitMode: document.getElementById('splitModeSelect').value,
                 kontoPuffer: parseFloat(document.getElementById('kontoPufferInput').value) || 200,
-                globalAutoDistribute: document.getElementById('globalAutoDistributeCheckbox').checked,
+                globalAutoDistribute: isGlobalAuto,
                 booked: document.getElementById('gehaltBookedInput').checked,
                 extraTransfers: existingExtra
             };
             saveLocally(); liveCalc();
+        }
+
+        function toggleGlobalAutoDistribute(isChecked) {
+            // Schaltet die Automatik für ALLE existierenden und zukünftigen Monate im System sofort ein/aus!
+            Object.keys(entries).forEach(k => {
+                if(entries[k]) {
+                    entries[k].globalAutoDistribute = isChecked;
+                }
+            });
+            autoSaveLive();
+            renderHistory();
+            renderGoals();
         }
 
         function exportBackupJSON() {
@@ -878,9 +892,11 @@
             if (entries[m]) {
                 let existingItems = entries[m].items || []; let existingNamesLower = new Set(existingItems.map(i => i.name.trim().toLowerCase()));
                 inheritedItems.forEach(inh => { if (!existingNamesLower.has(inh.name.trim().toLowerCase())) { existingItems.push(JSON.parse(JSON.stringify(inh))); } });
-                entries[m].items = existingItems; return entries[m];
+                entries[m].items = existingItems;
+                if (entries[m].globalAutoDistribute === undefined) entries[m].globalAutoDistribute = true; // Standardmäßig immer an!
+                return entries[m];
             }
-            return { gehalt: 0, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inheritedItems)), pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', kontoPuffer: 200, globalAutoDistribute: false, booked: false, extraTransfers: [] };
+            return { gehalt: 0, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inheritedItems)), pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', kontoPuffer: 200, globalAutoDistribute: true, booked: false, extraTransfers: [] };
         }
 
         function loadMonthData() {
@@ -893,7 +909,7 @@
             document.getElementById('splitModeSelect').value = item.splitMode || 'percent';
             document.getElementById('splitNotfallInput').value = item.splitNotfall ?? 15;
             document.getElementById('kontoPufferInput').value = item.kontoPuffer ?? 200;
-            document.getElementById('globalAutoDistributeCheckbox').checked = !!item.globalAutoDistribute;
+            document.getElementById('globalAutoDistributeCheckbox').checked = item.globalAutoDistribute !== false;
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView();
@@ -938,7 +954,7 @@
         }
 
         function getAutoDistributedTransfersForMonth(mKey, monthData) {
-            if (!monthData || !monthData.globalAutoDistribute) return [];
+            if (!monthData || monthData.globalAutoDistribute === false) return [];
             const calc = calculateValuesFor(monthData);
             const kontoPuffer = parseFloat(monthData.kontoPuffer) || 200;
 
@@ -1846,7 +1862,7 @@
                 urlaubeList.push({ goalId: newId, startDate: startDate || "2027-08-26", endDate: endDate || "2027-08-30", fixHotel: 0, fixKurtaxe: 0, fixSupermarkt: 0, fixBusHin: 0, fixAbreisePuffer: 0, dayExpenses: [], dayReceipts: [] });
                 activeUrlaubGoalId = newId;
             }
-            saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; document.getElementById('zielFixedMonthly').value = ''; document.getElementById('zielStart').value = '0'; document.getElementById('zielAutoUrlaubCheckbox').checked = false; document.getElementById('zielStartDateGroup').style.display = 'none'; document.getElementById('zielEndDateGroup').style.display = 'none';
+            saveLocally(); document.getElementById('monthInput').value = initialMonth; loadMonthData(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; document.getElementById('zielFixedMonthly').value = ''; document.getElementById('zielStart').value = '0'; document.getElementById('zielAutoUrlaubCheckbox').checked = false; document.getElementById('zielStartDateGroup').style.display = 'none'; document.getElementById('zielEndDateGroup').style.display = 'none';
             renderGoals(); renderHistory(); checkUrlaubTabVisibility(); alert('Sparziel angelegt! 🎯');
         }
 
