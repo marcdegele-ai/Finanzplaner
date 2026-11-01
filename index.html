@@ -1665,7 +1665,7 @@
             renderGoals(); renderHistory(); checkUrlaubTabVisibility(); alert('Sparziel angelegt! 🎯');
         }
 
-        function deleteGoalDelete(index) {
+        function deleteGoalDirect(index) {
             if(confirm('Sparziel löschen?')) {
                 const goalToDelete = goals[index];
                 if(goalToDelete) { urlaubeList = urlaubeList.filter(u => u.goalId !== goalToDelete.id); if(activeUrlaubGoalId === goalToDelete.id) activeUrlaubGoalId = null; }
