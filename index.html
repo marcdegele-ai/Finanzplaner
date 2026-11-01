@@ -1221,6 +1221,13 @@
                 return 0;
             }
             
+            // HIER DIE ANPASSUNG: Wenn Gehalt für diesen Monat noch nicht gebucht, 0 € Abzug
+            const monthData = entries[currentMonthKey];
+            const isBooked = monthData ? monthData.booked : (currentMonthKey === getSelectedMonthKey() ? document.getElementById('gehaltBookedInput').checked : false);
+            if (!isBooked) {
+                return 0;
+            }
+            
             if (goal.endDate) {
                 const endMonthKey = goal.endDate.slice(0, 7);
                 if (currentMonthKey > endMonthKey) return 0;
@@ -1566,10 +1573,12 @@
                 Object.keys(entries).sort().forEach(key => {
                     if (key < uptoMonthKey) {
                         const itemData = getMonthDataOrFallback(key);
-                        const calc = calculateValuesFor(itemData);
-                        let extraNotfall = 0;
-                        if(itemData.extraTransfers) itemData.extraTransfers.forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
-                        totalNotfall += (calc.notfallSparen + extraNotfall);
+                        if (itemData.booked) {
+                            const calc = calculateValuesFor(itemData);
+                            let extraNotfall = 0;
+                            if(itemData.extraTransfers) itemData.extraTransfers.forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
+                            totalNotfall += (calc.notfallSparen + extraNotfall);
+                        }
                     }
                 });
                 return totalNotfall + transferDiff;
@@ -1584,9 +1593,11 @@
                         return;
                     }
                     const itemData = getMonthDataOrFallback(key);
-                    let add = getActiveDeductionsForGoal(goal, key);
-                    total += add;
-                    if (itemData.extraTransfers) itemData.extraTransfers.forEach(tr => { if (tr.targetId === goal.id) total += tr.amount; });
+                    if (itemData.booked) {
+                        let add = getActiveDeductionsForGoal(goal, key);
+                        total += add;
+                        if (itemData.extraTransfers) itemData.extraTransfers.forEach(tr => { if (tr.targetId === goal.id) total += tr.amount; });
+                    }
                 }
             });
             return total + transferDiff;
@@ -1609,24 +1620,26 @@
                 const itemData = getMonthDataOrFallback(key); const calc = calculateValuesFor(itemData);
                 let totalMonthAdd = 0;
 
-                if(goalId === 'notfall') {
-                    let extraNotfall = 0;
-                    if(itemData.extraTransfers) { itemData.extraTransfers.forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; }); }
-                    totalMonthAdd = calc.notfallSparen + extraNotfall;
-                } else if(goalId === 'freizeit') {
-                    totalMonthAdd = 0;
-                } else if(goalId === 'kassette') {
-                    totalMonthAdd = calc.bargeldSparen;
-                } else {
-                    totalMonthAdd = getActiveDeductionsForGoal(goal, key);
-                }
-
-                if (goalId !== 'notfall') {
-                    let extraForThisMonth = 0;
-                    if (itemData.extraTransfers) {
-                        itemData.extraTransfers.forEach(tr => { if (tr.targetId === goalId) extraForThisMonth += tr.amount; });
+                if (itemData.booked) {
+                    if(goalId === 'notfall') {
+                        let extraNotfall = 0;
+                        if(itemData.extraTransfers) { itemData.extraTransfers.forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; }); }
+                        totalMonthAdd = calc.notfallSparen + extraNotfall;
+                    } else if(goalId === 'freizeit') {
+                        totalMonthAdd = 0;
+                    } else if(goalId === 'kassette') {
+                        totalMonthAdd = calc.bargeldSparen;
+                    } else {
+                        totalMonthAdd = getActiveDeductionsForGoal(goal, key);
                     }
-                    totalMonthAdd += extraForThisMonth;
+
+                    if (goalId !== 'notfall') {
+                        let extraForThisMonth = 0;
+                        if (itemData.extraTransfers) {
+                            itemData.extraTransfers.forEach(tr => { if (tr.targetId === goalId) extraForThisMonth += tr.amount; });
+                        }
+                        totalMonthAdd += extraForThisMonth;
+                    }
                 }
 
                 let monthTransferDiff = 0;
@@ -1671,9 +1684,9 @@
                     if (goal && goal.startMonth && key < goal.startMonth) {
                         return;
                     }
-                    if (key <= baseKey || entries[key].booked) {
+                    let itemData = getMonthDataOrFallback(key);
+                    if (itemData.booked) {
                         finalSum += getActiveDeductionsForGoal(goal, key);
-                        let itemData = getMonthDataOrFallback(key);
                         if (itemData.extraTransfers) itemData.extraTransfers.forEach(tr => { if (tr.targetId === goalId) finalSum += tr.amount; });
                     }
                 });
@@ -2131,7 +2144,6 @@
             if (autoDivide && endMonthVal) goalEndDate = endMonthVal;
             if (autoUrlaub && endDate) goalEndDate = endDate.slice(0, 7);
 
-            // Startet direkt im aktuell ausgewählten Monat (z.B. Dezember 2026)
             const currentM = getSelectedMonthKey();
 
             goals.push({ 
@@ -2139,7 +2151,7 @@
                 name, 
                 target, 
                 fixedMonthly, 
-                startMonth: currentM, // Startet ab dem gewählten Monat
+                startMonth: currentM, 
                 endDate: goalEndDate, 
                 manualCurrent: ['notfall', 'freizeit'].includes(newId) ? 0 : startVal, 
                 manualOffset: ['notfall', 'freizeit'].includes(newId) ? startVal : 0, 
