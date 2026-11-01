@@ -2116,6 +2116,7 @@
             
             let goalEndDate = null;
             if (autoDivide && endMonthVal) goalEndDate = endMonthVal;
+            // WICHTIG: Nimmt beim Urlaubsplaner den Monat des Abreisedatums als sauberes Enddatum für den Sparplan
             if (autoUrlaub && endDate) goalEndDate = endDate.slice(0, 7);
 
             const currentM = getSelectedMonthKey();
