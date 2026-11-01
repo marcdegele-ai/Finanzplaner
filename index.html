@@ -235,7 +235,7 @@
             </div>
 
             <div class="card">
-                <div class="card-title">Ergebnis for <span id="displayMonth" style="color:var(--accent);">-</span></div>
+                <div class="card-title">Ergebnis für <span id="displayMonth" style="color:var(--accent);">-</span></div>
                 <div class="stat-row"><span>Netto nach Ausgaben:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>Verfügbarer Überschuss (Abhebung):</span><span id="resUeberschuss" class="val-orange" style="font-weight:bold;">0,00 €</span></div>
                 <div class="stat-row"><span>Notfallkonto Sparen:</span><span id="resNotfall" class="val-highlight">0,00 €</span></div>
@@ -324,6 +324,12 @@
             <div class="card" id="categoryChartCard" style="display:none;">
                 <div class="card-title">📊 Ausgaben nach Kategorien</div>
                 <div class="chart-container" id="categoryChartContainer"></div>
+            </div>
+
+            <div class="card" style="border: 1.5px solid #fca5a5; background: #fff5f5;">
+                <div class="card-title" style="color:var(--accent-red);"><span>🧹 Globale Verwaltung</span></div>
+                <div style="font-size:0.78rem; color:var(--text-sub); margin-bottom:10px;">Löscht alle getätigten manuellen Extrazuweisungen in sämtlichen Monaten auf einmal:</div>
+                <button class="btn-secondary" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; width:100%; font-weight:bold; padding:10px; border-radius:10px;" onclick="clearAllExtraTransfersGlobally()">🗑️ Alle manuellen Zuweisungen für ALLE Monate löschen</button>
             </div>
 
             <div class="card">
@@ -557,7 +563,7 @@
 
     <!-- MODALE -->
     <div id="atmModal" class="modal"><div class="modal-content"><div class="card-title">Atm Empfohlene Automaten-Abhebung</div><p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:14px;">Exakt aufgeteilt auf deine Umschläge (ohne großes Wechseln zu Hause):</p><div class="stat-row" style="font-weight:bold; margin-bottom:12px;"><span>Abhebe-Gesamtsumme:</span><span id="atmTotalDisplay" class="val-orange">0,00 €</span></div><div class="history-list" id="atmNotesList" style="margin-bottom:16px;"></div><button class="btn-add" onclick="closeAtmModal()">Verstanden & Schließen 👍</button></div></div>
-    <div id="expenseModal" class="modal"><div class="modal-content"><div class="card-title">Ausgaben for <span id="modalExpMonth" style="color:var(--accent);">-</span></div><div class="grid" style="gap: 8px; margin-bottom: 12px;"><div class="input-group full"><label>Bezeichnung</label><input type="text" id="expName" placeholder="Name der Ausgabe..."></div><div class="input-group"><label>Betrag (€)</label><input type="number" id="expAmount" placeholder="z.B. 750"></div><div class="input-group"><label>Art der Ausgabe</label><select id="expType" onchange="toggleEndDateInput()"><option value="dauer">🔄 Dauerauftrag</option><option value="einmalig">⚡ Einmalig</option></select></div><div class="input-group full" id="endDateGroup"><label>Gültig bis Monat (optional)</label><input type="month" id="expEndDate"></div><div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Ausgabe hinzufügen</button></div></div><div style="font-weight: 600; margin-bottom: 6px; font-size: 0.82rem; color: var(--accent);">Aktuelle Ausgabenliste:</div><div class="history-list" id="expenseItemsList" style="margin-bottom: 14px;"></div><div class="stat-row" style="font-weight: bold; margin-bottom: 14px;"><span>Gesamtsumme Ausgaben:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div><button class="btn-add" onclick="closeExpenseModal()">Übernehmen & Schließen</button></div></div>
+    <div id="expenseModal" class="modal"><div class="modal-content"><div class="card-title">Ausgaben für <span id="modalExpMonth" style="color:var(--accent);">-</span></div><div class="grid" style="gap: 8px; margin-bottom: 12px;"><div class="input-group full"><label>Bezeichnung</label><input type="text" id="expName" placeholder="Name der Ausgabe..."></div><div class="input-group"><label>Betrag (€)</label><input type="number" id="expAmount" placeholder="z.B. 750"></div><div class="input-group"><label>Art der Ausgabe</label><select id="expType" onchange="toggleEndDateInput()"><option value="dauer">🔄 Dauerauftrag</option><option value="einmalig">⚡ Einmalig</option></select></div><div class="input-group full" id="endDateGroup"><label>Gültig bis Monat (optional)</label><input type="month" id="expEndDate"></div><div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Ausgabe hinzufügen</button></div></div><div style="font-weight: 600; margin-bottom: 6px; font-size: 0.82rem; color: var(--accent);">Aktuelle Ausgabenliste:</div><div class="history-list" id="expenseItemsList" style="margin-bottom: 14px;"></div><div class="stat-row" style="font-weight: bold; margin-bottom: 14px;"><span>Gesamtsumme Ausgaben:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div><button class="btn-add" onclick="closeExpenseModal()">Übernehmen & Schließen</button></div></div>
     <div id="monthCloseModal" class="modal"><div class="modal-content"><div class="card-title">🏁 Monatsabschluss & Kassensturz</div><p style="font-size:0.85rem; color:var(--text-sub); margin-bottom:14px;">Restliches Budget übertragen?</p><div class="stat-row" style="margin-bottom:14px;"><span>Verbleibender Restbetrag:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div><div class="input-group" style="margin-bottom: 14px;"><label>Ziel:</label><select id="closeTargetSelect"><option value="kassette">🪙 Bargeld-Kassette</option><option value="notfall">🛡️ Notfallkonto</option><option value="freizeit">🎉 Freizeitkonto</option></select></div><button class="btn-add" onclick="executeMonthClose()" style="background:var(--accent-green); margin-bottom: 8px;">Restbetrag buchen 🚀</button><button class="btn-secondary" onclick="closeMonthCloseModal()" style="width:100%;">Überspringen</button></div></div>
     <div id="cloudModal" class="modal"><div class="modal-content"><div class="card-title">☁️ Cloud-Sync & Einstellungen</div><div class="input-group" style="margin-bottom: 8px;"><label>Cloud Sync URL:</label><input type="text" id="cloudSyncUrlInput"></div><div class="input-group" style="margin-bottom: 14px;"><label>API Key:</label><input type="password" id="cloudSyncKeyInput"></div><button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 8px;">Speichern ☁️</button><button class="btn-secondary" onclick="pullFromCloudNow()" style="width:100%; margin-bottom: 6px;">Laden (Pull) 📥</button><button class="btn-secondary" onclick="syncWithCloudNow(false)" style="width:100%; margin-bottom: 8px;">Speichern (Push) 📤</button><button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button></div></div>
     
@@ -765,7 +771,7 @@
             const goal = goals.find(g => g.id === u.goalId);
             const goalName = goal ? goal.name : 'dieses Ziel';
 
-            if(confirm(`Möchtest du den Urlaubsplaner for "${goalName}" wirklich löschen? Dein Sparziel bleibt dabei erhalten.`)) {
+            if(confirm(`Möchtest du den Urlaubsplaner für "${goalName}" wirklich löschen? Dein Sparziel bleibt dabei erhalten.`)) {
                 urlaubeList = urlaubeList.filter(item => item.goalId !== u.goalId);
                 activeUrlaubGoalId = urlaubeList.length > 0 ? urlaubeList[0].goalId : null;
                 saveLocally(); checkUrlaubTabVisibility(); renderGoals();
@@ -927,6 +933,21 @@
                     } catch (err) { alert('Fehler: ' + err.message); }
                 };
             }
+        }
+
+        function clearAllExtraTransfersGlobally() {
+            if(!confirm('Möchtest du wirklich ALLE manuellen Extrazuweisungen für sämtliche Monate unwiderruflich löschen?')) return;
+            Object.keys(entries).forEach(mKey => {
+                if(entries[mKey] && entries[mKey].extraTransfers) {
+                    entries[mKey].extraTransfers = [];
+                }
+            });
+            saveLocally();
+            loadMonthData();
+            renderHistory();
+            renderGoals();
+            renderHaushaltView();
+            alert('Alle manuellen Zuweisungen für alle Monate wurden erfolgreich gelöscht! 🧹✨');
         }
 
         function quickFillHH(amt) { const current = parseFloat(document.getElementById('HHAmount').value) || 0; document.getElementById('HHAmount').value = current + amt; }
@@ -1433,7 +1454,6 @@
             for(let i=0; i<36; i++) { allMonths.add(simKey); simKey = getNextMonthKey(simKey); }
             let totalContributedSoFar = 0, countMonths = 0;
 
-            // Transaktions-Historie für Umbuchungen aufbauen
             let goalTransfers = (transfersList || []).filter(tr => tr.fromId === goalId || tr.toId === goalId);
 
             Array.from(allMonths).sort().forEach(key => {
@@ -1460,7 +1480,6 @@
                     totalMonthAdd += extraForThisMonth;
                 }
 
-                // Umbuchungen (Transfers) in diesem Monat einrechnen
                 let monthTransferDiff = 0;
                 goalTransfers.forEach(tr => {
                     if (tr.dateKey === key) {
@@ -1497,7 +1516,6 @@
                 runningSum = exactRunning;
             }
 
-            // Exakter Stand inklusive aller Umbuchungen
             let finalSum = goalId === 'kassette' ? parseFloat(goal.manualCurrent || 0) : parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             if (goalId !== 'notfall' && goalId !== 'kassette') {
                 Object.keys(entries).sort().forEach(key => {
@@ -1533,7 +1551,6 @@
             const toGoal = goals.find(g => g.id === toGoalId);
             const currentMonthKey = getSelectedMonthKey();
 
-            // Prüfen ob genug Guthaben da ist
             const currentFromBalance = getSavedAmountForGoal(fromGoal);
             if (amount > currentFromBalance) {
                 if(!confirm(`Warnung: Das Guthaben auf "${fromGoal.name}" (${currentFromBalance.toFixed(2)} €) ist niedriger als der Umbuchungsbetrag (${amount.toFixed(2)} €). Trotzdem ausführen?`)) return;
@@ -1807,7 +1824,6 @@
             document.getElementById('manualDepositAmount').value = ''; 
             document.getElementById('manualWithdrawAmount').value = '';
             
-            // Dropdown für Umbuchungen im Modal befüllen (alle anderen Ziele anzeigen)
             const transferSelect = document.getElementById('transferTargetSelect');
             if(transferSelect) {
                 transferSelect.innerHTML = '';
@@ -1839,7 +1855,6 @@
             const histList = document.getElementById('modalHistoryList'); histList.innerHTML = '';
             const data = getGoalData(goal.id);
             
-            // Auch Umbuchungen in die Zuweisungs-Liste aufnehmen
             let allItemsList = [];
             data.breakdown.forEach(item => allItemsList.push(item));
             
@@ -1857,7 +1872,6 @@
                 }
             });
 
-            // Sortieren nach Monat absteigend
             allItemsList.sort((a, b) => b.month.localeCompare(a.month));
 
             if (allItemsList.length === 0) histList.innerHTML = '<div style="color:var(--text-sub); text-align:center; font-size:0.75rem;">Keine Zuweisungen.</div>';
@@ -1943,7 +1957,7 @@
             const capAtTarget = document.getElementById('zielCapAtTargetCheckbox').checked;
             const goalType = document.getElementById('zielTypeSelect').value;
             const autoUrlaub = document.getElementById('zielAutoUrlaubCheckbox').checked;
-            const startDate = document.getElementById('zielStartDateInput5').value || document.getElementById('zielStartDateInput').value;
+            const startDate = document.getElementById('zielStartDateInput').value;
             const endDate = document.getElementById('zielEndDateInput').value;
 
             if(!name || target <= 0) return alert('Name und Zielbetrag angeben!');
