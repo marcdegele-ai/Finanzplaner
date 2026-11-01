@@ -771,25 +771,23 @@
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
             const remaining = Math.max(0, target - startVal);
 
+            let endMonthStr = "";
+
             if (autoUrlaub) {
-                const startDateStr = document.getElementById('zielStartDateInput').value;
                 const endDateStr = document.getElementById('zielEndDateInput').value;
-                if (target <= 0 || !startDateStr || !endDateStr) return;
-                const startMonth = startDateStr.slice(0, 7);
-                const endMonth = endDateStr.slice(0, 7);
-                const [sY, sM] = startMonth.split('-').map(Number);
-                const [eY, eM] = endMonth.split('-').map(Number);
-                let diffMonths = (eY - sY) * 12 + (eM - sM) + 1;
-                if (diffMonths < 1) diffMonths = 1;
-                document.getElementById('zielFixedMonthly').value = (remaining / diffMonths).toFixed(2);
+                if (endDateStr) endMonthStr = endDateStr.slice(0, 7);
             } else if (autoDivide) {
-                const endMonthStr = document.getElementById('zielEndMonthInput').value;
-                if (target <= 0 || !endMonthStr) return;
+                endMonthStr = document.getElementById('zielEndMonthInput').value;
+            }
+
+            if (target > 0 && endMonthStr) {
                 const currentM = getSelectedMonthKey();
                 const [sY, sM] = currentM.split('-').map(Number);
                 const [eY, eM] = endMonthStr.split('-').map(Number);
+                
                 let diffMonths = (eY - sY) * 12 + (eM - sM) + 1;
                 if (diffMonths < 1) diffMonths = 1;
+                
                 document.getElementById('zielFixedMonthly').value = (remaining / diffMonths).toFixed(2);
             }
         }
@@ -1958,7 +1956,10 @@
         }
 
         function openModal(goalId) {
-            currentModalGoalId = goalId; const goal = goals.find(g => g.id === goalId); if(!goal) return;
+            currentModalGoalId = goalId; 
+            const goal = goals.find(g => g.id === goalId); 
+            if(!goal) return;
+            
             document.getElementById('modalTitle').innerText = `Ziel: ${goal.name}`; 
             document.getElementById('modalTargetInput').value = goal.target; 
             document.getElementById('modalFixedMonthlyInput').value = goal.fixedMonthly || ''; 
@@ -1995,7 +1996,8 @@
             document.getElementById('cashTransferBox').style.display = (goal.id === 'freizeit') ? 'block' : 'none';
             document.getElementById('modalCurrentInput').value = ['notfall', 'freizeit'].includes(goal.id) ? (goal.manualOffset || 0) : (goal.manualCurrent || 0);
 
-            const histList = document.getElementById('modalHistoryList'); histList.innerHTML = '';
+            const histList = document.getElementById('modalHistoryList'); 
+            histList.innerHTML = '';
             const data = getGoalData(goal.id);
             
             let allItemsList = [];
@@ -2017,10 +2019,12 @@
 
             allItemsList.sort((a, b) => b.month.localeCompare(a.month));
 
-            if (allItemsList.length === 0) histList.innerHTML = '<div style="color:var(--text-sub); text-align:center; font-size:0.75rem;">Keine Zuweisungen.</div>';
-            else {
+            if (allItemsList.length === 0) {
+                histList.innerHTML = '<div style="color:var(--text-sub); text-align:center; font-size:0.75rem;">Keine Zuweisungen.</div>';
+            } else {
                 allItemsList.forEach(item => {
-                    const row = document.createElement('div'); row.className = 'history-item';
+                    const row = document.createElement('div'); 
+                    row.className = 'history-item';
                     let stornoBtn = item.isTransfer ? ` <button class="storno-btn" onclick="cancelTransfer(${item.transferId})">🗑️ Storno</button>` : '';
                     let amtColor = item.amount >= 0 ? 'val-highlight' : 'val-red';
                     row.innerHTML = `<div><div class="history-date">${item.month} <span class="badge badge-once" style="font-size:0.6rem;">${item.status}</span>${stornoBtn}</div><div class="history-sub">${item.isTransfer ? 'Umbuchung' : 'Stand: ' + item.totalSoFar.toFixed(2) + ' €'}</div></div><div style="text-align:right;"><div class="${amtColor}" style="font-size:0.9rem;">${item.amount >= 0 ? '+' : ''}${item.amount.toFixed(2)} €</div></div>`;
@@ -2131,7 +2135,7 @@
 
             if(autoUrlaub) {
                 urlaubeList = urlaubeList.filter(u => u.goalId !== newId);
-                urlaubeList.push({ goalId: newId, startDate: startDate || "2027-08-26", endDate: endDate || "2027-08-30", fixHotel: 0, fixKurtaxe: 0, fixSupermarkt: 0, fixBusHin: 0, fixAbreisePuffer: 0, dayExpenses: [], dayReceipts: [] });
+                urlaubeList.push({ goalId: newId, startDate: startDate || "2027-08-25", endDate: endDate || "2027-08-30", fixHotel: 0, fixKurtaxe: 0, fixSupermarkt: 0, fixBusHin: 0, fixAbreisePuffer: 0, dayExpenses: [], dayReceipts: [] });
                 activeUrlaubGoalId = newId;
             }
             saveLocally(); document.getElementById('monthInput').value = initialMonth; loadMonthData(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; document.getElementById('zielFixedMonthly').value = ''; document.getElementById('zielStart').value = '0'; document.getElementById('zielAutoDivideCheckbox').checked = false; document.getElementById('zielAutoUrlaubCheckbox').checked = false; document.getElementById('zielEndMonthGroup').style.display = 'none'; document.getElementById('zielStartDateGroup').style.display = 'none'; document.getElementById('zielEndDateGroup').style.display = 'none';
