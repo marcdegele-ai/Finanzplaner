@@ -213,13 +213,46 @@
                 <button class="btn-secondary" style="width: 100%; margin-top: 6px; background: var(--accent-orange); color: #fff; border: none; font-weight: bold; padding: 12px; border-radius:12px;" onclick="calcATMNotesRecommendation()">🏧 Automaten-Stückelung berechnen (Passend für Umschläge) 💵</button>
             </div>
 
-            <!-- MANUELLER RESTGELD-VERTEILER (SPARKONTO / ZIELE) -->
+            <!-- SMARTER RESTGELD-PROZENT-VERTEILER -->
             <div class="card" style="border: 2px solid var(--accent-green); background: #f0fdf4;">
                 <div class="card-title" style="color: var(--accent-green);">
-                    <span>🎯 Restgeld manuell auf Sparziel buchen</span>
+                    <span>✨ Smarter Restgeld-Prozent-Verteiler</span>
                 </div>
                 <div style="font-size: 0.78rem; color: var(--text-sub); margin-bottom: 12px;">
-                    💡 Du hast diesen Monat z.B. 45 € oder 200 € übrig und möchtest sie direkt auf ein Sparkonto/Ziel schieben? Wähle dein Ziel und trage den Betrag ein:
+                    💡 Verteile dein frei verfügbares Restgeld ganz entspannt nach Prozenten auf deine Ziele:
+                </div>
+                
+                <div class="grid" style="margin-bottom:10px;">
+                    <div class="input-group">
+                        <label>1. Ziel / Puffer wählen</label>
+                        <select id="smartDistGoal1" style="background:#ffffff; font-weight:bold;" onchange="calcSmartDistributionPreview()"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Anteil 1 (%)</label>
+                        <input type="number" id="smartDistPct1" value="70" min="0" max="100" style="background:#ffffff;" oninput="calcSmartDistributionPreview()">
+                    </div>
+
+                    <div class="input-group">
+                        <label>2. Ziel / Puffer wählen</label>
+                        <select id="smartDistGoal2" style="background:#ffffff; font-weight:bold;" onchange="calcSmartDistributionPreview()"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Anteil 2 (%)</label>
+                        <input type="number" id="smartDistPct2" value="30" min="0" max="100" style="background:#ffffff;" oninput="calcSmartDistributionPreview()">
+                    </div>
+                </div>
+
+                <div style="background:#ffffff; padding:10px 12px; border-radius:10px; border:1px solid var(--border); font-size:0.8rem; margin-bottom:10px;" id="smartDistPreviewText">
+                    Vorschau: 0,00 € aufgeteilt...
+                </div>
+
+                <button class="btn-add" style="background:var(--accent-green);" onclick="executeSmartDistribution()">🚀 Smart aufteilen & buchen</button>
+            </div>
+
+            <!-- MANUELLER RESTGELD-VERTEILER (SPARKONTO / ZIELE) -->
+            <div class="card" style="border: 1.5px solid var(--border);">
+                <div class="card-title" style="font-size: 0.95rem;">
+                    <span>🎯 Restgeld manuell auf Sparziel buchen</span>
                 </div>
                 <div class="grid">
                     <div class="input-group full">
@@ -231,7 +264,7 @@
                         <input type="number" id="manualDistributeAmountInput" placeholder="z.B. 200" style="background:#ffffff;">
                     </div>
                 </div>
-                <button class="btn-add" style="background:var(--accent-green); margin-top:8px;" onclick="executeManualDistribution()">🚀 Betrag auf Ziel buchen</button>
+                <button class="btn-secondary" style="width:100%; margin-top:8px; font-weight:bold;" onclick="executeManualDistribution()">Betrag manuell buchen ➕</button>
             </div>
 
             <div class="card">
@@ -470,7 +503,7 @@
             </div>
         </div>
 
-        <!-- TAB 6: SPARZIELE (Smarter eingeklappt) -->
+        <!-- TAB 6: SPARZIELE -->
         <div id="ziele-view" class="view-section">
             <div class="card">
                 <div class="card-title">🎯 Neues Sparziel anlegen</div>
@@ -490,7 +523,6 @@
                         </select>
                     </div>
 
-                    <!-- Klappbarer Erweitert-Bereich für Optionen (Cleverer Look) -->
                     <div class="input-group full">
                         <label class="checkbox-container" style="background:#f0fdf4; border-color:#a7f3d0;">
                             <input type="checkbox" id="zielCapAtTargetCheckbox" checked>
@@ -1068,14 +1100,66 @@
         }
 
         function populateManualDistributeDropdown() {
-            const select = document.getElementById('manualDistributeGoalSelect'); if(!select) return;
-            select.innerHTML = '';
+            const select = document.getElementById('manualDistributeGoalSelect');
+            const s1 = document.getElementById('smartDistGoal1');
+            const s2 = document.getElementById('smartDistGoal2');
+            if(!select || !s1 || !s2) return;
+            
+            select.innerHTML = ''; s1.innerHTML = ''; s2.innerHTML = '';
             goals.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.id;
-                opt.innerText = g.name;
-                select.appendChild(opt);
+                const opt1 = document.createElement('option'); opt1.value = g.id; opt1.innerText = g.name; select.appendChild(opt1);
+                const opt2 = document.createElement('option'); opt2.value = g.id; opt2.innerText = g.name; s1.appendChild(opt2);
+                const opt3 = document.createElement('option'); opt3.value = g.id; opt3.innerText = g.name; s2.appendChild(opt3);
             });
+            if(s2.options.length > 1) s2.selectedIndex = 1;
+            calcSmartDistributionPreview();
+        }
+
+        function calcSmartDistributionPreview() {
+            const restFreizeit = getRestFreizeitGeldCalculated();
+            const pct1 = parseFloat(document.getElementById('smartDistPct1').value) || 0;
+            const pct2 = parseFloat(document.getElementById('smartDistPct2').value) || 0;
+            const s1Name = document.getElementById('smartDistGoal1').selectedOptions[0]?.innerText || 'Ziel 1';
+            const s2Name = document.getElementById('smartDistGoal2').selectedOptions[0]?.innerText || 'Ziel 2';
+
+            const amt1 = restFreizeit * (pct1 / 100);
+            const amt2 = restFreizeit * (pct2 / 100);
+
+            document.getElementById('smartDistPreviewText').innerHTML = `Vorschau (${restFreizeit.toFixed(2)} € frei): <br>• <strong>${s1Name}</strong>: ${amt1.toFixed(2)} € (${pct1}%)<br>• <strong>${s2Name}</strong>: ${amt2.toFixed(2)} € (${pct2}%)`;
+        }
+
+        function executeSmartDistribution() {
+            const restFreizeit = getRestFreizeitGeldCalculated();
+            if (restFreizeit <= 0) return alert('Du hast aktuell kein frei verfügbares Restgeld zum Verteilen!');
+            
+            const goal1Id = document.getElementById('smartDistGoal1').value;
+            const goal2Id = document.getElementById('smartDistGoal2').value;
+            const pct1 = parseFloat(document.getElementById('smartDistPct1').value) || 0;
+            const pct2 = parseFloat(document.getElementById('smartDistPct2').value) || 0;
+
+            if ((pct1 + pct2) <= 0) return alert('Bitte Anteile in Prozent angeben!');
+
+            const g1 = goals.find(g => g.id === goal1Id);
+            const g2 = goals.find(g => g.id === goal2Id);
+            const m = getSelectedMonthKey();
+            if(!entries[m]) entries[m] = getMonthDataOrFallback(m);
+            if(!entries[m].extraTransfers) entries[m].extraTransfers = [];
+
+            const amt1 = restFreizeit * (pct1 / 100);
+            const amt2 = restFreizeit * (pct2 / 100);
+
+            if(amt1 > 0) {
+                entries[m].extraTransfers.push({ id: Date.now(), targetId: goal1Id, targetName: g1 ? g1.name : goal1Id, amount: amt1 });
+            }
+            if(amt2 > 0) {
+                entries[m].extraTransfers.push({ id: Date.now() + 1, targetId: goal2Id, targetName: g2 ? g2.name : goal2Id, amount: amt2 });
+            }
+
+            saveLocally();
+            liveCalc();
+            renderHistory();
+            renderGoals();
+            alert(`Restgeld erfolgreich smart aufgeteilt und gebucht! 🚀✨`);
         }
 
         function executeManualDistribution() {
@@ -1238,6 +1322,7 @@
             document.getElementById('HHBudgetDisplay').innerText = restFreizeitBudget.toFixed(2) + ' €';
             const rest = restFreizeitBudget + totalIncome - totalSpent;
             const restEl = document.getElementById('HHRestDisplay'); restEl.innerText = rest.toFixed(2) + ' €'; restEl.className = rest >= 0 ? 'val-highlight' : 'val-red';
+            calcSmartDistributionPreview();
         }
 
         function getTotalFixForMonthData(itemData) {
@@ -1350,6 +1435,7 @@
 
             renderEnvelopeStuffingBreakdown(calc, totalSparzielDeductions, freizeitRest);
             renderHaushaltView();
+            calcSmartDistributionPreview();
         }
 
         function renderEnvelopeStuffingBreakdown(calc, totalSparzielDeductions, freizeitRest) {
