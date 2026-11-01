@@ -587,6 +587,7 @@
         let currentModalGoalId = null;
         let currentMonthItems = [];
         let currentMonthPausedItems = [];
+        let syncTimeout = null;
 
         document.getElementById('monthInput').value = "2026-12";
         document.getElementById('hhMonthInput').value = "2026-12";
@@ -669,6 +670,14 @@
             localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
             localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
             setTimestampNow();
+            
+            // AUTOMATISCHER CLOUD-SYNC (DEBOUNCED, damit es nicht bei jedem Tastendruck blockiert)
+            if (cloudConfig.url) {
+                if (syncTimeout) clearTimeout(syncTimeout);
+                syncTimeout = setTimeout(() => {
+                    syncWithCloudNow(true);
+                }, 1000); // 1 Sekunde nach letzter Änderung automatisch in die Cloud pushen
+            }
         }
 
         function openCloudModal() { document.getElementById('cloudSyncUrlInput').value = cloudConfig.url || ''; document.getElementById('cloudSyncKeyInput').value = cloudConfig.key || ''; document.getElementById('cloudModal').classList.add('active'); }
@@ -683,7 +692,7 @@
 
         function updateCloudStatusLabel() {
             const label = document.getElementById('cloudStatusLabel');
-            if (cloudConfig.url) { label.innerText = '⚡ Cloud-Sync aktiv (Verbunden)'; label.style.color = 'var(--accent-green)'; }
+            if (cloudConfig.url) { label.innerText = '⚡ Cloud-Sync aktiv (Auto-Sync)'; label.style.color = 'var(--accent-green)'; }
             else { label.innerText = '⚡ Cloud-Sync einrichten'; label.style.color = 'var(--accent-orange)'; }
         }
 
@@ -869,18 +878,14 @@
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView();
         }
 
-        // PFLICHT-DAUERAUFTRÄGE MIT DEUTLICHER SCHLUSS-LOGIK BEI ENDDATUM UND ZIELERREICHUNG
         function getActiveDeductionsForGoal(goal, currentMonthKey) {
             if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
             if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
-                // 1. Prüfen ob Urlaub und ob der Monat nach dem Enddatum liegt
                 const u = urlaubeList.find(item => item.goalId === goal.id);
                 if (u && u.endDate) {
                     const endMonthKey = u.endDate.slice(0, 7);
-                    if (currentMonthKey > endMonthKey) return 0; // Stopp nach Urlaubsmonat!
+                    if (currentMonthKey > endMonthKey) return 0;
                 }
-
-                // 2. Prüfen ob 100% Zielerreichung vorliegt (falls Haken gesetzt)
                 if (goal.capAtTarget && goal.target && goal.target > 0) {
                     if (getSavedAmountForGoalUpTo(goal, currentMonthKey) >= goal.target) return 0;
                 }
