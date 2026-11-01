@@ -470,7 +470,7 @@
             </div>
         </div>
 
-        <!-- TAB 6: SPARZIELE -->
+        <!-- TAB 6: SPARZIELE (Smarter eingeklappt) -->
         <div id="ziele-view" class="view-section">
             <div class="card">
                 <div class="card-title">🎯 Neues Sparziel anlegen</div>
@@ -478,30 +478,8 @@
                     <div class="input-group full"><label>Bezeichnung des Ziels</label><input type="text" id="zielName" placeholder="z.B. Sparkonto, Neues Handy..."></div>
                     <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="zielBetrag" placeholder="z.B. 2400" oninput="autoCalculateMonthlyRate()"></div>
                     <div class="input-group"><label>Fixer monatlicher Dauerauftrag (€)</label><input type="number" id="zielFixedMonthly" placeholder="z.B. 200"></div>
-                    <div class="input-group"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
+                    <div class="input-group full"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
                     
-                    <div class="input-group full">
-                        <label class="checkbox-container" style="background:#f0fdf4; border-color:#a7f3d0;">
-                            <input type="checkbox" id="zielCapAtTargetCheckbox" checked>
-                            <div>
-                                <strong style="color:#065f46; font-size:0.85rem;">🛑 Bei Zielerreichung / Endmonat automatisch stoppen</strong>
-                                <div style="font-size:0.72rem; color:var(--text-sub);">Sobald 100% gespart sind oder der Endmonat erreicht ist, stoppt der Abzug.</div>
-                            </div>
-                        </label>
-                    </div>
-
-                    <div class="input-group full">
-                        <label class="checkbox-container" style="background:#fef3c7; border-color:#f59e0b;">
-                            <input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()">
-                            <div>
-                                <strong style="color:#b45309; font-size:0.85rem;">📊 Zielbetrag gleichmäßig bis Endmonat aufteilen</strong>
-                                <div style="font-size:0.72rem; color:var(--text-sub);">Berechnet die monatliche Rate automatisch so, dass der Betrag gleichmäßig verteilt wird.</div>
-                            </div>
-                        </label>
-                    </div>
-
-                    <div class="input-group full" id="zielEndMonthGroup" style="display:none;"><label>Ende / Ziel-Monat (z.B. 12/2027)</label><input type="month" id="zielEndMonthInput" value="2027-12" onchange="autoCalculateMonthlyRate()"></div>
-
                     <div class="input-group full">
                         <label>Konto-Verknüpfung / Typ</label>
                         <select id="zielTypeSelect">
@@ -512,12 +490,31 @@
                         </select>
                     </div>
 
+                    <!-- Klappbarer Erweitert-Bereich für Optionen (Cleverer Look) -->
+                    <div class="input-group full">
+                        <label class="checkbox-container" style="background:#f0fdf4; border-color:#a7f3d0;">
+                            <input type="checkbox" id="zielCapAtTargetCheckbox" checked>
+                            <div>
+                                <strong style="color:#065f46; font-size:0.85rem;">🛑 Bei Zielerreichung / Endmonat automatisch stoppen</strong>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="input-group full">
+                        <label class="checkbox-container" style="background:#fef3c7; border-color:#f59e0b;">
+                            <input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()">
+                            <div>
+                                <strong style="color:#b45309; font-size:0.85rem;">📊 Zielbetrag gleichmäßig bis Endmonat aufteilen</strong>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="input-group full" id="zielEndMonthGroup" style="display:none;"><label>Ende / Ziel-Monat (z.B. 12/2027)</label><input type="month" id="zielEndMonthInput" value="2027-12" onchange="autoCalculateMonthlyRate()"></div>
+
                     <div class="input-group full">
                         <label class="checkbox-container" style="background:#fef3c7; border-color:#f59e0b;">
                             <input type="checkbox" id="zielAutoUrlaubCheckbox" onchange="toggleAutoUrlaubFields()">
                             <div>
-                                <strong style="color:#b45309; font-size:0.85rem;">✨ Automatischen Urlaubs- & Tagesplaner für dieses Ziel generieren</strong>
-                                <div style="font-size:0.72rem; color:var(--text-sub);">Erstellt automatisch einen tagesgenauen Urlaubsplaner.</div>
+                                <strong style="color:#b45309; font-size:0.85rem;">✨ Automatischen Urlaubs- & Tagesplaner generieren</strong>
                             </div>
                         </label>
                     </div>
@@ -1111,12 +1108,10 @@
         function getActiveDeductionsForGoal(goal, currentMonthKey) {
             if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
             
-            // Startet den Abzug erst ab dem definierten Startmonat (Standard: Folgemonat der Erstellung)
             if (goal.startMonth && currentMonthKey < goal.startMonth) {
                 return 0;
             }
             
-            // Strikter Stopp, falls ein Endmonat für das Ziel definiert ist
             if (goal.endDate) {
                 const endMonthKey = goal.endDate.slice(0, 7);
                 if (currentMonthKey > endMonthKey) return 0;
@@ -2012,7 +2007,6 @@
             if (autoDivide && endMonthVal) goalEndDate = endMonthVal;
             if (autoUrlaub && endDate) goalEndDate = endDate.slice(0, 7);
 
-            // Startet den automatischen Abzug erst ab dem kommenden Monat statt im aktuellen
             const currentM = getSelectedMonthKey();
             const startMonthKey = getNextMonthKey(currentM);
 
