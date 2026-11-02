@@ -1148,7 +1148,8 @@
                         if(goal.id === 'notfall') add = calc.notfallSparen;
                     } else if (goal.id === 'kassette') add = calc.bargeldSparen;
                     else if (goal.id !== 'freizeit') {
-                        let scheduled = getActiveDeductionsForGoal(goal, k);
+                        // IMMER den geplanten Dauerauftrag berücksichtigen!
+                        let scheduled = goal.fixedMonthly ? parseFloat(goal.fixedMonthly) : 0;
                         let extra = 0;
                         (item.extraTransfers || []).forEach(tr => { if (tr.targetId === goalId) extra += tr.amount; });
                         add = extra > 0 ? extra : scheduled;
