@@ -459,11 +459,11 @@
             </div>
             <div style="background:var(--card-sub); padding:8px; border-radius:8px; margin-bottom:8px;">
                 <label style="color:var(--accent-green); font-weight:bold;">➕ Einzahlen</label>
-                <div style="display:flex; gap:5px; margin-top:3px;"><input type="number" id="manualDepositAmount" placeholder="€" style="flex:1;"><button class="btn-secondary" style="background:var(--accent-green); color:#fff;" onclick="addManualDepositToGoal()">Ein</button></div>
+                <div style="display:flex; gap:5px; margin-top:3px;"><input type="number" id="manualDepositAmount" placeholder="€" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border);"><button class="btn-secondary" style="background:var(--accent-green); color:#fff; font-weight:bold; padding:8px 14px; border:none; border-radius:8px; cursor:pointer;" onclick="addManualDepositToGoal()">Einzahlen ➕</button></div>
             </div>
             <div style="background:var(--card-sub); padding:8px; border-radius:8px; margin-bottom:10px;">
                 <label style="color:#ef4444; font-weight:bold;">➖ Abheben</label>
-                <div style="display:flex; gap:5px; margin-top:3px;"><input type="number" id="manualWithdrawAmount" placeholder="€" style="flex:1;"><button class="btn-secondary" style="background:#ef4444; color:#fff;" onclick="withdrawManualFromGoal()">Ab</button></div>
+                <div style="display:flex; gap:5px; margin-top:3px;"><input type="number" id="manualWithdrawAmount" placeholder="€" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border);"><button class="btn-secondary" style="background:#ef4444; color:#fff; font-weight:bold; padding:8px 14px; border:none; border-radius:8px; cursor:pointer;" onclick="withdrawManualFromGoal()">Abheben ➖</button></div>
             </div>
             <button class="btn-add" onclick="saveModalChanges()" style="margin-bottom: 6px;">Speichern</button>
             <button class="btn-add" onclick="deleteCurrentModalGoal()" style="background:#ef4444; color:#fff; margin-bottom: 10px;">🗑️ Komplett Löschen</button>
@@ -1602,10 +1602,18 @@
         function deleteGoalDirect(idx) { goals.splice(idx,1); saveLocally(); renderGoals(); renderHistory(); }
 
         function addManualDepositToGoal() {
-            const amt = parseFloat(document.getElementById('manualDepositAmount').value); if(isNaN(amt)||amt<=0) return;
-            const g = goals.find(x => x.id === currentModalGoalId);
-            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub') g.manualOffset += amt; else g.manualCurrent += amt;
-            saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId);
+            const amt = parseFloat(document.getElementById('manualDepositAmount').value); if(isNaN(amt)||amt<=0) return alert('Bitte gültigen Betrag eingeben!');
+            const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
+            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub') g.manualOffset = (g.manualOffset || 0) + amt; else g.manualCurrent = (g.manualCurrent || 0) + amt;
+            document.getElementById('manualDepositAmount').value = '';
+            saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert(`${amt.toFixed(2)} € erfolgreich eingezahlt! ➕`);
+        }
+        function withdrawManualFromGoal() {
+            const amt = parseFloat(document.getElementById('manualWithdrawAmount').value); if(isNaN(amt)||amt<=0) return alert('Bitte gültigen Betrag eingeben!');
+            const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
+            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub') g.manualOffset = (g.manualOffset || 0) - amt; else g.manualCurrent = (g.manualCurrent || 0) - amt;
+            document.getElementById('manualWithdrawAmount').value = '';
+            saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert(`${amt.toFixed(2)} € erfolgreich abgehoben! ➖`);
         }
         function withdrawManualFromGoal() {
             const amt = parseFloat(document.getElementById('manualWithdrawAmount').value); if(isNaN(amt)||amt<=0) return;
