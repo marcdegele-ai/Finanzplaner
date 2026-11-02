@@ -1118,11 +1118,17 @@
             goals.forEach(g => {
                 let share = getActiveDeductionsForGoal(g, m);
                 let extraShare = 0;
-                (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === g.id) extraShare += tr.amount; });
+                let extraId = null;
+                (monthData.extraTransfers || []).forEach(tr => { 
+                    if (tr.targetId === g.id) { 
+                        extraShare += tr.amount; 
+                        extraId = tr.id;
+                    } 
+                });
                 
                 if (extraShare > 0) {
                     totalDeductions += extraShare;
-                    container.innerHTML += `<div class="stat-row sub-row"><span>⚡ ${g.name} (Extra <button class="storno-btn" onclick="cancelExtraTransfer(${monthData.extraTransfers.find(t=>t.targetId===g.id)?.id})">Storno</button>)</span><span class="val-red">-${extraShare.toFixed(2)} €</span></div>`;
+                    container.innerHTML += `<div class="stat-row sub-row"><span>⚡ ${g.name} (Extra <button class="storno-btn" onclick="cancelExtraTransfer(${extraId})">Storno</button>)</span><span class="val-red">-${extraShare.toFixed(2)} €</span></div>`;
                 } else if (share > 0) {
                     totalDeductions += share;
                     container.innerHTML += `<div class="stat-row sub-row"><span>↳ ${g.name}</span><span class="val-red">-${share.toFixed(2)} €</span></div>`;
