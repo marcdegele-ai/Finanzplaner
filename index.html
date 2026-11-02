@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -826,9 +827,6 @@
             const u = urlaubeList.find(item => item.goalId === goal.id);
             if (u && u.endDate && mKey > u.endDate.slice(0, 7)) return 0;
 
-            const monthData = entries[mKey], isBooked = monthData ? monthData.booked : (mKey === getSelectedMonthKey() ? document.getElementById('gehaltBookedInput').checked : false);
-            if (!isBooked) return 0;
-
             if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                 if (goal.capAtTarget && goal.target > 0) {
                     const savedBefore = getSavedAmountForGoalUpTo(goal, mKey);
@@ -1128,7 +1126,7 @@
                 let isTerminated = false;
                 if (endLimitStr && k >= endLimitStr) isTerminated = true;
 
-                if (!isTerminated && item.booked) {
+                if (!isTerminated) {
                     if (goal.id === 'notfall' || goal.type === 'notfall_sub') {
                         if(goal.id === 'notfall') add = calc.notfallSparen;
                     } else if (goal.id === 'kassette') add = calc.bargeldSparen;
@@ -1529,3 +1527,4 @@
     </script>
 </body>
 </html>
+```
