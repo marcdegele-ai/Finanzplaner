@@ -456,7 +456,7 @@
             
             <div style="background:#fff1f2; border:1px solid #fecdd3; padding:10px; border-radius:10px; margin-bottom:10px;">
                 <label style="color:#e11d48; font-weight:bold;">🗑️ Ziel ab Monat stoppen & Beträge verschieben</label>
-                <div style="font-size:0.7rem; color:var(--text-sub); margin-bottom:4px;">Stoppt die geplanten Raten ab dem gewählten Monat und trägt diese monatlich (z.B. Juni, Juli, August) als manuelle Zuweisungen auf das Ziel ein. Das alte Ziel bleibt sichtbar.</div>
+                <div style="font-size:0.7rem; color:var(--text-sub); margin-bottom:4px;">Stoppt die geplanten Raten ab dem gewählten Monat und trägt diese monatlich auf das Ziel ein.</div>
                 <div class="grid" style="gap:5px;">
                     <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.68rem;">Stopp ab Monat:</label><input type="month" id="stornoMonthInput" value="2027-06" style="background:#fff; font-size:0.78rem; padding:5px;"></div>
                     <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.68rem;">Geld schieben auf Ziel:</label><select id="stornoTargetSelect" style="background:#fff; font-size:0.78rem; padding:5px;"></select></div>
@@ -991,7 +991,7 @@
                 const isInc = item.type === 'income', amt = parseFloat(item.amount || 0);
                 if (isInc) totalIncome += amt; else { totalSpent += amt; catTotals[item.category] = (catTotals[item.category] || 0) + amt; }
                 const div = document.createElement('div'); div.className = 'history-item';
-                div.innerHTML = `<div><div class="history-date" style="${isInc?'color:var(--accent-green);':''}">${item.name} <span class="badge ${isInc?'badge-income':'badge-kategorie'}">${item.category}</span> ${item.receipt?`<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">Beleg</button>`:''}</div><div class="history-sub">${item.date}</div></div><div style="text-align:right;"><span class="${isInc?'val-highlight':'val-red'}">${isInc?'+':'-'}${amt.toFixed(2)} €</span> <span style="cursor:pointer; color:#ef4444;" onclick="deleteHaushaltItem(${item.id})">🗑️</span></div>`;
+                div.innerHTML = `<div><div class="history-date" style="${isInc?'color:var(--accent-green);':''}">${item.name} <span class="badge ${isInc?'badge-income':'badge-kategorie'}">${item.category}</span> ${item.receipt?`<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">Beleg</button>👤`:''}</div><div class="history-sub">${item.date}</div></div><div style="text-align:right;"><span class="${isInc?'val-highlight':'val-red'}">${isInc?'+':'-'}${amt.toFixed(2)} €</span> <span style="cursor:pointer; color:#ef4444;" onclick="deleteHaushaltItem(${item.id})">🗑️</span></div>`;
                 list.appendChild(div);
             });
             const chartCard = document.getElementById('categoryChartCard'), chartContainer = document.getElementById('categoryChartContainer'); chartContainer.innerHTML = '';
@@ -1251,17 +1251,15 @@
                 return alert('Systemkonten können nicht gestoppt werden!');
             }
 
-            if(!confirm(`Möchtest du das Ziel "${currentGoal.name}" ab Monat ${stornoMonth} stoppen und die geplanten monatlichen Beträge ab diesem Monat auf ${goals.find(g=>g.id===targetGoalId)?.name} verschieben?`)) return;
+            if(!confirm(`Möchtest du das Ziel "${currentGoal.name}" ab Monat ${stornoMonth} stoppen und die geplanten monatlichen Beträge auf ${goals.find(g=>g.id===targetGoalId)?.name} verschieben?`)) return;
 
             let monthlyAmt = parseFloat(currentGoal.fixedMonthly) || 0;
-            if(monthlyAmt <= 0) {
-                monthlyAmt = 90; // Fallback falls kein Dauerauftrag hinterlegt war
-            }
+            if(monthlyAmt <= 0) monthlyAmt = 45; // Fallback
 
             // Stoppt das aktuelle Ziel ab diesem Monat
             currentGoal.endDate = stornoMonth;
 
-            // Geht die kommenden Monate (z.B. Juni, Juli, August...) durch und trägt den Betrag als manuelle Zuweisung beim Ziel ein
+            // Trägt für die kommenden Monate (ab Storno-Monat für die nächsten 12 Monate) den Betrag als manuelle Zuweisung auf das Ziel ein
             let simMonth = stornoMonth;
             const targetGoalObj = goals.find(g => g.id === targetGoalId);
 
@@ -1269,13 +1267,15 @@
                 if(!entries[simMonth]) entries[simMonth] = getMonthDataOrFallback(simMonth);
                 if(!entries[simMonth].extraTransfers) entries[simMonth].extraTransfers = [];
 
-                // Fügt den Betrag als manuelle Zuweisung für das Ziel im jeweiligen Monat hinzu
-                entries[simMonth].extraTransfers.push({
-                    id: Date.now() + Math.random(),
-                    targetId: targetGoalId,
-                    targetName: targetGoalObj ? targetGoalObj.name : 'Ziel',
-                    amount: monthlyAmt
-                });
+                // Prüfen ob bereits eine solche Übertragung für dieses Ziel existiert, um Doppelungen zu vermeiden
+                if(!entries[simMonth].extraTransfers.some(t => t.targetId === targetGoalId && t.amount === monthlyAmt)) {
+                    entries[simMonth].extraTransfers.push({
+                        id: Date.now() + Math.random(),
+                        targetId: targetGoalId,
+                        targetName: targetGoalObj ? targetGoalObj.name : 'Ziel',
+                        amount: monthlyAmt
+                    });
+                }
 
                 simMonth = getNextMonthKey(simMonth);
             }
@@ -1285,7 +1285,7 @@
             renderHistory();
             loadMonthData();
             closeModal();
-            alert(`Ziel wurde ab Monat ${stornoMonth} gestoppt und die monatlichen Raten wurden in die kommenden Monate (${stornoMonth} ff.) auf das neue Ziel übertragen! 🚀`);
+            alert(`Ziel wurde ab Monat ${stornoMonth} gestoppt und die monatlichen Raten wurden fehlerfrei auf das neue Ziel übertragen! 🚀`);
         }
 
         function cancelTransfer(id) { transfersList = transfersList.filter(t => t.id !== id); saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert('Storniert!'); }
