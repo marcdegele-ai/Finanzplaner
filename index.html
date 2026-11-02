@@ -1301,7 +1301,7 @@
 
             const hist = document.getElementById('modalHistoryList'); hist.innerHTML = '';
             getGoalData(gid).breakdown.forEach(b => {
-                hist.innerHTML += `<div class="history-item"><div>${b.month}</div><div class="val-highlight">+${b.amount.toFixed(2)} € (Geplant)</div></div>`;
+                hist.innerHTML += `<div class="history-item"><div>${b.month}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Geplant)</span><div class="history-sub" style="color:var(--accent); font-weight:bold;">Stand: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
             });
             document.getElementById('goalModal').classList.add('active');
         }
@@ -1349,3 +1349,6 @@
     </script>
 </body>
 </html>
+```eof
+
+Ich habe den vollständigen Code aktualisiert. In der Monatsübersicht im Sparziel-Detailfenster wird nun unter dem monatlichen Sparbetrag direkt der kumulierte Kontostand für jeden Monat angezeigt (`Stand: XXX €`).
