@@ -175,6 +175,18 @@
                 <button class="btn-secondary" style="width: 100%; background: var(--accent-orange); color: #fff; font-weight: bold; padding: 8px; border-radius:8px;" onclick="calcATMNotesRecommendation()">🏧 Automaten-Stückelung 💵</button>
             </details>
 
+            <!-- NEU: Net-Banking Express-Umbuchung -->
+            <div class="card" style="border: 1.5px solid var(--accent); background: #f0f9ff;">
+                <div class="card-title" style="color: var(--accent);"><span>💳 Net-Banking Express-Umbuchung</span></div>
+                <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px;">Geld beliebig zwischen allen Sparkonten, Zielen & Kassetten hin- und herüberweisen.</div>
+                <div class="grid">
+                    <div class="input-group"><label>Von Konto/Ziel</label><select id="globalTransferFromSelect" style="background:#fff; font-weight:bold;"></select></div>
+                    <div class="input-group"><label>Zu Konto/Ziel</label><select id="globalTransferToSelect" style="background:#fff; font-weight:bold;"></select></div>
+                    <div class="input-group full"><label>Betrag (€)</label><input type="number" id="globalTransferAmountInput" placeholder="100.00" style="background:#fff;"></div>
+                </div>
+                <button class="btn-add" style="background: var(--accent); margin-top: 6px;" onclick="executeGlobalBankingTransfer()">Geld jetzt umbuchen 🚀</button>
+            </div>
+
             <details class="card">
                 <summary style="font-size: 0.9rem;">🎯 Restgeld manuell buchen</summary>
                 <div class="grid" style="margin-top: 8px;">
@@ -521,6 +533,7 @@
             loadMonthData();
             updateCloudStatusLabel();
             updateSubKontoDropdowns();
+            updateGlobalBankingDropdowns();
         });
 
         function toggleAutoUrlaubFields() {
@@ -1193,18 +1206,58 @@
             if(tgtSel.options.length > 1) tgtSel.selectedIndex = 1;
         }
 
-        function executeGoalDissolutionAtMonth() {
-            const stornoMonth = document.getElementById('stornoMonthInput').value;
-            const targetGoalId = document.getElementById('stornoTargetSelect').value;
-            const currentGoal = goals.find(x => x.id === currentModalGoalId);
+        function updateGlobalBankingDropdowns() {
+            const fromSel = document.getElementById('globalTransferFromSelect');
+            const toSel = document.getElementById('globalTransferToSelect');
+            if (!fromSel || !toSel) return;
+            fromSel.innerHTML = ''; toSel.innerHTML = '';
             
-            if(!currentGoal) return;
-            if(!stornoMonth) return alert('Bitte einen Stopp-Monat auswählen!');
-            if(!targetGoalId) return alert('Bitte ein Ziel auswählen, auf das die Beträge verschoben werden sollen!');
-            
-            if(['notfall','freizeit','kassette'].includes(currentGoal.id)) {
-                return alert('Systemkonten können nicht gestoppt werden!');
+            goals.forEach(g => {
+                const curAmt = getSavedAmountForGoalUpTo(g, getSelectedMonthKey());
+                const optText = `${g.name} (${curAmt.toFixed(2)} €)`;
+                fromSel.add(new Option(optText, g.id));
+                toSel.add(new Option(optText, g.id));
+            });
+            if (toSel.options.length > 1) toSel.selectedIndex = 1;
+        }
+
+        function executeGlobalBankingTransfer() {
+            const fromId = document.getElementById('globalTransferFromSelect').value;
+            const toId = document.getElementById('globalTransferToSelect').value;
+            const amt = parseFloat(document.getElementById('globalTransferAmountInput').value);
+
+            if (!fromId || !toId || fromId === toId || isNaN(amt) || amt <= 0) {
+                return alert('Bitte unterschiedliche Konten und einen gültigen Betrag eingeben!');
             }
+
+            const fromGoal = goals.find(g => g.id === fromId);
+            const toGoal = goals.find(g => g.id === toId);
+            if (!fromGoal || !toGoal) return;
+
+            const curSrc = getSavedAmountForGoalUpTo(fromGoal, getSelectedMonthKey());
+            if (curSrc < amt) {
+                if (!confirm(`Hinweis: Auf ${fromGoal.name} befinden sich aktuell nur ${curSrc.toFixed(2)} €. Möchtest du die Umbuchung trotzdem durchführen?`)) {
+                    return;
+                }
+            }
+
+            transfersList.push({
+                id: Date.now(),
+                fromId: fromId,
+                fromName: fromGoal.name,
+                toId: toId,
+                toName: toGoal.name,
+                amount: amt,
+                dateKey: getSelectedMonthKey()
+            });
+
+            document.getElementById('globalTransferAmountInput').value = '';
+            saveLocally();
+            renderGoals();
+            renderHistory();
+            updateGlobalBankingDropdowns();
+            alert(`Erfolgreich ${amt.toFixed(2)} € von "${fromGoal.name}" nach "${toGoal.name}" umgebucht! 💳🚀`);
+        }
 
             if(!confirm(`Möchtest du das Ziel "${currentGoal.name}" ab Monat ${stornoMonth} stoppen und die geplanten monatlichen Beträge auf ${goals.find(g=>g.id===targetGoalId)?.name} verschieben?`)) return;
 
@@ -1484,6 +1537,7 @@
             });
             populateManualDistributeDropdown();
             updateSubKontoDropdowns();
+            updateGlobalBankingDropdowns();
         }
 
         function openModal(gid) {
@@ -1561,3 +1615,4 @@
     </script>
 </body>
 </html>
+```
