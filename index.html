@@ -177,7 +177,7 @@
             <!-- AUFKLAPPBARE ZUSATZ-WERKZEUGE -->
             <details class="card" style="border: 1.5px solid var(--accent); background: #f0f9ff;">
                 <summary style="color: var(--accent);">⚡ Multi-Monats-Auto-Verteiler</summary>
-                <p style="font-size: 0.74rem; color: var(--text-sub); margin: 8px 0;">Verteilt das Restgeld automatisch für die nächsten Monate im Voraus. Wenn Ziele voll oder abgelaufen sind, fließt der Rest aufs Notfallkonto.</p>
+                <p style="font-size: 0.74rem; color: var(--text-sub); margin: 8px 0;">Verteilt das Restgeld vorrangig auf alle Sparziele. Erst wenn alle Sparziele voll oder bedient sind, fließt der verbleibende Überschuss extra aufs Notfallkonto.</p>
                 <div class="grid">
                     <div class="input-group full">
                         <label>Dauer im Voraus wählen:</label>
@@ -883,6 +883,7 @@
                 let availableRest = calc.freizeitSparen;
 
                 if (availableRest > 0) {
+                    // Schritt 1: Sparziele vorrangig bedienen
                     goals.forEach(g => {
                         if (['notfall', 'freizeit', 'kassette'].includes(g.id)) return;
                         if (availableRest <= 0) return;
@@ -915,6 +916,7 @@
                         }
                     });
 
+                    // Schritt 2: Erst nach vollständiger Bedienung der Sparziele fließt das restliche Geld aufs Notfallkonto
                     if (availableRest > 0 && notfallGoal) {
                         itemData.extraTransfers.push({
                             id: Date.now() + Math.random(),
@@ -932,7 +934,7 @@
             loadMonthData();
             renderHistory();
             renderGoals();
-            alert(`Geld für die nächsten ${numMonths} Monate wurde automatisch verteilt! 🚀 Restbeträge wurden auf das Notfallkonto gebucht.`);
+            alert(`Geld für die nächsten ${numMonths} Monate wurde erfolgreich verteilt! 🚀 Sparziele wurden vorrangig bedient, überschüssiges Restgeld wurde erst danach aufs Notfallkonto gebucht.`);
         }
 
         function getActiveDeductionsForGoal(goal, mKey) {
