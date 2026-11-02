@@ -1112,7 +1112,11 @@
             let monthList = [];
             let sim = goal.startMonth && goal.startMonth < base ? goal.startMonth : base;
             
-            for(let i=0; i<48; i++) { 
+            // Planung genau bis zum 31. Dezember des Folgejahres begrenzen
+            const currentYear = parseInt(base.split('-')[0]) || 2026;
+            const maxPlanningMonth = `${currentYear + 1}-12`;
+            
+            while (sim <= maxPlanningMonth) { 
                 monthList.push(sim); 
                 sim = getNextMonthKey(sim); 
             }
@@ -1557,4 +1561,3 @@
     </script>
 </body>
 </html>
-```
