@@ -287,7 +287,8 @@
 
             <div class="card" style="border: 1.5px solid #fca5a5; background: #fff5f5;">
                 <div class="card-title" style="color:var(--accent-red);"><span>🧹 Datenbereinigung</span></div>
-                <button class="btn-secondary" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; width:100%; font-weight:bold; padding:8px;" onclick="clearAllExtraTransfersGlobally()">Alle manuellen Zuweisungen löschen</button>
+                <button class="btn-secondary" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; width:100%; font-weight:bold; padding:8px; margin-bottom:8px;" onclick="clearAllExtraTransfersGlobally()">Alle manuellen Zuweisungen löschen</button>
+                <button class="btn-secondary" style="background:#ef4444; color:#fff; border:none; width:100%; font-weight:bold; padding:8px;" onclick="resetAllGoalStornosGlobally()">🔄 Alles auf Standard zurücksetzen (Stornos aufheben)</button>
             </div>
 
             <div class="card">
@@ -740,6 +741,14 @@
             saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); alert('Gelöscht! 🧹');
         }
 
+        function resetAllGoalStornosGlobally() {
+            if(!confirm('Möchtest du alle Ziel-Stornos und Enddaten zurücksetzen, sodass alle Sparziele wieder standardmäßig weiterlaufen?')) return;
+            goals.forEach(g => { g.endDate = null; });
+            Object.keys(entries).forEach(m => { if(entries[m]) entries[m].extraTransfers = []; });
+            transfersList = [];
+            saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); alert('Alles auf Standard zurückgesetzt! 🔄');
+        }
+
         function quickFillHH(amt) { document.getElementById('HHAmount').value = (parseFloat(document.getElementById('HHAmount').value) || 0) + amt; }
         function updateHHKategorien() {
             const type = document.getElementById('HHType').value, select = document.getElementById('HHKategorie'); select.innerHTML = '';
@@ -877,6 +886,7 @@
                     goals.forEach(g => {
                         if (['notfall', 'freizeit', 'kassette'].includes(g.id)) return;
                         if (availableRest <= 0) return;
+                        if (g.endDate && currentKey >= g.endDate) return; // Stopp ab Enddatum auf 0,00 €
 
                         let endLimit = g.endDate ? g.endDate : null;
                         const u = urlaubeList.find(item => item.goalId === g.id);
@@ -929,7 +939,7 @@
             if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
             if (goal.startMonth && mKey < goal.startMonth) return 0;
             
-            // Stoppt das Ziel ab dem eingestellten Endmonat exakt
+            // Ab dem Endmonat exakt 0,00 € berechnen
             if (goal.endDate && mKey >= goal.endDate) return 0;
             const u = urlaubeList.find(item => item.goalId === goal.id);
             if (u && u.endDate && mKey > u.endDate.slice(0, 7)) return 0;
