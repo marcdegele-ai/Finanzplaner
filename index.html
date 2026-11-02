@@ -357,17 +357,18 @@
         <!-- TAB 6: SPARZIELE -->
         <div id="ziele-view" class="view-section">
             <div class="card">
-                <div class="card-title">🎯 Sparziel anlegen</div>
+                <div class="card-title">🎯 Sparziel / Notfall-Unterkonto anlegen</div>
                 <div class="grid">
-                    <div class="input-group full"><label>Name</label><input type="text" id="zielName" placeholder="Z.B. Urlaub 2027"></div>
+                    <div class="input-group full"><label>Name</label><input type="text" id="zielName" placeholder="Z.B. Auto, Technik, Puffer..."></div>
                     <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="zielBetrag" placeholder="1500" oninput="autoCalculateMonthlyRate()"></div>
-                    <div class="input-group"><label>Dauerauftrag (€/Mo)</label><input type="number" id="zielFixedMonthly" placeholder="100"></div>
+                    <div class="input-group"><label>Monatliche Zuweisung (€/Mo)</label><input type="number" id="zielFixedMonthly" placeholder="100"></div>
                     <div class="input-group full"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
                     <div class="input-group full">
-                        <label>Typ</label>
+                        <label>Typ / Zuordnung</label>
                         <select id="zielTypeSelect">
+                            <option value="notfall_sub">🛡️ Notfallkonto-Unterkonto</option>
                             <option value="custom">⚙️ Manuell (Freizeitkonto)</option>
-                            <option value="notfall">🛡️ Notfallkonto</option>
+                            <option value="notfall">🛡️ Haupt-Notfallkonto</option>
                             <option value="freizeit">🎉 Freizeitkonto</option>
                             <option value="kassette">🪙 Bargeld-Kassette</option>
                         </select>
@@ -379,17 +380,23 @@
                         <label class="checkbox-container"><input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()"><div><strong>Gleichmäßig bis Endmonat aufteilen</strong></div></label>
                     </div>
                     <div class="input-group full" id="zielEndMonthGroup" style="display:none;"><label>Endmonat</label><input type="month" id="zielEndMonthInput" value="2027-12"></div>
-                    <div class="input-group full">
-                        <label class="checkbox-container"><input type="checkbox" id="zielAutoUrlaubCheckbox" onchange="toggleAutoUrlaubFields()"><div><strong>✨ Urlaubs-Planer generieren</strong></div></label>
-                    </div>
-                    <div class="input-group" id="zielStartDateGroup" style="display:none;"><label>Start</label><input type="date" id="zielStartDateInput"></div>
-                    <div class="input-group" id="zielEndDateGroup" style="display:none;"><label>Ende</label><input type="date" id="zielEndDateInput"></div>
                 </div>
-                <button class="btn-add" onclick="saveGoal()">Ziel Hinzufügen</button>
+                <button class="btn-add" onclick="saveGoal()">Unterkonto / Ziel Hinzufügen</button>
+            </div>
+
+            <div class="card" style="background:#f0fdf4; border:1.5px solid var(--accent-green);">
+                <div class="card-title" style="color:#15803d;"><span>🛡️ Notfallkonto-Budget-Manager</span></div>
+                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">Verschiebe hier flexibel Guthaben zwischen deinen Notfall-Unterkonten.</div>
+                <div class="grid">
+                    <div class="input-group"><label>Von Unterkonto</label><select id="subKontosourceSelect" style="background:#fff;"></select></div>
+                    <div class="input-group"><label>Zu Unterkonto</label><select id="subKontoTargetSelect" style="background:#fff;"></select></div>
+                    <div class="input-group full"><label>Betrag (€)</label><input type="number" id="subKontoTransferAmount" placeholder="0.00" style="background:#fff;"></div>
+                </div>
+                <button class="btn-secondary" style="width:100%; margin-top:6px; background:var(--accent-green); color:#fff; font-weight:bold;" onclick="executeSubKontoTransfer()">Geld zwischen Unterkonten verschieben 🔄</button>
             </div>
 
             <div class="card">
-                <div class="card-title">📋 Meine Sparziele</div>
+                <div class="card-title">📋 Meine Sparziele & Notfall-Unterkonten</div>
                 <div id="goalsList"></div>
             </div>
         </div>
@@ -1089,7 +1096,7 @@
             let diff = 0; (transfersList || []).forEach(tr => { if(tr.dateKey < upto) { if(tr.fromId === goal.id) diff -= tr.amount; if(tr.toId === goal.id) diff += tr.amount; } });
             if(goal.id === 'notfall') {
                 let sum = parseFloat(goal.manualOffset || 0);
-                Object.keys(entries).sort().forEach(k => { 
+                Object.keys(entries || {}).sort().forEach(k => { 
                     if(k < upto) {
                         sum += calculateValuesFor(entries[k] || getMonthDataOrFallback(k)).notfallSparen;
                         (entries[k]?.extraTransfers || []).forEach(tr => { if(tr.targetId === 'notfall') sum += tr.amount; });
@@ -1099,7 +1106,7 @@
             }
             if(goal.id === 'freizeit') return getGoalData(goal.id).total;
             let total = parseFloat(goal.manualOffset || goal.manualCurrent || 0);
-            Object.keys(entries).sort().forEach(k => {
+            Object.keys(entries || {}).sort().forEach(k => {
                 if(k < upto && (!goal.startMonth || k >= goal.startMonth)) {
                     let scheduled = getActiveDeductionsForGoal(goal, k);
                     let extra = 0;
