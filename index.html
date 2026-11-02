@@ -151,7 +151,7 @@
                         <input type="hidden" id="fixkostenInput" value="0">
                     </div>
 
-                    <div class="input-group"><label>Einkaufs-Geld 🛒 (€)</label><input type="number" id="taschengeldInput" placeholder="0" oninput="autoSaveLive()"></div>
+                    <div class="input-group"><label>Einkaufs-Puffer 🛒 (€)</label><input type="number" id="taschengeldInput" placeholder="0" oninput="autoSaveLive()"></div>
                     <div class="input-group"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
                     
                     <div class="input-group full">
@@ -229,7 +229,7 @@
             <div class="card">
                 <div class="card-title">Ergebnis: <span id="displayMonth" style="color:var(--accent);">-</span></div>
                 <div class="stat-row"><span>Netto-Einnahmen:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row" style="background:#fff7ed; padding:8px 10px; border-radius:8px;"><span>🛒 Einkaufs-Geld (Abzug):</span><span id="resEinkaufspuffer" class="val-orange">-0,00 €</span></div>
+                <div class="stat-row" style="background:#fff7ed; padding:8px 10px; border-radius:8px;"><span>🛒 Einkaufs-Puffer (Abzug):</span><span id="resEinkaufspuffer" class="val-orange">-0,00 €</span></div>
                 <div class="stat-row"><span>Verfügbar nach Einkauf:</span><span id="resUeberschuss" class="val-orange">0,00 €</span></div>
                 <div class="stat-row"><span>Notfallkonto:</span><span id="resNotfall" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>FreizeitKonto:</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
@@ -280,7 +280,7 @@
                 <div class="stat-row"><span>Fixkosten-Quote:</span><span id="fixQuoteDisplay" class="val-red">0.0%</span></div>
                 <div class="stat-row"><span>Ausgaben (Ist / Geplant):</span><span><strong id="HHTotalDisplay" class="val-red">0,00 €</strong> / <span id="HHPlannedExpenseDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
                 <div class="stat-row"><span>Einnahmen (Ist / Geplant):</span><span><strong id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</strong> / <span id="HHPlannedIncomeDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
-                <div class="stat-row" style="font-weight:bold;"><span>Rest-Budget (Einkaufs-Geld):</span><span id="HHRestDisplay">0,00 €</span></div>
+                <div class="stat-row" style="font-weight:bold;"><span>Rest-Budget (Einkaufs-Puffer):</span><span id="HHRestDisplay">0,00 €</span></div>
             </div>
 
             <div class="card" id="categoryChartCard" style="display:none;">
@@ -993,8 +993,8 @@
             const prevKey = getPreviousMonthKey(m);
             const prevData = getMonthDataOrFallback(prevKey);
             const prevKontoPuffer = parseFloat(prevData.kontoPuffer) || 200;
-            const currentEinkaufsGeld = parseFloat(itemData.taschengeld) || 0;
-            const totalPlannedHaushaltBudget = currentEinkaufsGeld + prevKontoPuffer;
+            const currentEinkaufsPuffer = parseFloat(itemData.taschengeld) || 0;
+            const totalPlannedHaushaltBudget = currentEinkaufsPuffer + prevKontoPuffer;
 
             (haushaltItems || []).filter(i => i.date?.startsWith(m)).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(item => {
                 const isInc = item.type === 'income', amt = parseFloat(item.amount || 0);
@@ -1066,17 +1066,17 @@
         }
 
         function calculateValuesFor(item) {
-            if(!item) return { netto: 0, einkaufsGeld: 0, ueberschuss: 0, notfallSparen: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
+            if(!item) return { netto: 0, einkaufsPuffer: 0, ueberschuss: 0, notfallSparen: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
             const fix = getTotalFixForMonthData(item), g = (parseFloat(item.gehalt) || 2300) + (parseFloat(item.bargeldEinnahme) || 0);
             const netto = g - fix;
             
-            const einkaufsGeld = parseFloat(item.taschengeld) || 0;
-            const ueberschuss = Math.max(0, netto - einkaufsGeld);
+            const einkaufsPuffer = parseFloat(item.taschengeld) || 0;
+            const ueberschuss = Math.max(0, netto - einkaufsPuffer);
 
             const split = parseFloat(item.splitNotfall) || 0;
             let notfall = item.splitMode === 'fixed' ? Math.max(0, Math.min(ueberschuss, split)) : ueberschuss * (split / 100);
             const bargeld = parseFloat(item.bargeld) || 0, freizeit = Math.max(0, ueberschuss - notfall);
-            return { netto: Math.round(netto*100)/100, einkaufsGeld: einkaufsGeld, ueberschuss: Math.round(ueberschuss*100)/100, notfallSparen: Math.round(notfall*100)/100, freizeitSparen: Math.round(freizeit*100)/100, bargeldSparen: bargeld, gesamtSparen: Math.round((notfall+freizeit+bargeld)*100)/100 };
+            return { netto: Math.round(netto*100)/100, einkaufsPuffer: einkaufsPuffer, ueberschuss: Math.round(ueberschuss*100)/100, notfallSparen: Math.round(notfall*100)/100, freizeitSparen: Math.round(freizeit*100)/100, bargeldSparen: bargeld, gesamtSparen: Math.round((notfall+freizeit+bargeld)*100)/100 };
         }
 
         function liveCalc() {
@@ -1085,7 +1085,7 @@
             const calc = calculateValuesFor(item);
             document.getElementById('displayMonth').innerText = m;
             document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
-            document.getElementById('resEinkaufspuffer').innerText = '-' + calc.einkaufsGeld.toFixed(2) + ' €';
+            document.getElementById('resEinkaufspuffer').innerText = '-' + calc.einkaufsPuffer.toFixed(2) + ' €';
             document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
             
             let extraNotfall = 0; (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
@@ -1122,7 +1122,7 @@
                 let amt = getActiveDeductionsForGoal(g, getSelectedMonthKey());
                 if(amt > 0) container.innerHTML += `<div class="envelope-card-item special"><div><strong>✉️ ${g.name}</strong></div><div class="val-orange">+${amt.toFixed(2)} €</div></div>`;
             });
-            container.innerHTML += `<div class="envelope-card-item rest"><div><strong>🛍️ Puffer</strong></div><div class="val-highlight">+${(parseFloat(document.getElementById('kontoPufferInput').value)||200).toFixed(2)} €</div></div>`;
+            container.innerHTML += `<div class="envelope-card-item rest"><div><strong>🛡️ Konto-Puffer</strong></div><div class="val-highlight">+${(parseFloat(document.getElementById('kontoPufferInput').value)||200).toFixed(2)} €</div></div>`;
         }
 
         function calcATMNotesRecommendation() {
