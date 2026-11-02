@@ -1075,33 +1075,30 @@
             const goal = goals.find(g => g.id === goalId); if(!goal) return { total: 0, projectedTotal: 0, breakdown: [] };
             
             let endLimitStr = goal.endDate ? goal.endDate.slice(0, 7) : null;
+            const u = urlaubeList.find(item => item.goalId === goalId);
+            if (u && u.endDate) endLimitStr = u.endDate.slice(0, 7);
+
             let base = getSelectedMonthKey();
-            let allM = new Set(Object.keys(entries)); 
-            let sim = base;
+            let monthList = [];
+            let sim = goal.startMonth && goal.startMonth < base ? goal.startMonth : base;
             
             for(let i=0; i<48; i++) { 
                 if (endLimitStr && sim > endLimitStr) break;
-                allM.add(sim); 
+                monthList.push(sim); 
                 sim = getNextMonthKey(sim); 
             }
-            if (endLimitStr) allM.add(endLimitStr);
 
             let sum = goal.id === 'kassette' ? parseFloat(goal.manualCurrent || 0) : parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             let proj = sum, breakdown = [];
             
-            Array.from(allM).sort().forEach(k => {
-                if (endLimitStr && k > endLimitStr) return;
+            monthList.forEach(k => {
                 const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
                 let add = 0;
                 
                 if (goal.id === 'notfall') add = calc.notfallSparen;
                 else if (goal.id === 'kassette') add = calc.bargeldSparen;
                 else if (goal.id !== 'freizeit') {
-                    if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
-                        add = parseFloat(goal.fixedMonthly);
-                    } else {
-                        add = getActiveDeductionsForGoal(goal, k);
-                    }
+                    add = getActiveDeductionsForGoal(goal, k);
                 }
 
                 (item.extraTransfers || []).forEach(tr => { if (tr.targetId === goalId) add += tr.amount; });
@@ -1350,6 +1347,3 @@
 </body>
 </html>
 ```eof
-
-### Was wurde angepasst?
-Die Berechnungsfunktion `getGoalData` stoppte zuvor nicht strikt bei Erreichen des eingetragenen Endmonats (`endDate`). Die Iterationsschleife prüft nun bei jedem Durchlauf streng das Enddatum: Sobald ein Monat nach dem gewählten Endmonat liegt (z. B. nach `2027-07`), bricht die Monatsberechnung sofort ab und es werden keine weiteren Zuweisungen oder Einträge mehr für Folgemonate generiert.
