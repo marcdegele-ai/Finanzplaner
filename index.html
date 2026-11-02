@@ -878,11 +878,11 @@
                         if (['notfall', 'freizeit', 'kassette'].includes(g.id)) return;
                         if (availableRest <= 0) return;
 
-                        let endLimit = g.endDate ? g.endDate.slice(0, 7) : null;
+                        let endLimit = g.endDate ? g.endDate : null;
                         const u = urlaubeList.find(item => item.goalId === g.id);
                         if (u && u.endDate) endLimit = u.endDate.slice(0, 7);
 
-                        if (!endLimit || currentKey <= endLimit) {
+                        if (!endLimit || currentKey < endLimit) {
                             let needed = g.fixedMonthly && g.fixedMonthly > 0 ? parseFloat(g.fixedMonthly) : 0;
                             if (g.capAtTarget && g.target > 0) {
                                 let alreadySaved = getSavedAmountForGoalUpTo(g, currentKey);
@@ -929,12 +929,13 @@
             if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
             if (goal.startMonth && mKey < goal.startMonth) return 0;
             
-            const monthData = entries[mKey], isBooked = monthData ? monthData.booked : (mKey === getSelectedMonthKey() ? document.getElementById('gehaltBookedInput').checked : false);
-            if (!isBooked) return 0;
-            
-            if (goal.endDate && mKey > goal.endDate.slice(0, 7)) return 0;
+            // Stoppt das Ziel ab dem eingestellten Endmonat exakt
+            if (goal.endDate && mKey >= goal.endDate) return 0;
             const u = urlaubeList.find(item => item.goalId === goal.id);
             if (u && u.endDate && mKey > u.endDate.slice(0, 7)) return 0;
+
+            const monthData = entries[mKey], isBooked = monthData ? monthData.booked : (mKey === getSelectedMonthKey() ? document.getElementById('gehaltBookedInput').checked : false);
+            if (!isBooked) return 0;
 
             if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                 if (goal.capAtTarget && goal.target > 0) {
@@ -1194,7 +1195,7 @@
         function getGoalData(goalId) {
             const goal = goals.find(g => g.id === goalId); if(!goal) return { total: 0, projectedTotal: 0, breakdown: [] };
             
-            let endLimitStr = goal.endDate ? goal.endDate.slice(0, 7) : null;
+            let endLimitStr = goal.endDate ? goal.endDate : null;
             const u = urlaubeList.find(item => item.goalId === goalId);
             if (u && u.endDate) endLimitStr = u.endDate.slice(0, 7);
 
@@ -1203,7 +1204,6 @@
             let sim = goal.startMonth && goal.startMonth < base ? goal.startMonth : base;
             
             for(let i=0; i<48; i++) { 
-                if (endLimitStr && sim > endLimitStr) break;
                 monthList.push(sim); 
                 sim = getNextMonthKey(sim); 
             }
@@ -1215,10 +1215,15 @@
                 const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
                 let add = 0;
                 
-                if (goal.id === 'notfall') add = calc.notfallSparen;
-                else if (goal.id === 'kassette') add = calc.bargeldSparen;
-                else if (goal.id !== 'freizeit') {
-                    add = getActiveDeductionsForGoal(goal, k);
+                let isTerminated = false;
+                if (endLimitStr && k >= endLimitStr) isTerminated = true;
+
+                if (!isTerminated) {
+                    if (goal.id === 'notfall') add = calc.notfallSparen;
+                    else if (goal.id === 'kassette') add = calc.bargeldSparen;
+                    else if (goal.id !== 'freizeit') {
+                        add = getActiveDeductionsForGoal(goal, k);
+                    }
                 }
 
                 (item.extraTransfers || []).forEach(tr => { if (tr.targetId === goalId) add += tr.amount; });
