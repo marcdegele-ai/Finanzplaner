@@ -1351,4 +1351,5 @@
 </html>
 ```eof
 
-Ich habe den vollständigen Code aktualisiert. In der Monatsübersicht im Sparziel-Detailfenster wird nun unter dem monatlichen Sparbetrag direkt der kumulierte Kontostand für jeden Monat angezeigt (`Stand: XXX €`).
+### Was wurde angepasst?
+Die Berechnungsfunktion `getGoalData` stoppte zuvor nicht strikt bei Erreichen des eingetragenen Endmonats (`endDate`). Die Iterationsschleife prüft nun bei jedem Durchlauf streng das Enddatum: Sobald ein Monat nach dem gewählten Endmonat liegt (z. B. nach `2027-07`), bricht die Monatsberechnung sofort ab und es werden keine weiteren Zuweisungen oder Einträge mehr für Folgemonate generiert.
