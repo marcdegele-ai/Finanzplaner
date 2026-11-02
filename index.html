@@ -1259,21 +1259,28 @@
             alert(`Erfolgreich ${amt.toFixed(2)} € von "${fromGoal.name}" nach "${toGoal.name}" umgebucht! 💳🚀`);
         }
 
-            if(!confirm(`Möchtest du das Ziel "${currentGoal.name}" ab Monat ${stornoMonth} stoppen und die geplanten monatlichen Beträge auf ${goals.find(g=>g.id===targetGoalId)?.name} verschieben?`)) return;
+        function executeGoalDissolutionAtMonth() {
+            const stornoMonth = document.getElementById('stornoMonthInput').value;
+            const targetGoalId = document.getElementById('stornoTargetSelect').value;
+            const currentGoal = goals.find(g => g.id === currentModalGoalId);
+
+            if (!currentGoal || !stornoMonth || !targetGoalId) return alert('Ungültige Eingabe!');
+
+            if (!confirm(`Möchtest du das Ziel "${currentGoal.name}" ab Monat ${stornoMonth} stoppen und die geplanten monatlichen Beträge auf ${goals.find(g=>g.id===targetGoalId)?.name} verschieben?`)) return;
 
             let monthlyAmt = parseFloat(currentGoal.fixedMonthly) || 0;
-            if(monthlyAmt <= 0) monthlyAmt = 45;
+            if (monthlyAmt <= 0) monthlyAmt = 45;
 
             currentGoal.endDate = stornoMonth;
 
             let simMonth = stornoMonth;
             const targetGoalObj = goals.find(g => g.id === targetGoalId);
 
-            for(let i = 0; i < 12; i++) {
-                if(!entries[simMonth]) entries[simMonth] = getMonthDataOrFallback(simMonth);
-                if(!entries[simMonth].extraTransfers) entries[simMonth].extraTransfers = [];
+            for (let i = 0; i < 12; i++) {
+                if (!entries[simMonth]) entries[simMonth] = getMonthDataOrFallback(simMonth);
+                if (!entries[simMonth].extraTransfers) entries[simMonth].extraTransfers = [];
 
-                if(!entries[simMonth].extraTransfers.some(t => t.targetId === targetGoalId && t.amount === monthlyAmt)) {
+                if (!entries[simMonth].extraTransfers.some(t => t.targetId === targetGoalId && t.amount === monthlyAmt)) {
                     entries[simMonth].extraTransfers.push({
                         id: Date.now() + Math.random(),
                         targetId: targetGoalId,
@@ -1290,7 +1297,7 @@
             renderHistory();
             loadMonthData();
             closeModal();
-            alert(`Ziel wurde ab Monat ${stornoMonth} gestoppt und die monatlichen Raten wurden fehlerfrei auf das neue Ziel übertragen! 🚀`);
+            alert(`Ziel wurde ab Monat ${stornoMonth} gestoppt und die monatlichen Raten wurden fehlerfrei übertragen! 🚀`);
         }
 
         function cancelTransfer(id) { transfersList = transfersList.filter(t => t.id !== id); saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert('Storniert!'); }
