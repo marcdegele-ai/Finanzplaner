@@ -1137,9 +1137,9 @@
             let sum = goal.id === 'kassette' ? parseFloat(goal.manualCurrent || 0) : parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             let proj = sum, breakdown = [];
 
-            // Dauerauftrag-Rate sauber parsen (auch bei Komma-Eingaben wie 166,67)
+            // Dauerauftrag-Rate sauber parsen (auch bei Komma-Eingaben wie 166,67 oder 166.67)
             let fixedRate = 0;
-            if (goal.fixedMonthly) {
+            if (goal.fixedMonthly !== undefined && goal.fixedMonthly !== null) {
                 let strVal = String(goal.fixedMonthly).replace(',', '.');
                 fixedRate = parseFloat(strVal) || 0;
             }
@@ -1153,9 +1153,10 @@
                 if (!isTerminated) {
                     if (goal.id === 'notfall' || goal.type === 'notfall_sub') {
                         if(goal.id === 'notfall') add = calc.notfallSparen;
-                    } else if (goal.id === 'kassette') add = calc.bargeldSparen;
-                    else if (goal.id !== 'freizeit') {
-                        // IMMER den geplanten Dauerauftrag berücksichtigen!
+                    } else if (goal.id === 'kassette') {
+                        add = calc.bargeldSparen;
+                    } else if (goal.id !== 'freizeit') {
+                        // FIX: IMMER die feste Sparrate (fixedRate) als geplante monatliche Zuweisung eintragen!
                         let scheduled = fixedRate;
                         let extra = 0;
                         (item.extraTransfers || []).forEach(tr => { if (tr.targetId === goalId) extra += tr.amount; });
