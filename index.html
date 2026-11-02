@@ -174,6 +174,25 @@
                 </div>
             </div>
 
+            <!-- MULTI-MONATS-AUTO-VERTEILER -->
+            <div class="card" style="border: 2px solid var(--accent); background: #f0f9ff;">
+                <div class="card-title" style="color: var(--accent);"><span>⚡ Auto-Verteiler für mehrere Monate</span></div>
+                <p style="font-size: 0.78rem; color: var(--text-sub); margin-bottom: 10px;">Verteilt das Restgeld automatisch für die nächsten Monate im Voraus. Wenn Ziele voll oder abgelaufen sind, fließt der Rest aufs Notfallkonto.</p>
+                <div class="grid">
+                    <div class="input-group full">
+                        <label>Dauer im Voraus wählen:</label>
+                        <select id="multiMonthSelect" style="background:#fff; font-weight:bold;">
+                            <option value="3">3 Monate im Voraus</option>
+                            <option value="6" selected>6 Monate im Voraus</option>
+                            <option value="12">12 Monate (1 Jahr)</option>
+                            <option value="24">24 Monate (2 Jahre)</option>
+                            <option value="36">36 Monate (3 Jahre)</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-add" style="background: var(--accent); margin-top: 4px;" onclick="executeMultiMonthDistribution()">🚀 Geld für alle Monate verteilen & buchen</button>
+            </div>
+
             <!-- CASH-STUFFING -->
             <div class="card" style="border: 2px solid var(--accent-orange); background: #fffbf5;">
                 <div class="card-title" style="color: var(--accent-orange);">
@@ -830,6 +849,78 @@
             saveLocally(); liveCalc(); renderHistory(); renderGoals(); alert('Erfolgreich gebucht! 🎯');
         }
 
+        /* NEU: AUTOMATISCHER MULTI-MONATS-VERTEILER */
+        function executeMultiMonthDistribution() {
+            const numMonths = parseInt(document.getElementById('multiMonthSelect').value) || 6;
+            let currentKey = getSelectedMonthKey();
+            let notfallGoal = goals.find(g => g.id === 'notfall');
+
+            for (let i = 0; i < numMonths; i++) {
+                if (!entries[currentKey]) entries[currentKey] = getMonthDataOrFallback(currentKey);
+                let itemData = entries[currentKey];
+                
+                // Wir stellen sicher, dass das Gehalt gebucht wird
+                itemData.booked = true;
+                itemData.extraTransfers = []; // Vorherige automatische Verteiler-Einträge zurücksetzen
+
+                let calc = calculateValuesFor(itemData);
+                let availableRest = calc.freizeitSparen - (parseFloat(itemData.kontoPuffer) || 200);
+
+                if (availableRest > 0) {
+                    // Sparziele nacheinander prüfen und bedienen
+                    goals.forEach(g => {
+                        if (['notfall', 'freizeit', 'kassette'].includes(g.id)) return;
+                        if (availableRest <= 0) return;
+
+                        let endLimit = g.endDate ? g.endDate.slice(0, 7) : null;
+                        const u = urlaubeList.find(item => item.goalId === g.id);
+                        if (u && u.endDate) endLimit = u.endDate.slice(0, 7);
+
+                        // Falls Ziel noch aktiv ist
+                        if (!endLimit || currentKey <= endLimit) {
+                            let needed = g.fixedMonthly && g.fixedMonthly > 0 ? parseFloat(g.fixedMonthly) : 0;
+                            if (g.capAtTarget && g.target > 0) {
+                                let alreadySaved = getSavedAmountForGoalUpTo(g, currentKey);
+                                let remainingToTarget = Math.max(0, g.target - alreadySaved);
+                                needed = Math.min(needed > 0 ? needed : remainingToTarget, remainingToTarget);
+                            }
+
+                            if (needed > 0) {
+                                let transferAmt = Math.min(availableRest, needed);
+                                if (transferAmt > 0) {
+                                    itemData.extraTransfers.push({
+                                        id: Date.now() + Math.random(),
+                                        targetId: g.id,
+                                        targetName: g.name,
+                                        amount: transferAmt
+                                    });
+                                    availableRest -= transferAmt;
+                                }
+                            }
+                        }
+                    });
+
+                    // Wenn nach allen Sparzielen noch Geld übrig ist oder Ziele abgelaufen sind -> Alles aufs Notfallkonto
+                    if (availableRest > 0 && notfallGoal) {
+                        itemData.extraTransfers.push({
+                            id: Date.now() + Math.random(),
+                            targetId: notfallGoal.id,
+                            targetName: notfallGoal.name + " (Überschuss)",
+                            amount: availableRest
+                        });
+                    }
+                }
+
+                currentKey = getNextMonthKey(currentKey);
+            }
+
+            saveLocally();
+            loadMonthData();
+            renderHistory();
+            renderGoals();
+            alert(`Geld für die nächsten ${numMonths} Monate wurde automatisch verteilt! 🚀 Restbeträge wurden auf das Notfallkonto gebucht.`);
+        }
+
         function getActiveDeductionsForGoal(goal, mKey) {
             if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
             if (goal.startMonth && mKey < goal.startMonth) return 0;
@@ -1060,13 +1151,21 @@
             let diff = 0; (transfersList || []).forEach(tr => { if(tr.dateKey < upto) { if(tr.fromId === goal.id) diff -= tr.amount; if(tr.toId === goal.id) diff += tr.amount; } });
             if(goal.id === 'notfall') {
                 let sum = parseFloat(goal.manualOffset || 0);
-                Object.keys(entries).sort().forEach(k => { if(k < upto && entries[k]?.booked) sum += calculateValuesFor(entries[k]).notfallSparen; });
+                Object.keys(entries).sort().forEach(k => { 
+                    if(k < upto && entries[k]?.booked) {
+                        sum += calculateValuesFor(entries[k]).notfallSparen;
+                        (entries[k].extraTransfers || []).forEach(tr => { if(tr.targetId === 'notfall') sum += tr.amount; });
+                    }
+                });
                 return sum + diff;
             }
             if(goal.id === 'freizeit') return getGoalData(goal.id).total;
             let total = parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             Object.keys(entries).sort().forEach(k => {
-                if(k < upto && (!goal.startMonth || k >= goal.startMonth) && entries[k]?.booked) total += getActiveDeductionsForGoal(goal, k);
+                if(k < upto && (!goal.startMonth || k >= goal.startMonth) && entries[k]?.booked) {
+                    total += getActiveDeductionsForGoal(goal, k);
+                    (entries[k].extraTransfers || []).forEach(tr => { if(tr.targetId === goal.id) total += tr.amount; });
+                }
             });
             return total + diff;
         }
