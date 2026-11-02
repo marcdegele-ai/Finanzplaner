@@ -944,10 +944,6 @@
             const u = urlaubeList.find(item => item.goalId === goal.id);
             if (u && u.endDate && mKey > u.endDate.slice(0, 7)) return 0;
 
-            const monthData = entries[mKey];
-            const isBooked = monthData ? !!monthData.booked : false;
-            if (!isBooked) return 0; // STRENG: Nur wenn Gehalt gebucht ist!
-
             if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                 if (goal.capAtTarget && goal.target > 0) {
                     const savedBefore = getSavedAmountForGoalUpTo(goal, mKey);
@@ -963,11 +959,10 @@
             const m = getSelectedMonthKey(), monthData = entries[m] || {};
             const isBooked = !!monthData.booked;
             
-            // Wenn nicht gebucht, ist das frei verfügbare Geld nach Abzügen gleich dem Freizeitkonto ohne Sparziele
             const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, booked: isBooked };
             const calc = calculateValuesFor(item);
             
-            if (!isBooked) return calc.freizeitSparen; // Keine Abzüge vor dem Haken!
+            if (!isBooked) return calc.freizeitSparen;
 
             let deductions = 0; 
             goals.forEach(g => {
@@ -1119,43 +1114,40 @@
             document.getElementById('resEinkaufspuffer').innerText = '-' + calc.einkaufsGeld.toFixed(2) + ' €';
             
             let extraNotfall = 0; 
-            if (isBooked) {
-                (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
-            }
-            document.getElementById('resNotfallAbzug').innerText = '-' + (calc.notfallSparen + extraNotfall).toFixed(2) + ' €';
+            (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
+            
+            document.getElementById('resNotfallAbzug').innerText = '-' + (calc.notfallSparen + (isBooked ? extraNotfall : 0)).toFixed(2) + ' €';
             document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
             document.getElementById('resFreizeit').innerText = calc.freizeitSparen.toFixed(2) + ' €';
             
             const container = document.getElementById('sparzieleBreakdownContainer'); container.innerHTML = '';
             let totalDeductions = 0;
             
-            if (isBooked) {
-                goals.forEach(g => {
-                    let share = getActiveDeductionsForGoal(g, m);
-                    let extraShare = 0;
-                    let extraId = null;
-                    (monthData.extraTransfers || []).forEach(tr => { 
-                        if (tr.targetId === g.id) { 
-                            extraShare += tr.amount; 
-                            extraId = tr.id;
-                        } 
-                    });
-                    
-                    if (extraShare > 0) {
-                        totalDeductions += extraShare;
-                        container.innerHTML += `<div class="stat-row sub-row"><span>⚡ ${g.name} (Extra <button class="storno-btn" onclick="cancelExtraTransfer(${extraId})">Storno</button>)</span><span class="val-red">-${extraShare.toFixed(2)} €</span></div>`;
-                    } else if (share > 0) {
-                        totalDeductions += share;
-                        container.innerHTML += `<div class="stat-row sub-row"><span>↳ ${g.name}</span><span class="val-red">-${share.toFixed(2)} €</span></div>`;
-                    }
+            goals.forEach(g => {
+                let share = getActiveDeductionsForGoal(g, m);
+                let extraShare = 0;
+                let extraId = null;
+                (monthData.extraTransfers || []).forEach(tr => { 
+                    if (tr.targetId === g.id) { 
+                        extraShare += tr.amount; 
+                        extraId = tr.id;
+                    } 
                 });
-            }
+                
+                if (extraShare > 0) {
+                    totalDeductions += extraShare;
+                    container.innerHTML += `<div class="stat-row sub-row"><span>⚡ ${g.name} (Extra <button class="storno-btn" onclick="cancelExtraTransfer(${extraId})">Storno</button>)</span><span class="val-red">-${extraShare.toFixed(2)} €</span></div>`;
+                } else if (share > 0) {
+                    totalDeductions += share;
+                    container.innerHTML += `<div class="stat-row sub-row"><span>↳ ${g.name}</span><span class="val-red">-${share.toFixed(2)} €</span></div>`;
+                }
+            });
 
             const freizeitRest = getRestFreizeitGeldCalculated();
             document.getElementById('resFreizeitRest').innerText = freizeitRest.toFixed(2) + ' €';
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
             document.getElementById('resSparzieleAbzug').innerText = '-' + totalDeductions.toFixed(2) + ' €';
-            document.getElementById('resGesamtSparen').innerText = ((isBooked ? calc.notfallSparen : 0) + totalDeductions + calc.bargeldSparen).toFixed(2) + ' €';
+            document.getElementById('resGesamtSparen').innerText = (calc.notfallSparen + totalDeductions + calc.bargeldSparen).toFixed(2) + ' €';
 
             renderEnvelopeStuffingBreakdown(calc); renderHaushaltView(); calcSmartDistributionPreview();
         }
@@ -1163,8 +1155,6 @@
         function renderEnvelopeStuffingBreakdown(calc) {
             const container = document.getElementById('envelopeBreakdownContainer'); if(!container) return; container.innerHTML = '';
             document.getElementById('cashStuffingTotalToWithdraw').innerText = calc.ueberschuss.toFixed(2) + ' €';
-            const isBooked = document.getElementById('gehaltBookedInput').checked;
-            if (!isBooked) return;
             goals.forEach(g => {
                 let amt = getActiveDeductionsForGoal(g, getSelectedMonthKey());
                 if(amt > 0) container.innerHTML += `<div class="envelope-card-item special"><div><strong>✉️ ${g.name}</strong></div><div class="val-orange">+${amt.toFixed(2)} €</div></div>`;
@@ -1218,10 +1208,9 @@
             if(goal.id === 'notfall') {
                 let sum = parseFloat(goal.manualOffset || 0);
                 Object.keys(entries).sort().forEach(k => { 
-                    // WICHTIG: Nur einrechnen, wenn das Gehalt in diesem Monat tatsächlich gebucht ist!
-                    if(k < upto && entries[k]?.booked) {
-                        sum += calculateValuesFor(entries[k]).notfallSparen;
-                        (entries[k].extraTransfers || []).forEach(tr => { if(tr.targetId === 'notfall') sum += tr.amount; });
+                    if(k < upto) {
+                        sum += calculateValuesFor(entries[k] || getMonthDataOrFallback(k)).notfallSparen;
+                        (entries[k]?.extraTransfers || []).forEach(tr => { if(tr.targetId === 'notfall') sum += tr.amount; });
                     }
                 });
                 return sum + diff;
@@ -1229,11 +1218,10 @@
             if(goal.id === 'freizeit') return getGoalData(goal.id).total;
             let total = parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             Object.keys(entries).sort().forEach(k => {
-                // WICHTIG: Nur einrechnen, wenn der Monat in der Vergangenheit/heute liegt UND das Gehalt gebucht ist!
-                if(k < upto && (!goal.startMonth || k >= goal.startMonth) && entries[k]?.booked) {
+                if(k < upto && (!goal.startMonth || k >= goal.startMonth)) {
                     let scheduled = getActiveDeductionsForGoal(goal, k);
                     let extra = 0;
-                    (entries[k].extraTransfers || []).forEach(tr => { if (tr.targetId === goal.id) extra += tr.amount; });
+                    (entries[k]?.extraTransfers || []).forEach(tr => { if (tr.targetId === goal.id) extra += tr.amount; });
                     total += extra > 0 ? extra : scheduled;
                 }
             });
@@ -1265,20 +1253,14 @@
                 let isTerminated = false;
                 if (endLimitStr && k >= endLimitStr) isTerminated = true;
 
-                // Projektion (projektiertes Ziel) rechnet alle Monate ein, aber der IST-Stand (sum) rechnet AUSSCHLIESSLICH gebuchte Monate ein!
                 if (!isTerminated) {
-                    let calcAdd = 0;
-                    if (goal.id === 'notfall') calcAdd = calc.notfallSparen;
-                    else if (goal.id === 'kassette') calcAdd = calc.bargeldSparen;
+                    if (goal.id === 'notfall') add = calc.notfallSparen;
+                    else if (goal.id === 'kassette') add = calc.bargeldSparen;
                     else if (goal.id !== 'freizeit') {
                         let scheduled = getActiveDeductionsForGoal(goal, k);
                         let extra = 0;
                         (item.extraTransfers || []).forEach(tr => { if (tr.targetId === goalId) extra += tr.amount; });
-                        calcAdd = extra > 0 ? extra : scheduled;
-                    }
-                    
-                    if (item.booked) {
-                        add = calcAdd;
+                        add = extra > 0 ? extra : scheduled;
                     }
                 }
 
@@ -1286,10 +1268,9 @@
                 (transfersList || []).forEach(tr => { if (tr.dateKey === k) { if(tr.fromId === goalId) transferDiff -= tr.amount; if(tr.toId === goalId) transferDiff += tr.amount; } });
 
                 proj += add + transferDiff; 
-                if(item.booked && goalId !== 'notfall') sum += add;
-                if(transferDiff !== 0 && item.booked) sum += transferDiff;
+                sum += add + transferDiff;
 
-                breakdown.push({ month: k, amount: item.booked ? (add + transferDiff) : 0, totalSoFar: proj });
+                breakdown.push({ month: k, amount: add + transferDiff, totalSoFar: proj });
             });
             return { total: goalId === 'notfall' ? sum : (goal.id === 'kassette'?goal.manualCurrent:sum), projectedTotal: proj, breakdown };
         }
@@ -1360,7 +1341,7 @@
             Array.from(allM).sort().forEach(k => {
                 const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
                 let extraN = 0; (item.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall') extraN += tr.amount; });
-                if(item.booked || k >= getSelectedMonthKey()) { runningNotfall += calc.notfallSparen + extraN; runningFreizeit += calc.freizeitSparen; runningKassette += calc.bargeldSparen; }
+                runningNotfall += calc.notfallSparen + extraN; runningFreizeit += calc.freizeitSparen; runningKassette += calc.bargeldSparen;
                 const total = runningNotfall + runningFreizeit + runningKassette; netWorth.push({ month: k, stand: total, booked: item.booked });
                 tableBody.innerHTML += `<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'⏳'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} € (Geplant)</td><td>${runningNotfall.toFixed(2)} €</td><td>${calc.freizeitSparen.toFixed(2)} €</td><td>${total.toFixed(2)} €</td></tr>`;
             });
