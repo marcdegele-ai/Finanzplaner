@@ -886,7 +886,7 @@
                     goals.forEach(g => {
                         if (['notfall', 'freizeit', 'kassette'].includes(g.id)) return;
                         if (availableRest <= 0) return;
-                        if (g.endDate && currentKey >= g.endDate) return; // Stopp ab Enddatum auf 0,00 €
+                        if (g.endDate && currentKey >= g.endDate) return;
 
                         let endLimit = g.endDate ? g.endDate : null;
                         const u = urlaubeList.find(item => item.goalId === g.id);
@@ -938,8 +938,6 @@
         function getActiveDeductionsForGoal(goal, mKey) {
             if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
             if (goal.startMonth && mKey < goal.startMonth) return 0;
-            
-            // Ab dem Endmonat exakt 0,00 € berechnen
             if (goal.endDate && mKey >= goal.endDate) return 0;
             const u = urlaubeList.find(item => item.goalId === goal.id);
             if (u && u.endDate && mKey > u.endDate.slice(0, 7)) return 0;
@@ -962,9 +960,18 @@
             const m = getSelectedMonthKey(), monthData = entries[m] || {};
             const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, booked: document.getElementById('gehaltBookedInput').checked };
             const calc = calculateValuesFor(item);
-            let deductions = 0; goals.forEach(g => deductions += getActiveDeductionsForGoal(g, m));
-            let extra = 0; (monthData.extraTransfers || []).forEach(tr => extra += tr.amount);
-            return Math.max(0, Math.round((calc.freizeitSparen - deductions - extra) * 100) / 100);
+            let deductions = 0; 
+            goals.forEach(g => {
+                let scheduled = getActiveDeductionsForGoal(g, m);
+                let extraForThisGoal = 0;
+                (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === g.id) extraForThisGoal += tr.amount; });
+                if (extraForThisGoal > 0) {
+                    deductions += Math.max(scheduled, extraForThisGoal);
+                } else {
+                    deductions += scheduled;
+                }
+            });
+            return Math.max(0, Math.round((calc.freizeitSparen - deductions) * 100) / 100);
         }
 
         function cancelExtraTransfer(id) {
@@ -1110,13 +1117,16 @@
             let totalDeductions = 0;
             goals.forEach(g => {
                 let share = getActiveDeductionsForGoal(g, m);
-                if (share > 0) {
+                let extraShare = 0;
+                (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === g.id) extraShare += tr.amount; });
+                
+                if (extraShare > 0) {
+                    totalDeductions += extraShare;
+                    container.innerHTML += `<div class="stat-row sub-row"><span>⚡ ${g.name} (Extra <button class="storno-btn" onclick="cancelExtraTransfer(${monthData.extraTransfers.find(t=>t.targetId===g.id)?.id})">Storno</button>)</span><span class="val-red">-${extraShare.toFixed(2)} €</span></div>`;
+                } else if (share > 0) {
                     totalDeductions += share;
                     container.innerHTML += `<div class="stat-row sub-row"><span>↳ ${g.name}</span><span class="val-red">-${share.toFixed(2)} €</span></div>`;
                 }
-            });
-            (monthData.extraTransfers || []).forEach(tr => {
-                container.innerHTML += `<div class="stat-row sub-row"><span>⚡ ${tr.targetName} <button class="storno-btn" onclick="cancelExtraTransfer(${tr.id})">Storno</button></span><span class="val-red">-${tr.amount.toFixed(2)} €</span></div>`;
             });
 
             const freizeitRest = getRestFreizeitGeldCalculated();
@@ -1195,8 +1205,10 @@
             let total = parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             Object.keys(entries).sort().forEach(k => {
                 if(k < upto && (!goal.startMonth || k >= goal.startMonth) && entries[k]?.booked) {
-                    total += getActiveDeductionsForGoal(goal, k);
-                    (entries[k].extraTransfers || []).forEach(tr => { if(tr.targetId === goal.id) total += tr.amount; });
+                    let scheduled = getActiveDeductionsForGoal(goal, k);
+                    let extra = 0;
+                    (entries[k].extraTransfers || []).forEach(tr => { if (tr.targetId === goal.id) extra += tr.amount; });
+                    total += extra > 0 ? extra : scheduled;
                 }
             });
             return total + diff;
@@ -1232,11 +1244,13 @@
                     if (goal.id === 'notfall') add = calc.notfallSparen;
                     else if (goal.id === 'kassette') add = calc.bargeldSparen;
                     else if (goal.id !== 'freizeit') {
-                        add = getActiveDeductionsForGoal(goal, k);
+                        let scheduled = getActiveDeductionsForGoal(goal, k);
+                        let extra = 0;
+                        (item.extraTransfers || []).forEach(tr => { if (tr.targetId === goalId) extra += tr.amount; });
+                        add = extra > 0 ? extra : scheduled;
                     }
                 }
 
-                (item.extraTransfers || []).forEach(tr => { if (tr.targetId === goalId) add += tr.amount; });
                 (transfersList || []).forEach(tr => { if (tr.dateKey === k) { if(tr.fromId === goalId) add -= tr.amount; if(tr.toId === goalId) add += tr.amount; } });
 
                 proj += add; 
