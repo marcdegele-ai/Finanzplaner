@@ -151,7 +151,7 @@
                         <input type="hidden" id="fixkostenInput" value="0">
                     </div>
 
-                    <div class="input-group"><label>Taschengeld 🛒</label><input type="number" id="taschengeldInput" placeholder="0" oninput="autoSaveLive()"></div>
+                    <div class="input-group"><label>Einkaufs-Puffer 🛒 (€)</label><input type="number" id="taschengeldInput" placeholder="0" oninput="autoSaveLive()"></div>
                     <div class="input-group"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
                     
                     <div class="input-group full">
@@ -228,8 +228,9 @@
 
             <div class="card">
                 <div class="card-title">Ergebnis: <span id="displayMonth" style="color:var(--accent);">-</span></div>
-                <div class="stat-row"><span>Netto:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row"><span>Überschuss:</span><span id="resUeberschuss" class="val-orange">0,00 €</span></div>
+                <div class="stat-row"><span>Netto-Einnahmen:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
+                <div class="stat-row" style="background:#fff7ed; padding:8px 10px; border-radius:8px;"><span>🛒 Einkaufs-Puffer (Haushaltsbuch):</span><span id="resEinkaufspuffer" class="val-orange">-0,00 €</span></div>
+                <div class="stat-row"><span>Verfügbar nach Puffer:</span><span id="resUeberschuss" class="val-orange">0,00 €</span></div>
                 <div class="stat-row"><span>Notfallkonto:</span><span id="resNotfall" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row"><span>FreizeitKonto:</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
                 <div id="sparzieleBreakdownContainer"></div>
@@ -279,7 +280,7 @@
                 <div class="stat-row"><span>Fixkosten-Quote:</span><span id="fixQuoteDisplay" class="val-red">0.0%</span></div>
                 <div class="stat-row"><span>Ausgaben (Ist / Geplant):</span><span><strong id="HHTotalDisplay" class="val-red">0,00 €</strong> / <span id="HHPlannedExpenseDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
                 <div class="stat-row"><span>Einnahmen (Ist / Geplant):</span><span><strong id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</strong> / <span id="HHPlannedIncomeDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
-                <div class="stat-row" style="font-weight:bold;"><span>Rest-Budget:</span><span id="HHRestDisplay">0,00 €</span></div>
+                <div class="stat-row" style="font-weight:bold;"><span>Rest-Budget (Einkaufs-Puffer):</span><span id="HHRestDisplay">0,00 €</span></div>
             </div>
 
             <div class="card" id="categoryChartCard" style="display:none;">
@@ -849,7 +850,7 @@
             saveLocally(); liveCalc(); renderHistory(); renderGoals(); alert('Erfolgreich gebucht! 🎯');
         }
 
-        /* NEU: AUTOMATISCHER MULTI-MONATS-VERTEILER */
+        /* AUTOMATISCHER MULTI-MONATS-VERTEILER */
         function executeMultiMonthDistribution() {
             const numMonths = parseInt(document.getElementById('multiMonthSelect').value) || 6;
             let currentKey = getSelectedMonthKey();
@@ -859,15 +860,13 @@
                 if (!entries[currentKey]) entries[currentKey] = getMonthDataOrFallback(currentKey);
                 let itemData = entries[currentKey];
                 
-                // Wir stellen sicher, dass das Gehalt gebucht wird
                 itemData.booked = true;
-                itemData.extraTransfers = []; // Vorherige automatische Verteiler-Einträge zurücksetzen
+                itemData.extraTransfers = [];
 
                 let calc = calculateValuesFor(itemData);
                 let availableRest = calc.freizeitSparen - (parseFloat(itemData.kontoPuffer) || 200);
 
                 if (availableRest > 0) {
-                    // Sparziele nacheinander prüfen und bedienen
                     goals.forEach(g => {
                         if (['notfall', 'freizeit', 'kassette'].includes(g.id)) return;
                         if (availableRest <= 0) return;
@@ -876,7 +875,6 @@
                         const u = urlaubeList.find(item => item.goalId === g.id);
                         if (u && u.endDate) endLimit = u.endDate.slice(0, 7);
 
-                        // Falls Ziel noch aktiv ist
                         if (!endLimit || currentKey <= endLimit) {
                             let needed = g.fixedMonthly && g.fixedMonthly > 0 ? parseFloat(g.fixedMonthly) : 0;
                             if (g.capAtTarget && g.target > 0) {
@@ -900,7 +898,6 @@
                         }
                     });
 
-                    // Wenn nach allen Sparzielen noch Geld übrig ist oder Ziele abgelaufen sind -> Alles aufs Notfallkonto
                     if (availableRest > 0 && notfallGoal) {
                         itemData.extraTransfers.push({
                             id: Date.now() + Math.random(),
@@ -982,6 +979,9 @@
             const itemData = getMonthDataOrFallback(m);
             plannedExpense += getTotalFixForMonthData(itemData);
 
+            // Einkaufs-Puffer direkt als geplantes Haushalts-Budget verwenden
+            const einkaufsPuffer = parseFloat(itemData.taschengeld) || 0;
+
             (haushaltItems || []).filter(i => i.date?.startsWith(m)).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(item => {
                 const isInc = item.type === 'income', amt = parseFloat(item.amount || 0);
                 if (isInc) totalIncome += amt; else { totalSpent += amt; catTotals[item.category] = (catTotals[item.category] || 0) + amt; }
@@ -1005,11 +1005,12 @@
             const gehalt = parseFloat(document.getElementById('gehaltInput').value) || 2300, fix = parseFloat(document.getElementById('fixkostenInput').value) || 0;
             document.getElementById('fixQuoteDisplay').innerText = `${(gehalt > 0 ? (fix / gehalt) * 100 : 0).toFixed(1)}% (${fix.toFixed(2)} €)`;
             document.getElementById('HHTotalDisplay').innerText = totalSpent.toFixed(2) + ' €';
-            document.getElementById('HHPlannedExpenseDisplay').innerText = plannedExpense.toFixed(2) + ' €';
+            document.getElementById('HHPlannedExpenseDisplay').innerText = (plannedExpense + einkaufsPuffer).toFixed(2) + ' €';
             document.getElementById('HHIncomeTotalDisplay').innerText = '+' + totalIncome.toFixed(2) + ' €';
             document.getElementById('HHPlannedIncomeDisplay').innerText = '+' + gehalt.toFixed(2) + ' €';
-            const rest = getRestFreizeitGeldCalculated() + totalIncome - totalSpent;
-            const restEl = document.getElementById('HHRestDisplay'); restEl.innerText = rest.toFixed(2) + ' €'; restEl.className = rest >= 0 ? 'val-highlight' : 'val-red';
+            
+            const restBudget = einkaufsPuffer + totalIncome - totalSpent;
+            const restEl = document.getElementById('HHRestDisplay'); restEl.innerText = restBudget.toFixed(2) + ' €'; restEl.className = restBudget >= 0 ? 'val-highlight' : 'val-red';
         }
 
         function getTotalFixForMonthData(item) { return item?.items ? item.items.reduce((s, i) => (item.pausedItems || []).includes(i.name) ? s : s + parseFloat(i.amount || 0), 0) : 0; }
@@ -1051,13 +1052,18 @@
         }
 
         function calculateValuesFor(item) {
-            if(!item) return { netto: 0, ueberschuss: 0, notfallSparen: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
+            if(!item) return { netto: 0, einkaufsPuffer: 0, ueberschuss: 0, notfallSparen: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
             const fix = getTotalFixForMonthData(item), g = (parseFloat(item.gehalt) || 2300) + (parseFloat(item.bargeldEinnahme) || 0);
-            const netto = g - fix, ueberschuss = netto - (parseFloat(item.taschengeld) || 0);
+            const netto = g - fix;
+            
+            // Einkaufs-Puffer hat direkt oberste Priorität
+            const einkaufsPuffer = parseFloat(item.taschengeld) || 0;
+            const ueberschuss = Math.max(0, netto - einkaufsPuffer);
+
             const split = parseFloat(item.splitNotfall) || 0;
             let notfall = item.splitMode === 'fixed' ? Math.max(0, Math.min(ueberschuss, split)) : ueberschuss * (split / 100);
             const bargeld = parseFloat(item.bargeld) || 0, freizeit = Math.max(0, ueberschuss - notfall);
-            return { netto: Math.round(netto*100)/100, ueberschuss: Math.round(ueberschuss*100)/100, notfallSparen: Math.round(notfall*100)/100, freizeitSparen: Math.round(freizeit*100)/100, bargeldSparen: bargeld, gesamtSparen: Math.round((notfall+freizeit+bargeld)*100)/100 };
+            return { netto: Math.round(netto*100)/100, einkaufsPuffer: einkaufsPuffer, ueberschuss: Math.round(ueberschuss*100)/100, notfallSparen: Math.round(notfall*100)/100, freizeitSparen: Math.round(freizeit*100)/100, bargeldSparen: bargeld, gesamtSparen: Math.round((notfall+freizeit+bargeld)*100)/100 };
         }
 
         function liveCalc() {
@@ -1066,6 +1072,7 @@
             const calc = calculateValuesFor(item);
             document.getElementById('displayMonth').innerText = m;
             document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
+            document.getElementById('resEinkaufspuffer').innerText = '-' + calc.einkaufsPuffer.toFixed(2) + ' €';
             document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
             
             let extraNotfall = 0; (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
@@ -1372,9 +1379,11 @@
         function renderGoals() {
             const list = document.getElementById('goalsList'); list.innerHTML = '';
             goals.forEach((g, idx) => {
-                const cur = getSavedAmountForGoal(g), pct = g.target > 0 ? Math.min(100, (cur / g.target) * 100) : 0;
+                // JETZT WIRD NUR DAS TATSÄCHLICH VORHANDENE/EINGEZAHLTE GELD FÜR DEN GRÜNEN BALKEN VERWENDET:
+                const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey()); 
+                const pct = g.target > 0 ? Math.min(100, (cur / g.target) * 100) : 0;
                 const data = getGoalData(g.id);
-                list.innerHTML += `<div class="goal-card-box" onclick="openModal('${g.id}')"><div style="display:flex; justify-content:space-between;"><div><strong>${g.name}</strong></div><div><strong>${pct.toFixed(1)}%</strong></div></div><div class="history-sub">Stand: ${cur.toFixed(2)} € / Ziel: ${g.target.toFixed(2)} €</div><div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div><div class="history-sub" style="margin-top:4px;">Geplante Endsumme: <strong>${data.projectedTotal.toFixed(2)} €</strong></div></div>`;
+                list.innerHTML += `<div class="goal-card-box" onclick="openModal('${g.id}')"><div style="display:flex; justify-content:space-between;"><div><strong>${g.name}</strong></div><div><strong>${pct.toFixed(1)}%</strong></div></div><div class="history-sub">Stand (Ist): ${cur.toFixed(2)} € / Ziel: ${g.target.toFixed(2)} €</div><div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div><div class="history-sub" style="margin-top:4px;">Geplante Endsumme: <strong>${data.projectedTotal.toFixed(2)} €</strong></div></div>`;
             });
             populateManualDistributeDropdown();
         }
@@ -1386,7 +1395,7 @@
             document.getElementById('modalFixedMonthlyInput').value = g.fixedMonthly || '';
             document.getElementById('modalEndMonthInput').value = g.endDate || '';
             
-            const cur = ['notfall','freizeit'].includes(g.id) ? g.manualOffset : g.manualCurrent;
+            const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey());
             const planned = getGoalData(gid).projectedTotal;
             document.getElementById('modalCurrentInputDisplay').innerText = cur.toFixed(2) + ' €';
             document.getElementById('modalPlannedStandDisplay').innerText = planned.toFixed(2) + ' €';
