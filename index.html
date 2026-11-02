@@ -36,6 +36,12 @@
         .view-section.active { display: block; }
         .card { background: var(--card-bg); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .card-title { font-size: 0.95rem; font-weight: 800; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
+        details.card { padding: 10px 14px; }
+        details summary { font-size: 0.95rem; font-weight: 800; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
+        details summary::-webkit-details-marker { display: none; }
+        details summary::after { content: '▼'; font-size: 0.75rem; color: var(--text-sub); transition: transform 0.2s; }
+        details[open] summary::after { transform: rotate(180deg); }
+        details[open] summary { margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .input-group { display: flex; flex-direction: column; gap: 4px; text-align: left; margin-bottom: 8px; }
         .input-group.full { grid-column: span 2; }
@@ -168,10 +174,10 @@
                 </div>
             </div>
 
-            <!-- MULTI-MONATS-AUTO-VERTEILER -->
-            <div class="card" style="border: 2px solid var(--accent); background: #f0f9ff;">
-                <div class="card-title" style="color: var(--accent);"><span>⚡ Auto-Verteiler für mehrere Monate</span></div>
-                <p style="font-size: 0.74rem; color: var(--text-sub); margin-bottom: 8px;">Verteilt das Restgeld automatisch für die nächsten Monate im Voraus. Wenn Ziele voll oder abgelaufen sind, fließt der Rest aufs Notfallkonto.</p>
+            <!-- AUFKLAPPBARE ZUSATZ-WERKZEUGE -->
+            <details class="card" style="border: 1.5px solid var(--accent); background: #f0f9ff;">
+                <summary style="color: var(--accent);">⚡ Multi-Monats-Auto-Verteiler</summary>
+                <p style="font-size: 0.74rem; color: var(--text-sub); margin: 8px 0;">Verteilt das Restgeld automatisch für die nächsten Monate im Voraus. Wenn Ziele voll oder abgelaufen sind, fließt der Rest aufs Notfallkonto.</p>
                 <div class="grid">
                     <div class="input-group full">
                         <label>Dauer im Voraus wählen:</label>
@@ -184,23 +190,21 @@
                         </select>
                     </div>
                 </div>
-                <button class="btn-add" style="background: var(--accent); margin-top: 4px;" onclick="executeMultiMonthDistribution()">🚀 Geld für alle Monate verteilen & buchen</button>
-            </div>
+                <button class="btn-add" style="background: var(--accent); margin-top: 6px;" onclick="executeMultiMonthDistribution()">🚀 Geld für alle Monate verteilen & buchen</button>
+            </details>
 
-            <!-- CASH-STUFFING -->
-            <div class="card" style="border: 2px solid var(--accent-orange); background: #fffbf5;">
-                <div class="card-title" style="color: var(--accent-orange);">
-                    <span>✉️ Umschläge</span>
-                    <span id="cashStuffingTotalToWithdraw" class="val-orange" style="font-size: 1rem;">0,00 €</span>
-                </div>
-                <div id="envelopeBreakdownContainer" class="history-list" style="margin-bottom: 10px;"></div>
+            <details class="card" style="border: 1.5px solid var(--accent-orange); background: #fffbf5;">
+                <summary style="color: var(--accent-orange);">
+                    <span>✉️ Umschläge & Stückelung</span>
+                    <span id="cashStuffingTotalToWithdraw" class="val-orange" style="font-size: 0.95rem;">0,00 €</span>
+                </summary>
+                <div id="envelopeBreakdownContainer" class="history-list" style="margin: 8px 0;"></div>
                 <button class="btn-secondary" style="width: 100%; background: var(--accent-orange); color: #fff; font-weight: bold; padding: 8px; border-radius:8px;" onclick="calcATMNotesRecommendation()">🏧 Automaten-Stückelung 💵</button>
-            </div>
+            </details>
 
-            <!-- SMARTES RESTGELD -->
-            <div class="card" style="border: 2px solid var(--accent-green); background: #f0fdf4;">
-                <div class="card-title" style="color: var(--accent-green);"><span>✨ Smart-Verteiler</span></div>
-                <div class="grid" style="margin-bottom:8px;">
+            <details class="card" style="border: 1.5px solid var(--accent-green); background: #f0fdf4;">
+                <summary style="color: var(--accent-green);">✨ Smart-Verteiler</summary>
+                <div class="grid" style="margin: 8px 0;">
                     <div class="input-group"><label>1. Ziel</label><select id="smartDistGoal1" style="background:#fff; font-weight:bold;" onchange="calcSmartDistributionPreview()"></select></div>
                     <div class="input-group"><label>Anteil 1 (%)</label><input type="number" id="smartDistPct1" value="70" min="0" max="100" style="background:#fff;" oninput="calcSmartDistributionPreview()"></div>
                     <div class="input-group"><label>2. Ziel</label><select id="smartDistGoal2" style="background:#fff; font-weight:bold;" onchange="calcSmartDistributionPreview()"></select></div>
@@ -208,17 +212,16 @@
                 </div>
                 <div style="background:#fff; padding:8px; border-radius:8px; border:1px solid var(--border); font-size:0.75rem; margin-bottom:8px;" id="smartDistPreviewText">Vorschau...</div>
                 <button class="btn-add" style="background:var(--accent-green); margin-top:0;" onclick="executeSmartDistribution()">🚀 Smart aufteilen & buchen</button>
-            </div>
+            </details>
 
-            <!-- MANUELLER VERTEILER -->
-            <div class="card">
-                <div class="card-title" style="font-size: 0.9rem;"><span>🎯 Restgeld manuell buchen</span></div>
-                <div class="grid">
+            <details class="card">
+                <summary style="font-size: 0.9rem;">🎯 Restgeld manuell buchen</summary>
+                <div class="grid" style="margin-top: 8px;">
                     <div class="input-group full"><label>Ziel</label><select id="manualDistributeGoalSelect" style="background:#fff; font-weight:bold;"></select></div>
                     <div class="input-group full"><label>Betrag (€)</label><input type="number" id="manualDistributeAmountInput" placeholder="200" style="background:#fff;"></div>
                 </div>
                 <button class="btn-secondary" style="width:100%; margin-top:6px; font-weight:bold;" onclick="executeManualDistribution()">Manuell buchen ➕</button>
-            </div>
+            </details>
 
             <div class="card">
                 <div class="card-title">Ergebnis: <span id="displayMonth" style="color:var(--accent);">-</span></div>
