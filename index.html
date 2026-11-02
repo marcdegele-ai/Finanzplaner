@@ -1287,22 +1287,52 @@
         }
 
         function renderJahresView() {
-            const yr = document.getElementById('selectYear').value; let einnahmen = 0, geplantEinnahmen = 0, fix = 0, spent = 0, echt = 0;
+            const yr = document.getElementById('selectYear').value; 
+            let einnahmen = 0, geplantEinnahmen = 0;
+            let fix = 0, spent = 0;
+            let echtIst = 0, echtGeplant = 0;
+
             for(let m=1; m<=12; m++) {
-                const mk = `${yr}-${String(m).padStart(2,'0')}`, item = getMonthDataOrFallback(mk), calc = calculateValuesFor(item);
+                const mk = `${yr}-${String(m).padStart(2,'0')}`;
+                const item = getMonthDataOrFallback(mk);
+                const calc = calculateValuesFor(item);
+                
                 let e = (item.gehalt || 2300) + (item.bargeldEinnahme || 0);
                 geplantEinnahmen += e;
-                if(item.booked) einnahmen += e;
+                
+                let monthSpent = 0;
+                (haushaltItems || []).forEach(hi => { 
+                    if(hi.date?.startsWith(mk) && hi.type !== 'income') {
+                        monthSpent += parseFloat(hi.amount || 0); 
+                    }
+                });
+                spent += monthSpent;
                 fix += getTotalFixForMonthData(item);
-                (haushaltItems || []).forEach(hi => { if(hi.date?.startsWith(mk) && hi.type !== 'income') spent += parseFloat(hi.amount || 0); });
-                echt += calc.gesamtSparen - spent;
+
+                // Geplante Sparsumme
+                echtGeplant += calc.gesamtSparen - monthSpent;
+
+                // Ist-Sparsumme NUR wenn Gehalt wirklich als gebucht abgehakt ist!
+                if(item.booked) {
+                    einnahmen += e;
+                    echtIst += calc.gesamtSparen - monthSpent;
+                }
             }
+
             document.getElementById('jahrEinnahmen').innerText = einnahmen.toFixed(2) + ' €';
             document.getElementById('jahrGeplantEinnahmen').innerText = geplantEinnahmen.toFixed(2) + ' € (Geplant)';
             document.getElementById('jahrFix').innerText = fix.toFixed(2) + ' €';
             document.getElementById('jahrHaushaltAusgaben').innerText = spent.toFixed(2) + ' €';
-            document.getElementById('jahrEchtesSparen').innerText = echt.toFixed(2) + ' €';
-            document.getElementById('jahrEchteSparquote').innerText = (geplantEinnahmen > 0 ? (echt / geplantEinnahmen) * 100 : 0).toFixed(1) + '%';
+            
+            // Anzeige anpassen: Ist-Sparen / Geplantes Sparen
+            document.getElementById('jahrEchtesSparen').innerText = echtIst.toFixed(2) + ' € / ' + echtGeplant.toFixed(2) + ' € (Geplant)';
+            
+            // Sparquote basiert jetzt korrekt auf den tatsächlichen Einnahmen (oder der Planung falls Einnahmen noch 0 sind)
+            let quoteBase = einnahmen > 0 ? einnahmen : geplantEinnahmen;
+            let quoteVal = einnahmen > 0 ? echtIst : echtGeplant;
+            let finalRate = quoteBase > 0 ? Math.max(0, (quoteVal / quoteBase) * 100) : 0;
+            
+            document.getElementById('jahrEchteSparquote').innerText = finalRate.toFixed(1) + '%';
         }
 
         function getActiveUrlaub() { return urlaubeList.find(u => u.goalId === activeUrlaubGoalId) || urlaubeList[0]; }
