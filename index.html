@@ -1213,7 +1213,7 @@
             if(goal.id === 'freizeit') return getGoalData(goal.id).total;
             let total = parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             Object.keys(entries).sort().forEach(k => {
-                // WICHTIG: Nur einrechnen, wenn das Gehalt in diesem Monat gebucht ist
+                // WICHTIG: Nur einrechnen, wenn der Monat in der Vergangenheit/heute liegt UND das Gehalt gebucht ist!
                 if(k < upto && (!goal.startMonth || k >= goal.startMonth) && entries[k]?.booked) {
                     let scheduled = getActiveDeductionsForGoal(goal, k);
                     let extra = 0;
@@ -1246,27 +1246,34 @@
             monthList.forEach(k => {
                 const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
                 let add = 0;
-                
                 let isTerminated = false;
                 if (endLimitStr && k >= endLimitStr) isTerminated = true;
 
-                // WICHTIG: Aktueller Ist-Stand berücksichtigt NUR gebuchte Monate. Die Projektion (proj) zeigt den Endwert.
-                if (!isTerminated && item.booked) {
-                    if (goal.id === 'notfall') add = calc.notfallSparen;
-                    else if (goal.id === 'kassette') add = calc.bargeldSparen;
+                // Projektion (projektiertes Ziel) rechnet alle Monate ein, aber der IST-Stand (sum) rechnet AUSSCHLIESSLICH gebuchte Monate ein!
+                if (!isTerminated) {
+                    let calcAdd = 0;
+                    if (goal.id === 'notfall') calcAdd = calc.notfallSparen;
+                    else if (goal.id === 'kassette') calcAdd = calc.bargeldSparen;
                     else if (goal.id !== 'freizeit') {
                         let scheduled = getActiveDeductionsForGoal(goal, k);
                         let extra = 0;
                         (item.extraTransfers || []).forEach(tr => { if (tr.targetId === goalId) extra += tr.amount; });
-                        add = extra > 0 ? extra : scheduled;
+                        calcAdd = extra > 0 ? extra : scheduled;
+                    }
+                    
+                    if (item.booked) {
+                        add = calcAdd;
                     }
                 }
 
-                (transfersList || []).forEach(tr => { if (tr.dateKey === k) { if(tr.fromId === goalId) add -= tr.amount; if(tr.toId === goalId) add += tr.amount; } });
+                let transferDiff = 0;
+                (transfersList || []).forEach(tr => { if (tr.dateKey === k) { if(tr.fromId === goalId) transferDiff -= tr.amount; if(tr.toId === goalId) transferDiff += tr.amount; } });
 
-                proj += add; 
+                proj += add + transferDiff; 
                 if(item.booked && goalId !== 'notfall') sum += add;
-                breakdown.push({ month: k, amount: add, totalSoFar: proj });
+                if(transferDiff !== 0 && item.booked) sum += transferDiff;
+
+                breakdown.push({ month: k, amount: item.booked ? (add + transferDiff) : 0, totalSoFar: proj });
             });
             return { total: goalId === 'notfall' ? sum : (goal.id === 'kassette'?goal.manualCurrent:sum), projectedTotal: proj, breakdown };
         }
