@@ -14,85 +14,84 @@
 
     <style>
         :root {
-            --bg-color: #f1f5f9; --card-bg: #ffffff; --card-sub: #f8fafc;
+            --bg-color: #f8fafc; --card-bg: #ffffff; --card-sub: #f1f5f9;
             --accent: #0284c7; --accent-green: #10b981; --accent-orange: #f59e0b;
             --accent-red: #ef4444; --text-main: #0f172a; --text-sub: #64748b;
-            --border: #e2e8f0; --radius: 16px;
-            --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.04);
-            --shadow-md: 0 8px 20px rgba(15, 23, 42, 0.06);
+            --border: #e2e8f0; --radius: 12px;
+            --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04);
+            --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.05);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 12px; max-width: 620px; margin: 0 auto; padding-bottom: 90px; }
-        header { text-align: center; padding: 14px 0 16px 0; margin-bottom: 14px; }
-        header h1 { font-size: 1.3rem; color: var(--accent); margin-bottom: 3px; font-weight: 800; letter-spacing: -0.02em; }
-        .app-creator-sub { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 8px; font-weight: 500; }
-        .user-bar { display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--text-sub); margin-bottom: 12px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(8px); padding: 10px 14px; border-radius: var(--radius); border: 1px solid var(--border); flex-wrap: wrap; gap: 6px; box-shadow: var(--shadow-sm); }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 8px; max-width: 580px; margin: 0 auto; padding-bottom: 80px; }
+        header { text-align: center; padding: 10px 0 12px 0; margin-bottom: 10px; }
+        header h1 { font-size: 1.15rem; color: var(--accent); margin-bottom: 2px; font-weight: 800; letter-spacing: -0.02em; }
+        .app-creator-sub { font-size: 0.7rem; color: var(--text-sub); margin-bottom: 6px; font-weight: 500; }
+        .user-bar { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--text-sub); margin-bottom: 10px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); flex-wrap: wrap; gap: 6px; box-shadow: var(--shadow-sm); }
         .cloud-status { color: var(--accent-green); font-weight: 600; cursor: pointer; }
-        .tab-bar { display: flex; background: #e2e8f0; border: 1px solid var(--border); border-radius: 14px; padding: 4px; gap: 4px; overflow-x: auto; margin-top: 8px; scrollbar-width: none; }
+        .tab-bar { display: flex; background: #e2e8f0; border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 3px; overflow-x: auto; margin-top: 6px; scrollbar-width: none; }
         .tab-bar::-webkit-scrollbar { display: none; }
-        .tab-btn { flex: 1; padding: 9px 8px; border: none; border-radius: 10px; background: transparent; color: var(--text-sub); font-weight: 600; font-size: 0.74rem; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
-        .tab-btn.active { background: #ffffff; color: var(--accent); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08); font-weight: 700; }
+        .tab-btn { flex: 1; padding: 7px 6px; border: none; border-radius: 9px; background: transparent; color: var(--text-sub); font-weight: 600; font-size: 0.7rem; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
+        .tab-btn.active { background: #ffffff; color: var(--accent); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); font-weight: 700; }
         .view-section { display: none; }
         .view-section.active { display: block; }
-        .card { background: var(--card-bg); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; border: 1px solid var(--border); box-shadow: var(--shadow-md); }
-        .card-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .input-group { display: flex; flex-direction: column; gap: 5px; text-align: left; margin-bottom: 10px; }
+        .card { background: var(--card-bg); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        .card-title { font-size: 0.95rem; font-weight: 800; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .input-group { display: flex; flex-direction: column; gap: 4px; text-align: left; margin-bottom: 8px; }
         .input-group.full { grid-column: span 2; }
-        label { font-size: 0.78rem; color: var(--text-sub); font-weight: 700; }
-        input, select { background: var(--card-sub); border: 1.5px solid var(--border); color: var(--text-main); padding: 10px 12px; border-radius: 10px; font-size: 0.88rem; outline: none; width: 100%; transition: all 0.2s ease; }
-        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background: #ffffff; }
-        .checkbox-container { display: flex; align-items: center; gap: 10px; background: var(--card-sub); padding: 12px; border-radius: 12px; border: 1px solid var(--border); cursor: pointer; text-align: left; }
-        .checkbox-container input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent-green); cursor: pointer; }
-        .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
+        label { font-size: 0.73rem; color: var(--text-sub); font-weight: 700; }
+        input, select { background: var(--card-sub); border: 1px solid var(--border); color: var(--text-main); padding: 8px 10px; border-radius: 8px; font-size: 0.83rem; outline: none; width: 100%; transition: all 0.2s ease; }
+        input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12); background: #ffffff; }
+        .checkbox-container { display: flex; align-items: center; gap: 8px; background: var(--card-sub); padding: 10px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; text-align: left; }
+        .checkbox-container input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent-green); cursor: pointer; }
+        .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.83rem; }
         .stat-row:last-child { border-bottom: none; }
-        .stat-row.sub-row { font-size: 0.78rem; padding: 6px 0 6px 12px; border-bottom: 1px dashed #e2e8f0; color: var(--text-sub); }
+        .stat-row.sub-row { font-size: 0.74rem; padding: 5px 0 5px 10px; border-bottom: 1px dashed #e2e8f0; color: var(--text-sub); }
         .val-highlight { font-weight: bold; color: var(--accent-green); }
         .val-orange { font-weight: bold; color: var(--accent-orange); }
         .val-red { font-weight: bold; color: var(--accent-red); }
-        .btn-add { background: var(--accent); color: #fff; font-weight: 700; border: none; padding: 12px; border-radius: 12px; width: 100%; font-size: 0.92rem; cursor: pointer; margin-top: 6px; box-shadow: 0 4px 14px rgba(2,132,199,0.25); }
-        .btn-secondary { background: #e2e8f0; color: var(--text-main); font-weight: 700; border: 1px solid var(--border); padding: 8px 12px; border-radius: 10px; font-size: 0.78rem; cursor: pointer; }
-        .quick-btn-row { display: flex; gap: 6px; margin-bottom: 8px; }
-        .quick-btn { flex: 1; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 10px; padding: 8px; font-size: 0.78rem; font-weight: bold; cursor: pointer; text-align: center; }
-        .history-list { display: flex; flex-direction: column; gap: 10px; }
-        .history-item { background: var(--card-sub); padding: 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-        .badge { font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; font-weight: 800; display: inline-block; margin-left: 4px; }
+        .btn-add { background: var(--accent); color: #fff; font-weight: 700; border: none; padding: 10px; border-radius: 10px; width: 100%; font-size: 0.88rem; cursor: pointer; margin-top: 4px; box-shadow: 0 2px 8px rgba(2,132,199,0.2); }
+        .btn-secondary { background: #e2e8f0; color: var(--text-main); font-weight: 700; border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-size: 0.73rem; cursor: pointer; }
+        .quick-btn-row { display: flex; gap: 5px; margin-bottom: 6px; }
+        .quick-btn { flex: 1; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 8px; padding: 6px; font-size: 0.73rem; font-weight: bold; cursor: pointer; text-align: center; }
+        .history-list { display: flex; flex-direction: column; gap: 8px; }
+        .history-item { background: var(--card-sub); padding: 10px 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
+        .badge { font-size: 0.6rem; padding: 2px 6px; border-radius: 5px; font-weight: 800; display: inline-block; margin-left: 3px; }
         .badge-dauer { background: #e0f2fe; color: #0369a1; } .badge-paused { background: #fee2e2; color: #991b1b; }
         .badge-once { background: #f1f5f9; color: #475569; } .badge-booked { background: #dcfce7; color: #166534; }
         .badge-kategorie { background: #f3e8ff; color: #7e22ce; } .badge-income { background: #dcfce7; color: #15803d; }
-        .goal-card-box { background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); padding: 16px; border-radius: 14px; border: 1px solid var(--border); margin-bottom: 12px; cursor: pointer; box-shadow: var(--shadow-sm); }
-        .history-date { font-weight: 800; font-size: 0.9rem; color: var(--accent); }
-        .history-sub { font-size: 0.75rem; color: var(--text-sub); margin-top: 3px; }
-        .progress-bar-container { background: #e2e8f0; border-radius: 10px; height: 9px; width: 100%; margin-top: 8px; overflow: hidden; }
-        .progress-bar-fill { background: var(--accent-green); height: 100%; width: 0%; transition: width 0.4s ease; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 100; padding: 14px; }
+        .goal-card-box { background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 8px; cursor: pointer; box-shadow: var(--shadow-sm); }
+        .history-date { font-weight: 800; font-size: 0.83rem; color: var(--accent); }
+        .history-sub { font-size: 0.7rem; color: var(--text-sub); margin-top: 2px; }
+        .progress-bar-container { background: #e2e8f0; border-radius: 8px; height: 7px; width: 100%; margin-top: 6px; overflow: hidden; }
+        .progress-bar-fill { background: var(--accent-green); height: 100%; width: 0%; transition: width 0.3s ease; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 100; padding: 10px; }
         .modal.active { display: flex; }
-        .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 22px; border-radius: 20px; width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
-        .action-link { font-size: 0.72rem; cursor: pointer; padding: 4px 8px; border-radius: 6px; background: #e2e8f0; color: var(--text-main); font-weight: 700; }
-        .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
-        .month-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; min-width: 520px; }
-        .month-table th { text-align: left; padding: 11px; background: #e2e8f0; color: var(--accent); border-bottom: 1px solid var(--border); font-weight: 800; }
-        .month-table td { padding: 11px; border-bottom: 1px solid var(--border); color: var(--text-main); }
-        .cash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-        .cash-box { background: var(--card-sub); border: 1px solid var(--border); border-radius: 12px; padding: 10px; text-align: center; }
-        .cash-badge-img { width: 40px; height: 26px; object-fit: contain; border-radius: 6px; margin: 0 auto 4px auto; display: block; border: 1px solid var(--border); background: #e2e8f0; }
-        .coin-badge-img { width: 26px; height: 26px; object-fit: contain; border-radius: 50%; margin: 0 auto 4px auto; display: block; background: #f59e0b; }
-        .cash-box label { font-size: 0.72rem; display: block; margin-bottom: 4px; color: #b45309; font-weight: bold; cursor: pointer; }
-        .cash-box input { width: 100%; text-align: center; padding: 6px; font-size: 0.88rem; }
-        .chart-container { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .chart-bar-row { background: var(--card-sub); padding: 12px; border-radius: 12px; border: 1px solid var(--border); }
-        .chart-label-line { display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; }
-        .receipt-btn { font-size: 0.72rem; background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; padding: 4px 8px; border-radius: 6px; font-weight: 700; }
-        .storno-btn { font-size: 0.7rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 3px 6px; border-radius: 6px; font-weight: 700; margin-left: 6px; }
-        .calc-display { background: #0f172a; color: #38bdf8; font-size: 1.6rem; font-family: monospace; text-align: right; padding: 16px; border-radius: 14px; margin-bottom: 12px; min-height: 60px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5); }
-        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .calc-btn { background: #e2e8f0; border: 1px solid var(--border); padding: 14px; font-size: 1.1rem; font-weight: 800; border-radius: 12px; cursor: pointer; text-align: center; }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 18px; border-radius: 16px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2); }
+        .action-link { font-size: 0.68rem; cursor: pointer; padding: 3px 6px; border-radius: 5px; background: #e2e8f0; color: var(--text-main); font-weight: 700; }
+        .table-wrapper { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
+        .month-table { width: 100%; border-collapse: collapse; font-size: 0.74rem; min-width: 500px; }
+        .month-table th { text-align: left; padding: 9px; background: #e2e8f0; color: var(--accent); border-bottom: 1px solid var(--border); font-weight: 800; }
+        .month-table td { padding: 9px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        .cash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+        .cash-box { background: var(--card-sub); border: 1px solid var(--border); border-radius: 10px; padding: 8px; text-align: center; }
+        .cash-badge-img { width: 34px; height: 22px; object-fit: contain; border-radius: 5px; margin: 0 auto 3px auto; display: block; border: 1px solid var(--border); background: #e2e8f0; }
+        .coin-badge-img { width: 22px; height: 22px; object-fit: contain; border-radius: 50%; margin: 0 auto 3px auto; display: block; background: #f59e0b; }
+        .cash-box label { font-size: 0.68rem; display: block; margin-bottom: 3px; color: #b45309; font-weight: bold; cursor: pointer; }
+        .cash-box input { width: 100%; text-align: center; padding: 5px; font-size: 0.83rem; }
+        .chart-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+        .chart-bar-row { background: var(--card-sub); padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
+        .chart-label-line { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; }
+        .receipt-btn { font-size: 0.68rem; background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; padding: 3px 6px; border-radius: 5px; font-weight: 700; }
+        .storno-btn { font-size: 0.65rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 2px 5px; border-radius: 5px; font-weight: 700; margin-left: 5px; }
+        .calc-display { background: #0f172a; color: #38bdf8; font-size: 1.4rem; font-family: monospace; text-align: right; padding: 12px; border-radius: 10px; margin-bottom: 10px; min-height: 50px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.4); }
+        .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .calc-btn { background: #e2e8f0; border: 1px solid var(--border); padding: 12px; font-size: 1rem; font-weight: 800; border-radius: 10px; cursor: pointer; text-align: center; }
         .calc-btn.op { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
         .calc-btn.eq { background: var(--accent); color: #fff; }
         .calc-btn.ac { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
-        .envelope-card-item { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 1px solid var(--border); border-left: 5px solid var(--accent); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); }
+        .envelope-card-item { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); }
         .envelope-card-item.special { border-left-color: var(--accent-orange); background: linear-gradient(135deg, #fffdfa 0%, #fffbf5 100%); }
-        .envelope-card-item.rest { border-left-color: var(--accent-green); background: linear-gradient(135deg, #f0fdf4 0%, #e6f4ea 100%); }
     </style>
 </head>
 <body>
@@ -105,9 +104,9 @@
                 <span>👤 Status: <strong style="color:var(--accent-green);">Lokal & Bereit ✅</strong></span>
                 <span class="cloud-status" onclick="openCloudModal()">⚡ Cloud-Sync</span>
                 <span id="lastUpdateDisplay" style="color:var(--text-sub);">Stand: Nie</span>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn-secondary" style="padding: 4px 8px; font-size:0.7rem;" onclick="exportBackupJSON()">💾 Backup</button>
-                    <button class="btn-secondary" style="padding: 4px 8px; font-size:0.7rem;" onclick="document.getElementById('importFile').click()">📂 Laden</button>
+                <div style="display:flex; gap:5px;">
+                    <button class="btn-secondary" style="padding: 3px 6px; font-size:0.68rem;" onclick="exportBackupJSON()">💾 Backup</button>
+                    <button class="btn-secondary" style="padding: 3px 6px; font-size:0.68rem;" onclick="document.getElementById('importFile').click()">📂 Laden</button>
                     <input type="file" id="importFile" style="display:none" accept=".json" onchange="importBackupJSON(event)">
                 </div>
             </div>
@@ -132,8 +131,8 @@
                         <label class="checkbox-container">
                             <input type="checkbox" id="gehaltBookedInput" onchange="autoSaveLive()">
                             <div>
-                                <strong style="color:var(--accent-green); font-size:0.85rem;">Gehalt für diesen Monat gebucht / erhalten ✅</strong>
-                                <div style="font-size:0.72rem; color:var(--text-sub);">Haken setzen, sobald das Geld da ist. Erst ab dann greifen Sparziele.</div>
+                                <strong style="color:var(--accent-green); font-size:0.8rem;">Gehalt für diesen Monat gebucht / erhalten ✅</strong>
+                                <div style="font-size:0.68rem; color:var(--text-sub);">Haken setzen, sobald das Geld da ist. Erst ab dann greifen Sparziele.</div>
                             </div>
                         </label>
                     </div>
@@ -141,10 +140,10 @@
                     <div class="input-group"><label>Bargeld Bar (€)</label><input type="number" id="bargeldEinnahmeInput" placeholder="0" oninput="autoSaveLive()"></div>
                     
                     <div class="input-group full">
-                        <div style="background: var(--card-sub); border: 1px solid var(--border); padding: 12px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="background: var(--card-sub); border: 1px solid var(--border); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <label style="color: var(--accent); font-weight: bold;">Ausgaben / Fixkosten</label>
-                                <div style="font-size: 0.88rem; margin-top: 2px;">Summe: <strong id="sumFixDisplay" class="val-red">0,00 €</strong></div>
+                                <div style="font-size: 0.83rem; margin-top: 1px;">Summe: <strong id="sumFixDisplay" class="val-red">0,00 €</strong></div>
                             </div>
                             <button class="btn-secondary" onclick="openExpenseModal()">Bearbeiten ✍️</button>
                         </div>
@@ -155,9 +154,9 @@
                     <div class="input-group"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
                     
                     <div class="input-group full">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
-                            <label style="margin:0;">Notfallkonto-Sparart</label>
-                            <select id="splitModeSelect" style="width: 140px; padding: 6px 8px; font-size: 0.78rem;" onchange="autoSaveLive()">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <label style="margin:0;">Notfallkonto-Abzug</label>
+                            <select id="splitModeSelect" style="width: 130px; padding: 5px 6px; font-size: 0.74rem;" onchange="autoSaveLive()">
                                 <option value="percent">Prozent (%)</option>
                                 <option value="fixed">Fester Betrag (€)</option>
                             </select>
@@ -165,14 +164,14 @@
                         <input type="number" id="splitNotfallInput" min="0" placeholder="z.B. 15 oder 150" oninput="autoSaveLive()">
                     </div>
 
-                    <div class="input-group full" style="margin-top: 6px;"><button class="btn-add" style="background: var(--accent-green);" onclick="saveCurrentMonthManual()">💾 Monat sichern</button></div>
+                    <div class="input-group full" style="margin-top: 4px;"><button class="btn-add" style="background: var(--accent-green);" onclick="saveCurrentMonthManual()">💾 Monat sichern</button></div>
                 </div>
             </div>
 
             <!-- MULTI-MONATS-AUTO-VERTEILER -->
             <div class="card" style="border: 2px solid var(--accent); background: #f0f9ff;">
                 <div class="card-title" style="color: var(--accent);"><span>⚡ Auto-Verteiler für mehrere Monate</span></div>
-                <p style="font-size: 0.78rem; color: var(--text-sub); margin-bottom: 10px;">Verteilt das Restgeld automatisch für die nächsten Monate im Voraus. Wenn Ziele voll oder abgelaufen sind, fließt der Rest aufs Notfallkonto.</p>
+                <p style="font-size: 0.74rem; color: var(--text-sub); margin-bottom: 8px;">Verteilt das Restgeld automatisch für die nächsten Monate im Voraus. Wenn Ziele voll oder abgelaufen sind, fließt der Rest aufs Notfallkonto.</p>
                 <div class="grid">
                     <div class="input-group full">
                         <label>Dauer im Voraus wählen:</label>
@@ -192,48 +191,48 @@
             <div class="card" style="border: 2px solid var(--accent-orange); background: #fffbf5;">
                 <div class="card-title" style="color: var(--accent-orange);">
                     <span>✉️ Umschläge</span>
-                    <span id="cashStuffingTotalToWithdraw" class="val-orange" style="font-size: 1.05rem;">0,00 €</span>
+                    <span id="cashStuffingTotalToWithdraw" class="val-orange" style="font-size: 1rem;">0,00 €</span>
                 </div>
-                <div id="envelopeBreakdownContainer" class="history-list" style="margin-bottom: 12px;"></div>
-                <button class="btn-secondary" style="width: 100%; background: var(--accent-orange); color: #fff; font-weight: bold; padding: 10px; border-radius:10px;" onclick="calcATMNotesRecommendation()">🏧 Automaten-Stückelung 💵</button>
+                <div id="envelopeBreakdownContainer" class="history-list" style="margin-bottom: 10px;"></div>
+                <button class="btn-secondary" style="width: 100%; background: var(--accent-orange); color: #fff; font-weight: bold; padding: 8px; border-radius:8px;" onclick="calcATMNotesRecommendation()">🏧 Automaten-Stückelung 💵</button>
             </div>
 
             <!-- SMARTES RESTGELD -->
             <div class="card" style="border: 2px solid var(--accent-green); background: #f0fdf4;">
                 <div class="card-title" style="color: var(--accent-green);"><span>✨ Smart-Verteiler</span></div>
-                <div class="grid" style="margin-bottom:10px;">
+                <div class="grid" style="margin-bottom:8px;">
                     <div class="input-group"><label>1. Ziel</label><select id="smartDistGoal1" style="background:#fff; font-weight:bold;" onchange="calcSmartDistributionPreview()"></select></div>
                     <div class="input-group"><label>Anteil 1 (%)</label><input type="number" id="smartDistPct1" value="70" min="0" max="100" style="background:#fff;" oninput="calcSmartDistributionPreview()"></div>
                     <div class="input-group"><label>2. Ziel</label><select id="smartDistGoal2" style="background:#fff; font-weight:bold;" onchange="calcSmartDistributionPreview()"></select></div>
                     <div class="input-group"><label>Anteil 2 (%)</label><input type="number" id="smartDistPct2" value="30" min="0" max="100" style="background:#fff;" oninput="calcSmartDistributionPreview()"></div>
                 </div>
-                <div style="background:#fff; padding:10px; border-radius:10px; border:1px solid var(--border); font-size:0.8rem; margin-bottom:10px;" id="smartDistPreviewText">Vorschau...</div>
+                <div style="background:#fff; padding:8px; border-radius:8px; border:1px solid var(--border); font-size:0.75rem; margin-bottom:8px;" id="smartDistPreviewText">Vorschau...</div>
                 <button class="btn-add" style="background:var(--accent-green); margin-top:0;" onclick="executeSmartDistribution()">🚀 Smart aufteilen & buchen</button>
             </div>
 
             <!-- MANUELLER VERTEILER -->
             <div class="card">
-                <div class="card-title" style="font-size: 0.95rem;"><span>🎯 Restgeld manuell buchen</span></div>
+                <div class="card-title" style="font-size: 0.9rem;"><span>🎯 Restgeld manuell buchen</span></div>
                 <div class="grid">
                     <div class="input-group full"><label>Ziel</label><select id="manualDistributeGoalSelect" style="background:#fff; font-weight:bold;"></select></div>
                     <div class="input-group full"><label>Betrag (€)</label><input type="number" id="manualDistributeAmountInput" placeholder="200" style="background:#fff;"></div>
                 </div>
-                <button class="btn-secondary" style="width:100%; margin-top:8px; font-weight:bold;" onclick="executeManualDistribution()">Manuell buchen ➕</button>
+                <button class="btn-secondary" style="width:100%; margin-top:6px; font-weight:bold;" onclick="executeManualDistribution()">Manuell buchen ➕</button>
             </div>
 
             <div class="card">
                 <div class="card-title">Ergebnis: <span id="displayMonth" style="color:var(--accent);">-</span></div>
                 <div class="stat-row"><span>Netto-Einnahmen:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row" style="background:#fff7ed; padding:8px 10px; border-radius:8px;"><span>🛒 Einkaufs-Geld (Abzug):</span><span id="resEinkaufspuffer" class="val-orange">-0,00 €</span></div>
-                <div class="stat-row"><span>Verfügbar nach Einkauf:</span><span id="resUeberschuss" class="val-orange">0,00 €</span></div>
-                <div class="stat-row"><span>Notfallkonto:</span><span id="resNotfall" class="val-highlight">0,00 €</span></div>
+                <div class="stat-row" style="background:#fff7ed; padding:7px 8px; border-radius:6px;"><span>🛒 Einkaufs-Geld (Abzug):</span><span id="resEinkaufspuffer" class="val-orange">-0,00 €</span></div>
+                <div class="stat-row" style="background:#f0fdf4; padding:7px 8px; border-radius:6px;"><span>🛡️ Notfallkonto (Abzug):</span><span id="resNotfallAbzug" class="val-highlight">-0,00 €</span></div>
+                <div class="stat-row"><span>Verfügbar nach Abzügen:</span><span id="resUeberschuss" class="val-orange">0,00 €</span></div>
                 <div class="stat-row"><span>FreizeitKonto:</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
                 <div id="sparzieleBreakdownContainer"></div>
-                <div class="stat-row" style="background: #f0fdf4; padding: 10px; border-radius: 10px; border: 1px solid #bbf7d0; margin: 6px 0;">
+                <div class="stat-row" style="background: #f0fdf4; padding: 8px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 5px 0;">
                     <span style="font-weight:700; color:#15803d;">🎉 Frei verfügbar:</span><span id="resFreizeitRest" class="val-highlight">0,00 €</span>
                 </div>
                 <div class="stat-row"><span>Bargeld-Kasse 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
-                <div class="stat-row" style="background: var(--card-sub); padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);">
+                <div class="stat-row" style="background: var(--card-sub); padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border);">
                     <span>🏦 Sparpakete Abzug:</span><span id="resSparzieleAbzug" class="val-red">-0,00 €</span>
                 </div>
                 <div class="stat-row" style="font-weight: bold;"><span>Gesamt Sparen:</span><span id="resGesamtSparen">0,00 €</span></div>
@@ -249,7 +248,7 @@
         <div id="haushalt-view" class="view-section">
             <div class="card">
                 <div class="card-title">🏠 Haushaltsbuch</div>
-                <div class="input-group full" style="margin-bottom: 10px; background: #e0f2fe; padding: 10px; border-radius: 10px;">
+                <div class="input-group full" style="margin-bottom: 8px; background: #e0f2fe; padding: 8px; border-radius: 8px;">
                     <label style="color: var(--accent); font-weight: bold;">Monat wählen:</label>
                     <input type="month" id="hhMonthInput" min="2026-12" onchange="syncMonthInput(this.value)" style="background:#fff; font-weight:bold; color:var(--accent);">
                 </div>
@@ -285,7 +284,7 @@
 
             <div class="card" style="border: 1.5px solid #fca5a5; background: #fff5f5;">
                 <div class="card-title" style="color:var(--accent-red);"><span>🧹 Datenbereinigung</span></div>
-                <button class="btn-secondary" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; width:100%; font-weight:bold; padding:10px;" onclick="clearAllExtraTransfersGlobally()">Alle manuellen Zuweisungen löschen</button>
+                <button class="btn-secondary" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; width:100%; font-weight:bold; padding:8px;" onclick="clearAllExtraTransfersGlobally()">Alle manuellen Zuweisungen löschen</button>
             </div>
 
             <div class="card">
@@ -297,19 +296,19 @@
         <!-- TAB 3: PROGNOSE & KASSETTE -->
         <div id="uebersicht-view" class="view-section">
             <div class="card" style="border: 1px solid #f59e0b;">
-                <div class="card-title"><span>🪙 Bargeld-Kassette</span><span id="cashTotalBadge" style="color:#b45309; font-size:1.05rem;">0,00 €</span></div>
+                <div class="card-title"><span>🪙 Bargeld-Kassette</span><span id="cashTotalBadge" style="color:#b45309; font-size:1rem;">0,00 €</span></div>
                 <div class="cash-grid">
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.65rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c100')">100€</div><label onclick="incrementCash('c100')">100 €</label><input type="number" id="c100" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.65rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c50')">50€</div><label onclick="incrementCash('c50')">50 €</label><input type="number" id="c50" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.65rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c20')">20€</div><label onclick="incrementCash('c20')">20 €</label><input type="number" id="c20" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.65rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c10')">10€</div><label onclick="incrementCash('c10')">10 €</label><input type="number" id="c10" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.65rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c5')">5€</div><label onclick="incrementCash('c5')">5 €</label><input type="number" id="c5" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c2')">2€</div><label onclick="incrementCash('c2')">2 €</label><input type="number" id="c2" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c1')">1€</div><label onclick="incrementCash('c1')">1 €</label><input type="number" id="c1" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c050')">50c</div><label onclick="incrementCash('c050')">50c</label><input type="number" id="c050" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c020')">20c</div><label onclick="incrementCash('c020')">20c</label><input type="number" id="c020" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c100')">100€</div><label onclick="incrementCash('c100')">100 €</label><input type="number" id="c100" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c50')">50€</div><label onclick="incrementCash('c50')">50 €</label><input type="number" id="c50" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c20')">20€</div><label onclick="incrementCash('c20')">20 €</label><input type="number" id="c20" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c10')">10€</div><label onclick="incrementCash('c10')">10 €</label><input type="number" id="c10" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c5')">5€</div><label onclick="incrementCash('c5')">5 €</label><input type="number" id="c5" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c2')">2€</div><label onclick="incrementCash('c2')">2 €</label><input type="number" id="c2" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c1')">1€</div><label onclick="incrementCash('c1')">1 €</label><input type="number" id="c1" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c050')">50c</div><label onclick="incrementCash('c050')">50c</label><input type="number" id="c050" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c020')">20c</div><label onclick="incrementCash('c020')">20c</label><input type="number" id="c020" min="0" value="0" oninput="calcCashBox()"></div>
                 </div>
-                <button class="btn-secondary" style="width:100%; margin-top:10px; background:#f59e0b; color:#fff; font-weight:bold; border:none; padding:10px; border-radius:10px;" onclick="saveCashBoxLocally()">💾 Stückelung speichern</button>
+                <button class="btn-secondary" style="width:100%; margin-top:8px; background:#f59e0b; color:#fff; font-weight:bold; border:none; padding:8px; border-radius:8px;" onclick="saveCashBoxLocally()">💾 Stückelung speichern</button>
             </div>
 
             <div class="card">
@@ -333,7 +332,7 @@
             <div class="card">
                 <div class="card-title">
                     <span>📈 Jahres-Auswertung</span>
-                    <select id="selectYear" style="width: 100px; padding: 6px;" onchange="renderJahresView()">
+                    <select id="selectYear" style="width: 90px; padding: 5px;" onchange="renderJahresView()">
                         <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
                     </select>
                 </div>
@@ -341,7 +340,7 @@
                 <div class="stat-row"><span>Fixkosten:</span><span id="jahrFix" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Haushalt-Ausgaben:</span><span id="jahrHaushaltAusgaben" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Echtes Sparen (Netto):</span><span id="jahrEchtesSparen" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row" style="font-weight: bold; background: #f0fdf4; padding: 10px; border-radius: 10px; border: 1px solid #bbf7d0; margin-top: 6px;">
+                <div class="stat-row" style="font-weight: bold; background: #f0fdf4; padding: 8px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 5px;">
                     <span style="color:#15803d;">🎯 Echte Sparquote:</span><span id="jahrEchteSparquote" class="val-highlight">0.0%</span>
                 </div>
             </div>
@@ -357,7 +356,7 @@
                 <div class="card-title"><span id="uHeaderTitle">✈️ Urlaub</span></div>
                 <div class="stat-row"><span>Ziel:</span><strong id="uTargetGoalName" style="color:var(--accent);">-</strong></div>
                 <div class="stat-row"><span>Gesamtbudget (Aktuell / Geplant):</span><span><strong id="uTargetBudgetDisplay" class="val-highlight">0,00 €</strong> / <span id="uPlannedBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
-                <button class="btn-secondary" style="width:100%; margin-top:10px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-weight:bold;" onclick="deleteCurrentUrlaubPlan()">🗑️ Planer löschen</button>
+                <button class="btn-secondary" style="width:100%; margin-top:8px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-weight:bold;" onclick="deleteCurrentUrlaubPlan()">🗑️ Planer löschen</button>
             </div>
             <div class="card">
                 <div class="card-title">📌 Fixkosten & Verpflegung</div>
@@ -438,54 +437,54 @@
     </div>
 
     <!-- MODALE -->
-    <div id="atmModal" class="modal"><div class="modal-content"><div class="card-title">Automaten-Abhebung</div><div class="stat-row" style="font-weight:bold; margin-bottom:12px;"><span>Summe:</span><span id="atmTotalDisplay" class="val-orange">0,00 €</span></div><div class="history-list" id="atmNotesList" style="margin-bottom:16px;"></div><button class="btn-add" onclick="closeAtmModal()">Schließen</button></div></div>
-    <div id="expenseModal" class="modal"><div class="modal-content"><div class="card-title">Fixkosten (<span id="modalExpMonth">-</span>)</div><div class="grid" style="gap: 8px; margin-bottom: 12px;"><div class="input-group full"><label>Name</label><input type="text" id="expName"></div><div class="input-group"><label>€</label><input type="number" id="expAmount"></div><div class="input-group"><label>Art</label><select id="expType" onchange="toggleEndDateInput()"><option value="dauer">Dauer</option><option value="einmalig">Einmalig</option></select></div><div class="input-group full" id="endDateGroup"><label>Bis Monat</label><input type="month" id="expEndDate"></div><div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Hinzufügen</button></div></div><div class="history-list" id="expenseItemsList" style="margin-bottom: 14px;"></div><div class="stat-row" style="font-weight: bold; margin-bottom: 14px;"><span>Summe:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div><button class="btn-add" onclick="closeExpenseModal()">Fertig</button></div></div>
-    <div id="monthCloseModal" class="modal"><div class="modal-content"><div class="card-title">🏁 Monatsabschluss</div><p style="font-size:0.85rem; color:var(--text-sub); margin-bottom:14px;">Restbudget übertragen?</p><div class="stat-row" style="margin-bottom:14px;"><span>Rest:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div><div class="input-group" style="margin-bottom: 14px;"><label>Ziel:</label><select id="closeTargetSelect"><option value="kassette">🪙 Kassette</option><option value="notfall">🛡️ Notfallkonto</option><option value="freizeit">🎉 Freizeitkonto</option></select></div><button class="btn-add" onclick="executeMonthClose()" style="background:var(--accent-green); margin-bottom: 8px;">Buchen 🚀</button><button class="btn-secondary" onclick="closeMonthCloseModal()" style="width:100%;">Überspringen</button></div></div>
-    <div id="cloudModal" class="modal"><div class="modal-content"><div class="card-title">☁️ Cloud-Sync</div><div class="input-group" style="margin-bottom: 8px;"><label>URL:</label><input type="text" id="cloudSyncUrlInput"></div><div class="input-group" style="margin-bottom: 14px;"><label>API Key:</label><input type="password" id="cloudSyncKeyInput"></div><button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 8px;">Speichern</button><button class="btn-secondary" onclick="pullFromCloudNow()" style="width:100%; margin-bottom: 6px;">Laden (Pull)</button><button class="btn-secondary" onclick="syncWithCloudNow(false)" style="width:100%; margin-bottom: 8px;">Speichern (Push)</button><button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button></div></div>
+    <div id="atmModal" class="modal"><div class="modal-content"><div class="card-title">Automaten-Abhebung</div><div class="stat-row" style="font-weight:bold; margin-bottom:10px;"><span>Summe:</span><span id="atmTotalDisplay" class="val-orange">0,00 €</span></div><div class="history-list" id="atmNotesList" style="margin-bottom:12px;"></div><button class="btn-add" onclick="closeAtmModal()">Schließen</button></div></div>
+    <div id="expenseModal" class="modal"><div class="modal-content"><div class="card-title">Fixkosten (<span id="modalExpMonth">-</span>)</div><div class="grid" style="gap: 6px; margin-bottom: 10px;"><div class="input-group full"><label>Name</label><input type="text" id="expName"></div><div class="input-group"><label>€</label><input type="number" id="expAmount"></div><div class="input-group"><label>Art</label><select id="expType" onchange="toggleEndDateInput()"><option value="dauer">Dauer</option><option value="einmalig">Einmalig</option></select></div><div class="input-group full" id="endDateGroup"><label>Bis Monat</label><input type="month" id="expEndDate"></div><div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Hinzufügen</button></div></div><div class="history-list" id="expenseItemsList" style="margin-bottom: 10px;"></div><div class="stat-row" style="font-weight: bold; margin-bottom: 10px;"><span>Summe:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div><button class="btn-add" onclick="closeExpenseModal()">Fertig</button></div></div>
+    <div id="monthCloseModal" class="modal"><div class="modal-content"><div class="card-title">🏁 Monatsabschluss</div><p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:10px;">Restbudget übertragen?</p><div class="stat-row" style="margin-bottom:10px;"><span>Rest:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div><div class="input-group" style="margin-bottom: 10px;"><label>Ziel:</label><select id="closeTargetSelect"><option value="kassette">🪙 Kassette</option><option value="notfall">🛡️ Notfallkonto</option><option value="freizeit">🎉 Freizeitkonto</option></select></div><button class="btn-add" onclick="executeMonthClose()" style="background:var(--accent-green); margin-bottom: 6px;">Buchen 🚀</button><button class="btn-secondary" onclick="closeMonthCloseModal()" style="width:100%;">Überspringen</button></div></div>
+    <div id="cloudModal" class="modal"><div class="modal-content"><div class="card-title">☁️ Cloud-Sync</div><div class="input-group" style="margin-bottom: 6px;"><label>URL:</label><input type="text" id="cloudSyncUrlInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>API Key:</label><input type="password" id="cloudSyncKeyInput"></div><button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 6px;">Speichern</button><button class="btn-secondary" onclick="pullFromCloudNow()" style="width:100%; margin-bottom: 5px;">Laden (Pull)</button><button class="btn-secondary" onclick="syncWithCloudNow(false)" style="width:100%; margin-bottom: 6px;">Speichern (Push)</button><button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button></div></div>
     
     <div id="goalModal" class="modal">
         <div class="modal-content">
             <div class="card-title" id="modalTitle">Ziel-Details</div>
-            <div class="input-group" style="margin-bottom: 8px;"><label>Zielbetrag (€):</label><input type="number" id="modalTargetInput"></div>
-            <div class="input-group" style="margin-bottom: 8px;"><label>Dauerauftrag (€/Mo):</label><input type="number" id="modalFixedMonthlyInput"></div>
-            <div class="input-group" style="margin-bottom: 8px;"><label>End-Monat:</label><input type="month" id="modalEndMonthInput"></div>
-            <div class="input-group" style="margin-bottom: 8px;"><label>Stand (Aktuell / Geplant):</label><span><strong id="modalCurrentInputDisplay">0</strong> / <span id="modalPlannedStandDisplay">0</span></span></div>
-            <div class="input-group" style="margin-bottom: 8px;"><input type="number" id="modalCurrentInput" style="display:none;"></div>
+            <div class="input-group" style="margin-bottom: 6px;"><label>Zielbetrag (€):</label><input type="number" id="modalTargetInput"></div>
+            <div class="input-group" style="margin-bottom: 6px;"><label>Dauerauftrag (€/Mo):</label><input type="number" id="modalFixedMonthlyInput"></div>
+            <div class="input-group" style="margin-bottom: 6px;"><label>End-Monat:</label><input type="month" id="modalEndMonthInput"></div>
+            <div class="input-group" style="margin-bottom: 6px;"><label>Stand (Aktuell / Geplant):</label><span><strong id="modalCurrentInputDisplay">0</strong> / <span id="modalPlannedStandDisplay">0</span></span></div>
+            <div class="input-group" style="margin-bottom: 6px;"><input type="number" id="modalCurrentInput" style="display:none;"></div>
             
-            <div style="background:#fff1f2; border:1px solid #fecdd3; padding:12px; border-radius:12px; margin-bottom:12px;">
+            <div style="background:#fff1f2; border:1px solid #fecdd3; padding:10px; border-radius:10px; margin-bottom:10px;">
                 <label style="color:#e11d48; font-weight:bold;">🗑️ Monat stornieren / Ziel auflösen</label>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:6px;">Stoppt das Ziel ab gewähltem Monat und überträgt das Geld.</div>
-                <div class="grid" style="gap:6px;">
-                    <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.7rem;">Storno ab Monat:</label><input type="month" id="stornoMonthInput" value="2027-07" style="background:#fff; font-size:0.8rem; padding:6px;"></div>
-                    <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.7rem;">Geld schieben auf Ziel:</label><select id="stornoTargetSelect" style="background:#fff; font-size:0.8rem; padding:6px;"></select></div>
+                <div style="font-size:0.7rem; color:var(--text-sub); margin-bottom:4px;">Stoppt das Ziel ab gewähltem Monat und überträgt das Geld.</div>
+                <div class="grid" style="gap:5px;">
+                    <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.68rem;">Storno ab Monat:</label><input type="month" id="stornoMonthInput" value="2027-07" style="background:#fff; font-size:0.78rem; padding:5px;"></div>
+                    <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.68rem;">Geld schieben auf Ziel:</label><select id="stornoTargetSelect" style="background:#fff; font-size:0.78rem; padding:5px;"></select></div>
                 </div>
-                <button class="btn-secondary" style="background:#e11d48; color:#fff; width:100%; font-weight:bold; margin-top:8px;" onclick="executeGoalDissolutionAtMonth()">Ziel ab Monat auflösen & Umbuchen 🚀</button>
+                <button class="btn-secondary" style="background:#e11d48; color:#fff; width:100%; font-weight:bold; margin-top:6px;" onclick="executeGoalDissolutionAtMonth()">Ziel ab Monat auflösen & Umbuchen 🚀</button>
             </div>
 
-            <div style="background:#e0f2fe; padding:10px; border-radius:10px; margin-bottom:12px;">
+            <div style="background:#e0f2fe; padding:8px; border-radius:8px; margin-bottom:10px;">
                 <label style="color:#0369a1; font-weight:bold;">🔄 Sofort-Umbuchung</label>
-                <div class="grid" style="gap:6px; margin-top:4px;">
-                    <div class="input-group full" style="margin-bottom:0;"><select id="transferTargetSelect" style="background:#fff; font-size:0.8rem; padding:6px;"></select></div>
-                    <div class="input-group" style="margin-bottom:0;"><input type="number" id="transferAmountInput" placeholder="€" style="background:#fff; font-size:0.8rem; padding:6px;"></div>
+                <div class="grid" style="gap:5px; margin-top:3px;">
+                    <div class="input-group full" style="margin-bottom:0;"><select id="transferTargetSelect" style="background:#fff; font-size:0.78rem; padding:5px;"></select></div>
+                    <div class="input-group" style="margin-bottom:0;"><input type="number" id="transferAmountInput" placeholder="€" style="background:#fff; font-size:0.78rem; padding:5px;"></div>
                     <div><button class="btn-secondary" style="background:var(--accent); color:#fff; width:100%; height:100%; font-weight:bold;" onclick="executeAccountTransfer()">Überweisen</button></div>
                 </div>
             </div>
-            <div style="background:var(--card-sub); padding:10px; border-radius:10px; margin-bottom:10px;">
+            <div style="background:var(--card-sub); padding:8px; border-radius:8px; margin-bottom:8px;">
                 <label style="color:var(--accent-green); font-weight:bold;">➕ Einzahlen</label>
-                <div style="display:flex; gap:6px; margin-top:4px;"><input type="number" id="manualDepositAmount" placeholder="€" style="flex:1;"><button class="btn-secondary" style="background:var(--accent-green); color:#fff;" onclick="addManualDepositToGoal()">Ein</button></div>
+                <div style="display:flex; gap:5px; margin-top:3px;"><input type="number" id="manualDepositAmount" placeholder="€" style="flex:1;"><button class="btn-secondary" style="background:var(--accent-green); color:#fff;" onclick="addManualDepositToGoal()">Ein</button></div>
             </div>
-            <div style="background:var(--card-sub); padding:10px; border-radius:10px; margin-bottom:14px;">
+            <div style="background:var(--card-sub); padding:8px; border-radius:8px; margin-bottom:10px;">
                 <label style="color:#ef4444; font-weight:bold;">➖ Abheben</label>
-                <div style="display:flex; gap:6px; margin-top:4px;"><input type="number" id="manualWithdrawAmount" placeholder="€" style="flex:1;"><button class="btn-secondary" style="background:#ef4444; color:#fff;" onclick="withdrawManualFromGoal()">Ab</button></div>
+                <div style="display:flex; gap:5px; margin-top:3px;"><input type="number" id="manualWithdrawAmount" placeholder="€" style="flex:1;"><button class="btn-secondary" style="background:#ef4444; color:#fff;" onclick="withdrawManualFromGoal()">Ab</button></div>
             </div>
-            <button class="btn-add" onclick="saveModalChanges()" style="margin-bottom: 8px;">Speichern</button>
-            <button class="btn-add" onclick="deleteCurrentModalGoal()" style="background:#ef4444; color:#fff; margin-bottom: 12px;">🗑️ Komplett Löschen</button>
+            <button class="btn-add" onclick="saveModalChanges()" style="margin-bottom: 6px;">Speichern</button>
+            <button class="btn-add" onclick="deleteCurrentModalGoal()" style="background:#ef4444; color:#fff; margin-bottom: 10px;">🗑️ Komplett Löschen</button>
             <div class="history-list" id="modalHistoryList"></div>
-            <button class="btn-add" onclick="closeModal()" style="background: var(--border); color: var(--text-main); margin-top: 10px;">Schließen</button>
+            <button class="btn-add" onclick="closeModal()" style="background: var(--border); color: var(--text-main); margin-top: 8px;">Schließen</button>
         </div>
     </div>
 
-    <div id="receiptModal" class="modal"><div class="modal-content" style="text-align:center;"><div class="card-title">Beleg</div><img id="receiptModalImg" src="" style="max-width:100%; border-radius:8px; margin-bottom:10px;"><button class="btn-add" onclick="closeReceiptModal()">Schließen</button></div></div>
+    <div id="receiptModal" class="modal"><div class="modal-content" style="text-align:center;"><div class="card-title">Beleg</div><img id="receiptModalImg" src="" style="max-width:100%; border-radius:8px; margin-bottom:8px;"><button class="btn-add" onclick="closeReceiptModal()">Schließen</button></div></div>
 
     <script>
         let rawEntries = null;
@@ -1055,17 +1054,28 @@
         }
 
         function calculateValuesFor(item) {
-            if(!item) return { netto: 0, einkaufsGeld: 0, ueberschuss: 0, notfallSparen: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
+            if(!item) return { netto: 0, einkaufsGeld: 0, notfallSparen: 0, ueberschuss: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
             const fix = getTotalFixForMonthData(item), g = (parseFloat(item.gehalt) || 2300) + (parseFloat(item.bargeldEinnahme) || 0);
             const netto = g - fix;
             
             const einkaufsGeld = parseFloat(item.taschengeld) || 0;
-            const ueberschuss = Math.max(0, netto - einkaufsGeld);
+            const afterEinkauf = Math.max(0, netto - einkaufsGeld);
 
             const split = parseFloat(item.splitNotfall) || 0;
-            let notfall = item.splitMode === 'fixed' ? Math.max(0, Math.min(ueberschuss, split)) : ueberschuss * (split / 100);
-            const bargeld = parseFloat(item.bargeld) || 0, freizeit = Math.max(0, ueberschuss - notfall);
-            return { netto: Math.round(netto*100)/100, einkaufsGeld: einkaufsGeld, ueberschuss: Math.round(ueberschuss*100)/100, notfallSparen: Math.round(notfall*100)/100, freizeitSparen: Math.round(freizeit*100)/100, bargeldSparen: bargeld, gesamtSparen: Math.round((notfall+freizeit+bargeld)*100)/100 };
+            let notfall = item.splitMode === 'fixed' ? Math.max(0, Math.min(afterEinkauf, split)) : afterEinkauf * (split / 100);
+            
+            const ueberschuss = Math.max(0, afterEinkauf - notfall);
+            const bargeld = parseFloat(item.bargeld) || 0, freizeit = ueberschuss;
+            
+            return { 
+                netto: Math.round(netto*100)/100, 
+                einkaufsGeld: einkaufsGeld, 
+                notfallSparen: Math.round(notfall*100)/100, 
+                ueberschuss: Math.round(ueberschuss*100)/100, 
+                freizeitSparen: Math.round(freizeit*100)/100, 
+                bargeldSparen: bargeld, 
+                gesamtSparen: Math.round((notfall+freizeit+bargeld)*100)/100 
+            };
         }
 
         function liveCalc() {
@@ -1075,10 +1085,10 @@
             document.getElementById('displayMonth').innerText = m;
             document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
             document.getElementById('resEinkaufspuffer').innerText = '-' + calc.einkaufsGeld.toFixed(2) + ' €';
-            document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
             
             let extraNotfall = 0; (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
-            document.getElementById('resNotfall').innerText = (calc.notfallSparen + extraNotfall).toFixed(2) + ' €';
+            document.getElementById('resNotfallAbzug').innerText = '-' + (calc.notfallSparen + extraNotfall).toFixed(2) + ' €';
+            document.getElementById('resUeberschuss').innerText = calc.ueberschuss.toFixed(2) + ' €';
             document.getElementById('resFreizeit').innerText = calc.freizeitSparen.toFixed(2) + ' €';
             
             const container = document.getElementById('sparzieleBreakdownContainer'); container.innerHTML = '';
@@ -1106,7 +1116,6 @@
         function renderEnvelopeStuffingBreakdown(calc) {
             const container = document.getElementById('envelopeBreakdownContainer'); if(!container) return; container.innerHTML = '';
             document.getElementById('cashStuffingTotalToWithdraw').innerText = calc.ueberschuss.toFixed(2) + ' €';
-            if(calc.notfallSparen > 0) container.innerHTML += `<div class="envelope-card-item"><div><strong>🛡️ Notfall</strong></div><div class="val-highlight">+${calc.notfallSparen.toFixed(2)} €</div></div>`;
             goals.forEach(g => {
                 let amt = getActiveDeductionsForGoal(g, getSelectedMonthKey());
                 if(amt > 0) container.innerHTML += `<div class="envelope-card-item special"><div><strong>✉️ ${g.name}</strong></div><div class="val-orange">+${amt.toFixed(2)} €</div></div>`;
@@ -1381,9 +1390,9 @@
                 tr.innerHTML = `
                     <td>Tag ${i+1}${isAbreise ? ' 🧳' : ''}</td>
                     <td>${dayBase.toFixed(2)} €</td>
-                    <td><input type="number" id="bonus_${i}" style="width:70px; padding:4px; font-size:0.75rem;" value="${manualBonus !== 0 ? manualBonus : ''}" placeholder="+/-" onchange="updateUrlaubBonus(${i}, this.value)"></td>
+                    <td><input type="number" id="bonus_${i}" style="width:65px; padding:3px; font-size:0.72rem;" value="${manualBonus !== 0 ? manualBonus : ''}" placeholder="+/-" onchange="updateUrlaubBonus(${i}, this.value)"></td>
                     <td><strong>${available.toFixed(2)} €</strong></td>
-                    <td><input type="number" id="actual_${i}" style="width:70px; padding:4px; font-size:0.75rem;" value="${u.dailyActuals[i] !== undefined && u.dailyActuals[i] !== '' ? u.dailyActuals[i] : ''}" placeholder="Ist" onchange="updateUrlaubActual(${i}, this.value)"></td>
+                    <td><input type="number" id="actual_${i}" style="width:65px; padding:3px; font-size:0.72rem;" value="${u.dailyActuals[i] !== undefined && u.dailyActuals[i] !== '' ? u.dailyActuals[i] : ''}" placeholder="Ist" onchange="updateUrlaubActual(${i}, this.value)"></td>
                     <td><span class="${rest > 0 ? 'val-highlight' : ''}">${rest.toFixed(2)} €</span></td>
                 `;
                 tbody.appendChild(tr);
@@ -1420,7 +1429,7 @@
                 const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey()); 
                 const pct = g.target > 0 ? Math.min(100, (cur / g.target) * 100) : 0;
                 const data = getGoalData(g.id);
-                list.innerHTML += `<div class="goal-card-box" onclick="openModal('${g.id}')"><div style="display:flex; justify-content:space-between;"><div><strong>${g.name}</strong></div><div><strong>${pct.toFixed(1)}%</strong></div></div><div class="history-sub">Stand (Ist): ${cur.toFixed(2)} € / Ziel: ${g.target.toFixed(2)} €</div><div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div><div class="history-sub" style="margin-top:4px;">Geplante Endsumme: <strong>${data.projectedTotal.toFixed(2)} €</strong></div></div>`;
+                list.innerHTML += `<div class="goal-card-box" onclick="openModal('${g.id}')"><div style="display:flex; justify-content:space-between;"><div><strong>${g.name}</strong></div><div><strong>${pct.toFixed(1)}%</strong></div></div><div class="history-sub">Stand (Ist): ${cur.toFixed(2)} € / Ziel: ${g.target.toFixed(2)} €</div><div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div><div class="history-sub" style="margin-top:3px;">Geplante Endsumme: <strong>${data.projectedTotal.toFixed(2)} €</strong></div></div>`;
             });
             populateManualDistributeDropdown();
         }
