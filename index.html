@@ -1136,6 +1136,13 @@
 
             let sum = goal.id === 'kassette' ? parseFloat(goal.manualCurrent || 0) : parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             let proj = sum, breakdown = [];
+
+            // Dauerauftrag-Rate sauber parsen (auch bei Komma-Eingaben wie 166,67)
+            let fixedRate = 0;
+            if (goal.fixedMonthly) {
+                let strVal = String(goal.fixedMonthly).replace(',', '.');
+                fixedRate = parseFloat(strVal) || 0;
+            }
             
             monthList.forEach(k => {
                 const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
@@ -1149,7 +1156,7 @@
                     } else if (goal.id === 'kassette') add = calc.bargeldSparen;
                     else if (goal.id !== 'freizeit') {
                         // IMMER den geplanten Dauerauftrag berücksichtigen!
-                        let scheduled = goal.fixedMonthly ? parseFloat(goal.fixedMonthly) : 0;
+                        let scheduled = fixedRate;
                         let extra = 0;
                         (item.extraTransfers || []).forEach(tr => { if (tr.targetId === goalId) extra += tr.amount; });
                         add = extra > 0 ? extra : scheduled;
