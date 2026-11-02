@@ -202,18 +202,6 @@
                 <button class="btn-secondary" style="width: 100%; background: var(--accent-orange); color: #fff; font-weight: bold; padding: 8px; border-radius:8px;" onclick="calcATMNotesRecommendation()">🏧 Automaten-Stückelung 💵</button>
             </details>
 
-            <details class="card" style="border: 1.5px solid var(--accent-green); background: #f0fdf4;">
-                <summary style="color: var(--accent-green);">✨ Smart-Verteiler</summary>
-                <div class="grid" style="margin: 8px 0;">
-                    <div class="input-group"><label>1. Ziel</label><select id="smartDistGoal1" style="background:#fff; font-weight:bold;" onchange="calcSmartDistributionPreview()"></select></div>
-                    <div class="input-group"><label>Anteil 1 (%)</label><input type="number" id="smartDistPct1" value="70" min="0" max="100" style="background:#fff;" oninput="calcSmartDistributionPreview()"></div>
-                    <div class="input-group"><label>2. Ziel</label><select id="smartDistGoal2" style="background:#fff; font-weight:bold;" onchange="calcSmartDistributionPreview()"></select></div>
-                    <div class="input-group"><label>Anteil 2 (%)</label><input type="number" id="smartDistPct2" value="30" min="0" max="100" style="background:#fff;" oninput="calcSmartDistributionPreview()"></div>
-                </div>
-                <div style="background:#fff; padding:8px; border-radius:8px; border:1px solid var(--border); font-size:0.75rem; margin-bottom:8px;" id="smartDistPreviewText">Vorschau...</div>
-                <button class="btn-add" style="background:var(--accent-green); margin-top:0;" onclick="executeSmartDistribution()">🚀 Smart aufteilen & buchen</button>
-            </details>
-
             <details class="card">
                 <summary style="font-size: 0.9rem;">🎯 Restgeld manuell buchen</summary>
                 <div class="grid" style="margin-top: 8px;">
@@ -831,30 +819,12 @@
         }
 
         function populateManualDistributeDropdown() {
-            const sel = document.getElementById('manualDistributeGoalSelect'), s1 = document.getElementById('smartDistGoal1'), s2 = document.getElementById('smartDistGoal2');
-            if(!sel || !s1 || !s2) return;
-            sel.innerHTML = ''; s1.innerHTML = ''; s2.innerHTML = '';
+            const sel = document.getElementById('manualDistributeGoalSelect');
+            if(!sel) return;
+            sel.innerHTML = '';
             goals.forEach(g => {
-                sel.add(new Option(g.name, g.id)); s1.add(new Option(g.name, g.id)); s2.add(new Option(g.name, g.id));
+                sel.add(new Option(g.name, g.id));
             });
-            if(s2.options.length > 1) s2.selectedIndex = 1;
-            calcSmartDistributionPreview();
-        }
-
-        function calcSmartDistributionPreview() {
-            const rest = getRestFreizeitGeldCalculated(), p1 = parseFloat(document.getElementById('smartDistPct1').value) || 0, p2 = parseFloat(document.getElementById('smartDistPct2').value) || 0;
-            document.getElementById('smartDistPreviewText').innerHTML = `Vorschau (${rest.toFixed(2)} €): <br>• <strong>${document.getElementById('smartDistGoal1').selectedOptions[0]?.innerText}</strong>: ${(rest*p1/100).toFixed(2)} €<br>• <strong>${document.getElementById('smartDistGoal2').selectedOptions[0]?.innerText}</strong>: ${(rest*p2/100).toFixed(2)} €`;
-        }
-
-        function executeSmartDistribution() {
-            const rest = getRestFreizeitGeldCalculated(); if (rest <= 0) return alert('Kein Restgeld verfügbar!');
-            const g1 = document.getElementById('smartDistGoal1').value, g2 = document.getElementById('smartDistGoal2').value;
-            const p1 = parseFloat(document.getElementById('smartDistPct1').value) || 0, p2 = parseFloat(document.getElementById('smartDistPct2').value) || 0;
-            const m = getSelectedMonthKey(); if(!entries[m]) entries[m] = getMonthDataOrFallback(m);
-            if(!entries[m].extraTransfers) entries[m].extraTransfers = [];
-            if(p1 > 0) entries[m].extraTransfers.push({ id: Date.now(), targetId: g1, targetName: goals.find(x=>x.id===g1)?.name, amount: rest*p1/100 });
-            if(p2 > 0) entries[m].extraTransfers.push({ id: Date.now()+1, targetId: g2, targetName: goals.find(x=>x.id===g2)?.name, amount: rest*p2/100 });
-            saveLocally(); liveCalc(); renderHistory(); renderGoals(); alert('Smart gebucht! ✨');
         }
 
         function executeManualDistribution() {
@@ -1149,7 +1119,7 @@
             document.getElementById('resSparzieleAbzug').innerText = '-' + totalDeductions.toFixed(2) + ' €';
             document.getElementById('resGesamtSparen').innerText = (calc.notfallSparen + totalDeductions + calc.bargeldSparen).toFixed(2) + ' €';
 
-            renderEnvelopeStuffingBreakdown(calc); renderHaushaltView(); calcSmartDistributionPreview();
+            renderEnvelopeStuffingBreakdown(calc); renderHaushaltView();
         }
 
         function renderEnvelopeStuffingBreakdown(calc) {
