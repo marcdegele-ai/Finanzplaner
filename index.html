@@ -156,7 +156,7 @@
                         <input type="hidden" id="fixkostenInput" value="0">
                     </div>
 
-                    <div class="input-group"><label>Einkaufs-Geld 🛒 (€)</label><input type="number" id="taschengeldInput" placeholder="0" oninput="autoSaveLive()"></div>
+                    <div class="input-group"><label>Einkaufs-Geld 🛒 (€)</label><input type="number" id="taschengeldInput" placeholder="200" oninput="autoSaveLive()"></div>
                     <div class="input-group"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
                     
                     <div class="input-group full">
@@ -500,7 +500,7 @@
             });
         }
         if (Object.keys(entries).length === 0) {
-            entries = { "2026-12": { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] } };
+            entries = { "2026-12": { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 200, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] } };
         }
 
         let goals = null;
@@ -702,7 +702,7 @@
                 items: JSON.parse(JSON.stringify(currentMonthItems)),
                 pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
                 bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
-                taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0,
+                taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200,
                 splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0,
                 splitMode: document.getElementById('splitModeSelect').value,
                 booked: document.getElementById('gehaltBookedInput').checked,
@@ -801,9 +801,10 @@
                 inherited.forEach(inh => { if (!items.some(i => i.name.trim().toLowerCase() === inh.name.trim().toLowerCase())) items.push(JSON.parse(JSON.stringify(inh))); });
                 entries[m].items = items;
                 if (entries[m].gehalt === undefined) entries[m].gehalt = 2300;
+                if (entries[m].taschengeld === undefined) entries[m].taschengeld = 200;
                 return entries[m];
             }
-            return { gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], bargeld: 0, taschengeld: 0, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] };
+            return { gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], bargeld: 0, taschengeld: 200, splitNotfall: 15, splitMode: 'percent', booked: false, extraTransfers: [] };
         }
 
         function loadMonthData() {
@@ -812,7 +813,7 @@
             document.getElementById('gehaltInput').value = item.gehalt ?? 2300;
             document.getElementById('bargeldEinnahmeInput').value = item.bargeldEinnahme || '';
             document.getElementById('bargeldInput').value = item.bargeld || 0;
-            document.getElementById('taschengeldInput').value = item.taschengeld || 0;
+            document.getElementById('taschengeldInput').value = item.taschengeld ?? 200;
             document.getElementById('splitModeSelect').value = item.splitMode || 'percent';
             document.getElementById('splitNotfallInput').value = item.splitNotfall ?? 15;
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
@@ -948,7 +949,7 @@
 
         function getRestFreizeitGeldCalculated() {
             const m = getSelectedMonthKey(), monthData = entries[m] || {};
-            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, booked: document.getElementById('gehaltBookedInput').checked };
+            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, booked: document.getElementById('gehaltBookedInput').checked };
             const calc = calculateValuesFor(item);
             let deductions = 0; goals.forEach(g => deductions += getActiveDeductionsForGoal(g, m));
             let extra = 0; (monthData.extraTransfers || []).forEach(tr => extra += tr.amount);
@@ -984,14 +985,14 @@
             
             const itemData = getMonthDataOrFallback(m);
             plannedExpense += getTotalFixForMonthData(itemData);
-            const currentEinkaufsGeld = parseFloat(itemData.taschengeld) || 0;
+            const currentEinkaufsGeld = parseFloat(itemData.taschengeld) || 200;
             const totalPlannedHaushaltBudget = currentEinkaufsGeld;
 
             (haushaltItems || []).filter(i => i.date?.startsWith(m)).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(item => {
                 const isInc = item.type === 'income', amt = parseFloat(item.amount || 0);
                 if (isInc) totalIncome += amt; else { totalSpent += amt; catTotals[item.category] = (catTotals[item.category] || 0) + amt; }
                 const div = document.createElement('div'); div.className = 'history-item';
-                div.innerHTML = `<div><div class="history-date" style="${isInc?'color:var(--accent-green);':''}">${item.name} <span class="badge ${isInc?'badge-income':'badge-kategorie'}">${item.category}</span> ${item.receipt?`<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">Beleg</button>👤`:''}</div><div class="history-sub">${item.date}</div></div><div style="text-align:right;"><span class="${isInc?'val-highlight':'val-red'}">${isInc?'+':'-'}${amt.toFixed(2)} €</span> <span style="cursor:pointer; color:#ef4444;" onclick="deleteHaushaltItem(${item.id})">🗑️</span></div>`;
+                div.innerHTML = `<div><div class="history-date" style="${isInc?'color:var(--accent-green);':''}">${item.name} <span class="badge ${isInc?'badge-income':'badge-kategorie'}">${item.category}</span> ${item.receipt?`<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">Beleg</button>`:''}</div><div class="history-sub">${item.date}</div></div><div style="text-align:right;"><span class="${isInc?'val-highlight':'val-red'}">${isInc?'+':'-'}${amt.toFixed(2)} €</span> <span style="cursor:pointer; color:#ef4444;" onclick="deleteHaushaltItem(${item.id})">🗑️</span></div>`;
                 list.appendChild(div);
             });
             const chartCard = document.getElementById('categoryChartCard'), chartContainer = document.getElementById('categoryChartContainer'); chartContainer.innerHTML = '';
@@ -1061,7 +1062,7 @@
             const fix = getTotalFixForMonthData(item), g = (parseFloat(item.gehalt) || 2300) + (parseFloat(item.bargeldEinnahme) || 0);
             const netto = g - fix;
             
-            const einkaufsGeld = parseFloat(item.taschengeld) || 0;
+            const einkaufsGeld = parseFloat(item.taschengeld ?? 200) || 0;
             const afterEinkauf = Math.max(0, netto - einkaufsGeld);
 
             const split = parseFloat(item.splitNotfall) || 0;
@@ -1083,7 +1084,7 @@
 
         function liveCalc() {
             const m = getSelectedMonthKey(), monthData = entries[m] || {};
-            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 0, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, booked: document.getElementById('gehaltBookedInput').checked };
+            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, splitNotfall: parseFloat(document.getElementById('splitNotfallInput').value) || 0, splitMode: document.getElementById('splitModeSelect').value, booked: document.getElementById('gehaltBookedInput').checked };
             const calc = calculateValuesFor(item);
             document.getElementById('displayMonth').innerText = m;
             document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
@@ -1254,12 +1255,10 @@
             if(!confirm(`Möchtest du das Ziel "${currentGoal.name}" ab Monat ${stornoMonth} stoppen und die geplanten monatlichen Beträge auf ${goals.find(g=>g.id===targetGoalId)?.name} verschieben?`)) return;
 
             let monthlyAmt = parseFloat(currentGoal.fixedMonthly) || 0;
-            if(monthlyAmt <= 0) monthlyAmt = 45; // Fallback
+            if(monthlyAmt <= 0) monthlyAmt = 45;
 
-            // Stoppt das aktuelle Ziel ab diesem Monat
             currentGoal.endDate = stornoMonth;
 
-            // Trägt für die kommenden Monate (ab Storno-Monat für die nächsten 12 Monate) den Betrag als manuelle Zuweisung auf das Ziel ein
             let simMonth = stornoMonth;
             const targetGoalObj = goals.find(g => g.id === targetGoalId);
 
@@ -1267,7 +1266,6 @@
                 if(!entries[simMonth]) entries[simMonth] = getMonthDataOrFallback(simMonth);
                 if(!entries[simMonth].extraTransfers) entries[simMonth].extraTransfers = [];
 
-                // Prüfen ob bereits eine solche Übertragung für dieses Ziel existiert, um Doppelungen zu vermeiden
                 if(!entries[simMonth].extraTransfers.some(t => t.targetId === targetGoalId && t.amount === monthlyAmt)) {
                     entries[simMonth].extraTransfers.push({
                         id: Date.now() + Math.random(),
@@ -1551,4 +1549,3 @@
     </script>
 </body>
 </html>
-```eof
