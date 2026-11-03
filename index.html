@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -1563,11 +1562,7 @@
             document.getElementById('modalFixedMonthlyInput').value = g.fixedMonthly || '';
             document.getElementById('modalEndMonthInput').value = g.endDate || '';
             
-            const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey());
-            const planned = getGoalData(gid).projectedTotal;
-            document.getElementById('modalCurrentInputDisplay').innerText = cur.toFixed(2) + ' €';
-            document.getElementById('modalPlannedStandDisplay').innerText = planned.toFixed(2) + ' €';
-            document.getElementById('modalCurrentInput').value = cur;
+            updateModalLiveDisplay();
             
             const sel = document.getElementById('transferTargetSelect'); sel.innerHTML = '';
             const stornoSel = document.getElementById('stornoTargetSelect'); stornoSel.innerHTML = '';
@@ -1579,12 +1574,33 @@
                 }
             });
 
-            const hist = document.getElementById('modalHistoryList'); hist.innerHTML = '';
-            getGoalData(gid).breakdown.forEach(b => {
-                hist.innerHTML += `<div class="history-item"><div>${b.month}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Geplant)</span><div class="history-sub" style="color:var(--accent); font-weight:bold;">Stand: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
-            });
             document.getElementById('goalModal').classList.add('active');
         }
+
+        // Neue Hilfsfunktion für SOFORTIGE Echtzeit-Aktualisierung aller Modal-Werte
+        function updateModalLiveDisplay() {
+            if (!currentModalGoalId) return;
+            const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
+
+            const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey());
+            const data = getGoalData(currentModalGoalId);
+            
+            // Der geplante Stand ist der Ist-Stand + alle geplanten Raten
+            const planned = data.projectedTotal;
+
+            document.getElementById('modalCurrentInputDisplay').innerText = cur.toFixed(2) + ' €';
+            document.getElementById('modalPlannedStandDisplay').innerText = planned.toFixed(2) + ' €';
+            document.getElementById('modalCurrentInput').value = cur;
+
+            const hist = document.getElementById('modalHistoryList'); 
+            if (hist) {
+                hist.innerHTML = '';
+                data.breakdown.forEach(b => {
+                    hist.innerHTML += `<div class="history-item"><div>${b.month}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Geplant)</span><div class="history-sub" style="color:var(--accent); font-weight:bold;">Stand: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
+                });
+            }
+        }
+
         function closeModal() { document.getElementById('goalModal').classList.remove('active'); }
         function saveModalChanges() {
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
@@ -1606,7 +1622,26 @@
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
             if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub') g.manualOffset = (g.manualOffset || 0) + amt; else g.manualCurrent = (g.manualCurrent || 0) + amt;
             document.getElementById('manualDepositAmount').value = '';
-            saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert(`${amt.toFixed(2)} € erfolgreich eingezahlt! ➕`);
+            saveLocally(); renderGoals(); renderHistory(); 
+            updateModalLiveDisplay(); // SOFORTIGE ECHTZEIT-AKTUALISIERUNG
+        }
+
+        function withdrawManualFromGoal() {
+            const amt = parseFloat(document.getElementById('manualWithdrawAmount').value); if(isNaN(amt)||amt<=0) return alert('Bitte gültigen Betrag eingeben!');
+            const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
+            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub') g.manualOffset = (g.manualOffset || 0) - amt; else g.manualCurrent = (g.manualCurrent || 0) - amt;
+            document.getElementById('manualWithdrawAmount').value = '';
+            saveLocally(); renderGoals(); renderHistory(); 
+            updateModalLiveDisplay(); // SOFORTIGE ECHTZEIT-AKTUALISIERUNG
+        }
+
+        function executeAccountTransfer() {
+            const to = document.getElementById('transferTargetSelect').value, amt = parseFloat(document.getElementById('transferAmountInput').value);
+            if(!to || isNaN(amt) || amt <= 0) return alert('Ziel und Betrag eingeben!');
+            transfersList.push({ id: Date.now(), fromId: currentModalGoalId, fromName: goals.find(g=>g.id===currentModalGoalId)?.name, toId: to, toName: goals.find(g=>g.id===to)?.name, amount: amt, dateKey: getSelectedMonthKey() });
+            document.getElementById('transferAmountInput').value = '';
+            saveLocally(); renderGoals(); renderHistory(); 
+            updateModalLiveDisplay(); // SOFORTIGE ECHTZEIT-AKTUALISIERUNG
         }
         function withdrawManualFromGoal() {
             const amt = parseFloat(document.getElementById('manualWithdrawAmount').value); if(isNaN(amt)||amt<=0) return alert('Bitte gültigen Betrag eingeben!');
@@ -1639,4 +1674,3 @@
     </script>
 </body>
 </html>
-```
