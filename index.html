@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -284,6 +285,17 @@
                 <div class="input-group full" style="margin-bottom: 8px; background: #e0f2fe; padding: 8px; border-radius: 8px;">
                     <label style="color: var(--accent); font-weight: bold;">Monat wählen:</label>
                     <input type="month" id="hhMonthInput" min="2026-12" onchange="syncMonthInput(this.value)" style="background:#fff; font-weight:bold; color:var(--accent);">
+                </div>
+
+                <!-- NEU: Wochen-Restgeld aufs Sparkonto überweisen -->
+                <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                    <span style="font-size: 0.75rem; font-weight: bold; color: #15803d; display:block; margin-bottom: 4px;">🐖 Restgeld / Wochenpuffer aufs Sparkonto</span>
+                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Nicht benötigtes Budget direkt auf ein Sparziel buchen.</div>
+                    <div class="grid" style="gap: 5px;">
+                        <div class="input-group full" style="margin-bottom:0;"><select id="hhSaveTargetSelect" style="background:#fff; font-size:0.78rem;"></select></div>
+                        <div class="input-group" style="margin-bottom:0;"><input type="number" id="hhSaveAmountInput" placeholder="Betrag €" style="background:#fff; font-size:0.78rem;"></div>
+                        <div><button class="btn-secondary" style="background:var(--accent-green); color:#fff; font-weight:bold; width:100%; height:100%; font-size:0.75rem;" onclick="executeHaushaltSavingsTransfer()">Überweisen 🚀</button></div>
+                    </div>
                 </div>
 
                 <!-- BLITZ-BUCHUNG QUICK ADD -->
@@ -605,6 +617,7 @@
             loadMonthData();
             updateCloudStatusLabel();
             updateSubKontoDropdowns();
+            updateHaushaltSavingsDropdown();
         });
 
         function toggleAutoUrlaubFields() {
@@ -1275,6 +1288,47 @@
                 tgtSel.add(new Option(g.name, g.id));
             });
             if(tgtSel.options.length > 1) tgtSel.selectedIndex = 1;
+            updateHaushaltSavingsDropdown();
+        }
+
+        function updateHaushaltSavingsDropdown() {
+            const sel = document.getElementById('hhSaveTargetSelect');
+            if(!sel) return;
+            sel.innerHTML = '';
+            goals.forEach(g => {
+                sel.add(new Option(g.name, g.id));
+            });
+        }
+
+        function executeHaushaltSavingsTransfer() {
+            const targetId = document.getElementById('hhSaveTargetSelect').value;
+            const amt = parseFloat(document.getElementById('hhSaveAmountInput').value);
+            const m = getSelectedMonthKey();
+
+            if(!targetId || isNaN(amt) || amt <= 0) {
+                return alert('Bitte Ziel und einen gültigen Betrag eingeben!');
+            }
+
+            const targetGoal = goals.find(g => g.id === targetId);
+            if(!targetGoal) return;
+
+            if(!entries[m]) entries[m] = getMonthDataOrFallback(m);
+            if(!entries[m].extraTransfers) entries[m].extraTransfers = [];
+
+            entries[m].extraTransfers.push({
+                id: Date.now(),
+                targetId: targetId,
+                targetName: targetGoal.name + " (Haushalt-Puffer)",
+                amount: amt
+            });
+
+            document.getElementById('hhSaveAmountInput').value = '';
+            saveLocally();
+            renderHaushaltView();
+            renderGoals();
+            renderHistory();
+            liveCalc();
+            alert(`Erfolgreich ${amt.toFixed(2)} € als Sparpuffer auf "${targetGoal.name}" gebucht! 🐖✨`);
         }
 
         function executeGoalDissolutionAtMonth() {
@@ -1651,3 +1705,4 @@
     </script>
 </body>
 </html>
+```
