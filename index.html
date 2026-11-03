@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -157,9 +158,8 @@
                     </div>
 
                     <div class="input-group"><label>Einkaufs-Geld 🛒 (€)</label><input type="number" id="taschengeldInput" placeholder="200" oninput="autoSaveLive()"></div>
-                    <div class="input-group"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
-                    
-                    <div class="input-group full" style="display:none;"><input type="hidden" id="splitNotfallInput" value="0"></div>
+                    <div class="input-group"><label>Girokonto-Puffer (€) 🏦</label><input type="number" id="giroPufferInput" placeholder="40" value="40" oninput="autoSaveLive()"></div>
+                    <div class="input-group full"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
 
                     <div class="input-group full" style="margin-top: 4px;"><button class="btn-add" style="background: var(--accent-green);" onclick="saveCurrentMonthManual()">💾 Monat sichern</button></div>
                 </div>
@@ -178,6 +178,10 @@
                 <div class="card-title">Ergebnis: <span id="displayMonth" style="color:var(--accent);">-</span></div>
                 <div class="stat-row"><span>Netto-Einnahmen:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
                 <div class="stat-row" style="background:#fff7ed; padding:7px 8px; border-radius:6px;"><span>🛒 Einkaufs-Geld (Abzug):</span><span id="resEinkaufspuffer" class="val-orange">-0,00 €</span></div>
+                <div class="stat-row" style="background:#f0f9ff; padding:7px 8px; border-radius:6px; border:1px solid #bae6fd;">
+                    <span style="font-weight:700; color:#0369a1;">🏦 Girokonto-Puffer (Dauerauftrag / Verbleibt):</span>
+                    <span id="resGiroPuffer" style="font-weight:bold; color:#0284c7;">-40,00 €</span>
+                </div>
                 <div class="stat-row" style="background:#f0fdf4; padding:7px 8px; border-radius:6px;"><span>🛡️ Notfallkonto (Restgeld automatisch):</span><span id="resNotfallAbzug" class="val-highlight">-0,00 €</span></div>
                 <div class="stat-row"><span>FreizeitKonto:</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
                 <div id="sparzieleBreakdownContainer"></div>
@@ -347,6 +351,7 @@
                         <label>Typ / Zuordnung</label>
                         <select id="zielTypeSelect">
                             <option value="notfall_sub">🛡️ Notfallkonto-Unterkonto</option>
+                            <option value="giro_puffer">🏦 Girokonto-Puffer (Verbleibt auf Giro)</option>
                             <option value="custom">⚙️ Manuell (Freizeitkonto)</option>
                             <option value="notfall">🛡️ Haupt-Notfallkonto</option>
                             <option value="freizeit">🎉 Freizeitkonto</option>
@@ -403,7 +408,6 @@
     </div>
 
     <!-- MODALE -->
-    <div id="atmModal" class="modal"><div class="modal-content"><div class="card-title">Automaten-Abhebung</div><div class="stat-row" style="font-weight:bold; margin-bottom:10px;"><span>Summe:</span><span id="atmTotalDisplay" class="val-orange">0,00 €</span></div><div class="history-list" id="atmNotesList" style="margin-bottom:12px;"></div><button class="btn-add" onclick="closeAtmModal()">Schließen</button></div></div>
     <div id="expenseModal" class="modal"><div class="modal-content"><div class="card-title">Fixkosten (<span id="modalExpMonth">-</span>)</div><div class="grid" style="gap: 6px; margin-bottom: 10px;"><div class="input-group full"><label>Name</label><input type="text" id="expName"></div><div class="input-group"><label>€</label><input type="number" id="expAmount"></div><div class="input-group"><label>Art</label><select id="expType" onchange="toggleEndDateInput()"><option value="dauer">Dauer</option><option value="einmalig">Einmalig</option></select></div><div class="input-group full" id="endDateGroup"><label>Bis Monat</label><input type="month" id="expEndDate"></div><div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Hinzufügen</button></div></div><div class="history-list" id="expenseItemsList" style="margin-bottom: 10px;"></div><div class="stat-row" style="font-weight: bold; margin-bottom: 10px;"><span>Summe:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div><button class="btn-add" onclick="closeExpenseModal()">Fertig</button></div></div>
     <div id="monthCloseModal" class="modal"><div class="modal-content"><div class="card-title">🏁 Monatsabschluss</div><p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:10px;">Restbudget übertragen?</p><div class="stat-row" style="margin-bottom:10px;"><span>Rest:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div><div class="input-group" style="margin-bottom: 10px;"><label>Ziel:</label><select id="closeTargetSelect"><option value="kassette">🪙 Kassette</option><option value="notfall">🛡️ Notfallkonto</option><option value="freizeit">🎉 Freizeitkonto</option></select></div><button class="btn-add" onclick="executeMonthClose()" style="background:var(--accent-green); margin-bottom: 6px;">Buchen 🚀</button><button class="btn-secondary" onclick="closeMonthCloseModal()" style="width:100%;">Überspringen</button></div></div>
     <div id="cloudModal" class="modal"><div class="modal-content"><div class="card-title">☁️ Cloud-Sync</div><div class="input-group" style="margin-bottom: 6px;"><label>URL:</label><input type="text" id="cloudSyncUrlInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>API Key:</label><input type="password" id="cloudSyncKeyInput"></div><button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 6px;">Speichern</button><button class="btn-secondary" onclick="pullFromCloudNow()" style="width:100%; margin-bottom: 5px;">Laden (Pull)</button><button class="btn-secondary" onclick="syncWithCloudNow(false)" style="width:100%; margin-bottom: 6px;">Speichern (Push)</button><button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button></div></div>
@@ -463,7 +467,7 @@
             });
         }
         if (Object.keys(entries).length === 0) {
-            entries = { "2026-12": { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 200, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] } };
+            entries = { "2026-12": { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 200, giroPuffer: 40, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] } };
         }
 
         let goals = null;
@@ -471,6 +475,7 @@
         if (!goals || !Array.isArray(goals)) {
             goals = [
                 { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, capAtTarget: false },
+                { id: "giro_puffer", name: "Girokonto-Puffer", target: 500, fixedMonthly: 40, manualOffset: 40, type: "giro_puffer", capAtTarget: false },
                 { id: "kassette", name: "Bargeld-Kassette", target: 1000, manualCurrent: 0, capAtTarget: false }
             ];
         } else {
@@ -666,6 +671,7 @@
                 pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
                 bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
                 taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200,
+                giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 40,
                 splitNotfall: 0,
                 splitMode: 'percent',
                 booked: document.getElementById('gehaltBookedInput').checked,
@@ -773,9 +779,10 @@
                 entries[m].items = items;
                 if (entries[m].gehalt === undefined) entries[m].gehalt = 2300;
                 if (entries[m].taschengeld === undefined) entries[m].taschengeld = 200;
+                if (entries[m].giroPuffer === undefined) entries[m].giroPuffer = 40;
                 return entries[m];
             }
-            return { gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], bargeld: 0, taschengeld: 200, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] };
+            return { gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], bargeld: 0, taschengeld: 200, giroPuffer: 40, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] };
         }
 
         function loadMonthData() {
@@ -785,6 +792,7 @@
             document.getElementById('bargeldEinnahmeInput').value = item.bargeldEinnahme || '';
             document.getElementById('bargeldInput').value = item.bargeld || 0;
             document.getElementById('taschengeldInput').value = item.taschengeld ?? 200;
+            document.getElementById('giroPufferInput').value = item.giroPuffer ?? 40;
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView(); populateManualDistributeDropdown();
@@ -825,24 +833,6 @@
                 return parseFloat(goal.fixedMonthly);
             }
             return 0;
-        }
-
-        function getRestFreizeitGeldCalculated() {
-            const m = getSelectedMonthKey(), monthData = entries[m] || {};
-            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, splitNotfall: 0, splitMode: 'percent', booked: document.getElementById('gehaltBookedInput').checked };
-            const calc = calculateValuesFor(item);
-            let deductions = 0; 
-            goals.forEach(g => {
-                let scheduled = getActiveDeductionsForGoal(g, m);
-                let extraForThisGoal = 0;
-                (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === g.id) extraForThisGoal += tr.amount; });
-                if (extraForThisGoal > 0) {
-                    deductions += Math.max(scheduled, extraForThisGoal);
-                } else {
-                    deductions += scheduled;
-                }
-            });
-            return Math.max(0, Math.round((calc.freizeitSparen - deductions) * 100) / 100);
         }
 
         function cancelExtraTransfer(id) {
@@ -947,36 +937,39 @@
         }
 
         function calculateValuesFor(item) {
-            if(!item) return { netto: 0, einkaufsGeld: 0, notfallSparen: 0, ueberschuss: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
+            if(!item) return { netto: 0, einkaufsGeld: 0, giroPuffer: 40, notfallSparen: 0, ueberschuss: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
             const fix = getTotalFixForMonthData(item), g = (parseFloat(item.gehalt) || 2300) + (parseFloat(item.bargeldEinnahme) || 0);
             const netto = g - fix;
             
             const einkaufsGeld = parseFloat(item.taschengeld ?? 200) || 0;
-            const afterEinkauf = Math.max(0, netto - einkaufsGeld);
+            const giroPuffer = parseFloat(item.giroPuffer ?? 40) || 0;
+            
+            const afterAbzuege = Math.max(0, netto - einkaufsGeld - giroPuffer);
 
-            const notfall = afterEinkauf; // Alles Restgeld nach Einkaufs-Geld fließt automatisch auf das Notfallkonto!
-            const ueberschuss = 0;
-            const bargeld = parseFloat(item.bargeld) || 0, freizeit = 0;
+            const notfall = afterAbzuege; // Restgeld fließt auf das Notfallkonto!
+            const bargeld = parseFloat(item.bargeld) || 0;
             
             return { 
                 netto: Math.round(netto*100)/100, 
                 einkaufsGeld: einkaufsGeld, 
+                giroPuffer: giroPuffer,
                 notfallSparen: Math.round(notfall*100)/100, 
                 ueberschuss: 0, 
                 freizeitSparen: 0, 
                 bargeldSparen: bargeld, 
-                gesamtSparen: Math.round((notfall+bargeld)*100)/100 
+                gesamtSparen: Math.round((notfall+bargeld+giroPuffer)*100)/100 
             };
         }
 
         function liveCalc() {
             const m = getSelectedMonthKey(), monthData = entries[m] || {};
             const isBooked = document.getElementById('gehaltBookedInput').checked;
-            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, splitNotfall: 0, splitMode: 'percent', booked: isBooked };
+            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 40, splitNotfall: 0, splitMode: 'percent', booked: isBooked };
             const calc = calculateValuesFor(item);
             document.getElementById('displayMonth').innerText = m;
             document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
             document.getElementById('resEinkaufspuffer').innerText = '-' + calc.einkaufsGeld.toFixed(2) + ' €';
+            document.getElementById('resGiroPuffer').innerText = '-' + calc.giroPuffer.toFixed(2) + ' €';
             
             let extraNotfall = 0; 
             (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall' || goals.find(g=>g.id===tr.targetId)?.type === 'notfall_sub') extraNotfall += tr.amount; });
@@ -988,7 +981,7 @@
             let totalDeductions = 0;
             
             goals.forEach(g => {
-                if(g.id === 'notfall') return;
+                if(g.id === 'notfall' || g.type === 'giro_puffer') return;
                 let share = isBooked ? getActiveDeductionsForGoal(g, m) : 0;
                 let extraShare = 0;
                 let extraId = null;
@@ -1011,17 +1004,10 @@
             document.getElementById('resFreizeitRest').innerText = '0,00 €';
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
             document.getElementById('resSparzieleAbzug').innerText = '-' + totalDeductions.toFixed(2) + ' €';
-            document.getElementById('resGesamtSparen').innerText = (calc.notfallSparen + totalDeductions + calc.bargeldSparen).toFixed(2) + ' €';
+            document.getElementById('resGesamtSparen').innerText = (calc.notfallSparen + totalDeductions + calc.bargeldSparen + calc.giroPuffer).toFixed(2) + ' €';
 
-            renderEnvelopeStuffingBreakdown(calc); renderHaushaltView();
+            renderHaushaltView();
         }
-
-        function renderEnvelopeStuffingBreakdown(calc) {
-            const container = document.getElementById('envelopeBreakdownContainer'); if(!container) return; container.innerHTML = '';
-        }
-
-        function calcATMNotesRecommendation() {}
-        function closeAtmModal() {}
 
         function saveCurrentMonthManual() {
             autoSaveLive(); alert('Gesichert! 💾');
@@ -1056,12 +1042,13 @@
             if(!goal) return 0;
             if(goal.id === 'kassette') return parseFloat(goal.manualCurrent || 0);
             let diff = 0; (transfersList || []).forEach(tr => { if(tr.dateKey < upto) { if(tr.fromId === goal.id) diff -= tr.amount; if(tr.toId === goal.id) diff += tr.amount; } });
-            if(goal.id === 'notfall' || goal.type === 'notfall_sub') {
+            if(goal.id === 'notfall' || goal.type === 'notfall_sub' || goal.type === 'giro_puffer') {
                 let sum = parseFloat(goal.manualOffset || 0);
                 Object.keys(entries || {}).sort().forEach(k => { 
                     if(k < upto && entries[k]?.booked) {
                         let calc = calculateValuesFor(entries[k]);
                         if(goal.id === 'notfall') sum += calc.notfallSparen;
+                        if(goal.type === 'giro_puffer') sum += calc.giroPuffer;
                         (entries[k]?.extraTransfers || []).forEach(tr => { if(tr.targetId === goal.id) sum += tr.amount; });
                     }
                 });
@@ -1117,6 +1104,8 @@
                 if (!isTerminated) {
                     if (goal.id === 'notfall' || goal.type === 'notfall_sub') {
                         if(goal.id === 'notfall') add = calc.notfallSparen;
+                    } else if (goal.type === 'giro_puffer') {
+                        add = calc.giroPuffer;
                     } else if (goal.id === 'kassette') {
                         add = calc.bargeldSparen;
                     } else if (goal.id !== 'freizeit') {
@@ -1157,11 +1146,11 @@
             if(!srcGoal || !tgtGoal) return;
 
             let curSrc = getSavedAmountForGoalUpTo(srcGoal, getSelectedMonthKey());
-            if(curSrc < amt) return alert('Nicht genügend Guthaben auf dem Quell-Unterkonto!');
+            if(curSrc < amt) return alert('Nicht genügend Guthaben auf dem Quell-Ziel!');
 
             transfersList.push({ id: Date.now(), fromId: srcId, fromName: srcGoal.name, toId: tgtId, toName: tgtGoal.name, amount: amt, dateKey: getSelectedMonthKey() });
             document.getElementById('subKontoTransferAmount').value = '';
-            saveLocally(); renderGoals(); renderHistory(); alert('Erfolgreich zwischen Unterkonten verschoben! 🔄');
+            saveLocally(); renderGoals(); renderHistory(); alert('Erfolgreich zwischen Zielen verschoben! 🔄');
         }
 
         function updateSubKontoDropdowns() {
@@ -1174,24 +1163,6 @@
                 tgtSel.add(new Option(g.name, g.id));
             });
             if(tgtSel.options.length > 1) tgtSel.selectedIndex = 1;
-        }
-
-        function executeSubKontoTransfer() {
-            const srcId = document.getElementById('subKontosourceSelect').value;
-            const tgtId = document.getElementById('subKontoTargetSelect').value;
-            const amt = parseFloat(document.getElementById('subKontoTransferAmount').value);
-            if(!srcId || !tgtId || srcId === tgtId || isNaN(amt) || amt <= 0) return alert('Bitte gültige Ziele und Betrag eingeben!');
-            
-            const srcGoal = goals.find(g => g.id === srcId);
-            const tgtGoal = goals.find(g => g.id === tgtId);
-            if(!srcGoal || !tgtGoal) return;
-
-            let curSrc = getSavedAmountForGoalUpTo(srcGoal, getSelectedMonthKey());
-            if(curSrc < amt) return alert('Nicht genügend Guthaben auf dem Quell-Ziel!');
-
-            transfersList.push({ id: Date.now(), fromId: srcId, fromName: srcGoal.name, toId: tgtId, toName: tgtGoal.name, amount: amt, dateKey: getSelectedMonthKey() });
-            document.getElementById('subKontoTransferAmount').value = '';
-            saveLocally(); renderGoals(); renderHistory(); alert('Erfolgreich zwischen Zielen verschoben! 🔄');
         }
 
         function executeGoalDissolutionAtMonth() {
@@ -1241,7 +1212,7 @@
             
             let subKontenRunning = {};
             goals.forEach(g => {
-                if(g.type === 'notfall_sub') subKontenRunning[g.id] = parseFloat(g.manualOffset || g.manualCurrent || 0);
+                if(g.type === 'notfall_sub' || g.type === 'giro_puffer') subKontenRunning[g.id] = parseFloat(g.manualOffset || g.manualCurrent || 0);
             });
 
             let base = getSelectedMonthKey(), allM = new Set(); let t = base; 
@@ -1260,7 +1231,7 @@
                 runningKassette += calc.bargeldSparen;
 
                 goals.forEach(g => {
-                    if(g.type === 'notfall_sub' && subKontenRunning[g.id] !== undefined) {
+                    if((g.type === 'notfall_sub' || g.type === 'giro_puffer') && subKontenRunning[g.id] !== undefined) {
                         let scheduled = getActiveDeductionsForGoal(g, k);
                         subKontenRunning[g.id] += scheduled;
                     }
@@ -1442,13 +1413,15 @@
                 const isUrlaub = urlaubeList.some(u => u.goalId === g.id);
                 const isCompleted = pct >= 100;
                 const isSub = g.type === 'notfall_sub';
+                const isGiroPuffer = g.type === 'giro_puffer';
                 
                 list.innerHTML += `
-                    <div class="goal-card-box" style="${isSub ? 'border-left: 4px solid var(--accent-green);' : ''}">
+                    <div class="goal-card-box" style="${isSub ? 'border-left: 4px solid var(--accent-green);' : (isGiroPuffer ? 'border-left: 4px solid var(--accent);' : '')}">
                         <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openModal('${g.id}')">
                             <div>
                                 <strong style="font-size:0.95rem; color:var(--text-main);">${g.name}</strong>
                                 ${isSub ? '<span class="badge" style="background:#dcfce7; color:#166534; margin-left:6px;">🛡️ Notfall-Unterkonto</span>' : ''}
+                                ${isGiroPuffer ? '<span class="badge" style="background:#e0f2fe; color:#0369a1; margin-left:6px;">🏦 Giro-Puffer</span>' : ''}
                                 ${isUrlaub ? '<span class="badge" style="background:#fef3c7; color:#d97706; margin-left:6px;">✈️ Urlaubsplan aktiv</span>' : ''}
                                 ${isCompleted ? '<span class="badge" style="background:#fef3c7; color:#d97706; margin-left:6px;">👑 100% Erreicht! 🎉</span>' : ''}
                             </div>
@@ -1510,7 +1483,7 @@
             g.fixedMonthly = parseFloat(document.getElementById('modalFixedMonthlyInput').value) || 0;
             g.endDate = document.getElementById('modalEndMonthInput').value || null;
             const cur = parseFloat(document.getElementById('modalCurrentInput').value);
-            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub') g.manualOffset = cur; else g.manualCurrent = cur;
+            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') g.manualOffset = cur; else g.manualCurrent = cur;
             saveLocally(); renderGoals(); renderHistory(); closeModal();
         }
         function deleteCurrentModalGoal() {
@@ -1522,14 +1495,14 @@
         function addManualDepositToGoal() {
             const amt = parseFloat(document.getElementById('manualDepositAmount').value); if(isNaN(amt)||amt<=0) return alert('Bitte gültigen Betrag eingeben!');
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
-            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub') g.manualOffset = (g.manualOffset || 0) + amt; else g.manualCurrent = (g.manualCurrent || 0) + amt;
+            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') g.manualOffset = (g.manualOffset || 0) + amt; else g.manualCurrent = (g.manualCurrent || 0) + amt;
             document.getElementById('manualDepositAmount').value = '';
             saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert(`${amt.toFixed(2)} € erfolgreich eingezahlt! ➕`);
         }
         function withdrawManualFromGoal() {
             const amt = parseFloat(document.getElementById('manualWithdrawAmount').value); if(isNaN(amt)||amt<=0) return alert('Bitte gültigen Betrag eingeben!');
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
-            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub') g.manualOffset = (g.manualOffset || 0) - amt; else g.manualCurrent = (g.manualCurrent || 0) - amt;
+            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') g.manualOffset = (g.manualOffset || 0) - amt; else g.manualCurrent = (g.manualCurrent || 0) - amt;
             document.getElementById('manualWithdrawAmount').value = '';
             saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert(`${amt.toFixed(2)} € erfolgreich abgehoben! ➖`);
         }
@@ -1551,3 +1524,7 @@
     </script>
 </body>
 </html>
+```
+
+Die Datei `index.html` ist nun vollständig aktualisiert und enthält deinen Girokonto-Puffer von 40 € sichtbar eingebunden. Sag Bescheid, wenn du weitere Wünsche oder Ideen hast!
+```
