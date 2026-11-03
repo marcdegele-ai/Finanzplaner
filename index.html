@@ -15,103 +15,141 @@
 
     <style>
         :root {
-            --bg-color: #f8fafc; --card-bg: #ffffff; --card-sub: #f1f5f9;
-            --accent: #0284c7; --accent-green: #10b981; --accent-orange: #f59e0b;
-            --accent-red: #ef4444; --text-main: #0f172a; --text-sub: #64748b;
-            --border: #e2e8f0; --radius: 12px;
-            --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04);
-            --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.05);
+            --bg-color: #f8fafc; 
+            --card-bg: #ffffff; 
+            --card-sub: #f8fafc;
+            --accent: #0284c7; 
+            --accent-soft: #e0f2fe;
+            --accent-green: #10b981; 
+            --accent-green-soft: #dcfce7;
+            --accent-orange: #f59e0b;
+            --accent-orange-soft: #fef3c7;
+            --accent-red: #ef4444; 
+            --accent-red-soft: #fee2e2;
+            --text-main: #0f172a; 
+            --text-sub: #64748b;
+            --border: #e2e8f0; 
+            --radius: 14px;
+            --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
+            --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 8px; max-width: 580px; margin: 0 auto; padding-bottom: 80px; }
-        header { text-align: center; padding: 10px 0 12px 0; margin-bottom: 10px; }
-        header h1 { font-size: 1.15rem; color: var(--accent); margin-bottom: 2px; font-weight: 800; letter-spacing: -0.02em; }
-        .app-creator-sub { font-size: 0.7rem; color: var(--text-sub); margin-bottom: 6px; font-weight: 500; }
-        .user-bar { display: flex; justify-content: space-between; align-items: center; font-size: 0.7rem; color: var(--text-sub); margin-bottom: 10px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(8px); padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); flex-wrap: wrap; gap: 6px; box-shadow: var(--shadow-sm); }
-        .cloud-status { color: var(--accent-green); font-weight: 600; cursor: pointer; }
-        .tab-bar { display: flex; background: #e2e8f0; border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 3px; overflow-x: auto; margin-top: 6px; scrollbar-width: none; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 10px; max-width: 600px; margin: 0 auto; padding-bottom: 90px; }
+        
+        header { text-align: center; padding: 12px 0 10px 0; }
+        header h1 { font-size: 1.25rem; color: var(--accent); font-weight: 800; letter-spacing: -0.02em; }
+        .app-creator-sub { font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px; font-weight: 500; }
+        
+        .user-bar { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--text-sub); margin-bottom: 12px; background: #ffffff; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); gap: 6px; flex-wrap: wrap; }
+        .cloud-status { color: var(--accent-green); font-weight: 700; cursor: pointer; }
+        
+        .tab-bar { display: flex; background: #e2e8f0; border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 3px; overflow-x: auto; margin-top: 4px; scrollbar-width: none; }
         .tab-bar::-webkit-scrollbar { display: none; }
-        .tab-btn { flex: 1; padding: 7px 6px; border: none; border-radius: 9px; background: transparent; color: var(--text-sub); font-weight: 600; font-size: 0.7rem; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
-        .tab-btn.active { background: #ffffff; color: var(--accent); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); font-weight: 700; }
+        .tab-btn { flex: 1; padding: 8px 10px; border: none; border-radius: 9px; background: transparent; color: var(--text-sub); font-weight: 600; font-size: 0.74rem; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
+        .tab-btn.active { background: #ffffff; color: var(--accent); font-weight: 800; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        
         .view-section { display: none; }
         .view-section.active { display: block; }
-        .card { background: var(--card-bg); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
+        
+        .card { background: var(--card-bg); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .card-title { font-size: 0.95rem; font-weight: 800; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
+        
+        /* Dashboard KPI Highlights */
+        .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .kpi-card { background: var(--card-sub); border-radius: 10px; padding: 10px 12px; border: 1px solid var(--border); text-align: center; }
+        .kpi-card.full { grid-column: span 2; }
+        .kpi-label { font-size: 0.7rem; color: var(--text-sub); font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 2px; }
+        .kpi-val { font-size: 1.15rem; font-weight: 800; }
+
         details.card { padding: 10px 14px; }
-        details summary { font-size: 0.95rem; font-weight: 800; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
+        details summary { font-size: 0.9rem; font-weight: 800; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
         details summary::-webkit-details-marker { display: none; }
         details summary::after { content: '▼'; font-size: 0.75rem; color: var(--text-sub); transition: transform 0.2s; }
         details[open] summary::after { transform: rotate(180deg); }
         details[open] summary { margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .input-group { display: flex; flex-direction: column; gap: 4px; text-align: left; margin-bottom: 8px; }
+        .input-group { display: flex; flex-direction: column; gap: 3px; text-align: left; margin-bottom: 6px; }
         .input-group.full { grid-column: span 2; }
         label { font-size: 0.73rem; color: var(--text-sub); font-weight: 700; }
         input, select { background: var(--card-sub); border: 1px solid var(--border); color: var(--text-main); padding: 8px 10px; border-radius: 8px; font-size: 0.83rem; outline: none; width: 100%; transition: all 0.2s ease; }
         input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12); background: #ffffff; }
+        
         .checkbox-container { display: flex; align-items: center; gap: 8px; background: var(--card-sub); padding: 10px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; text-align: left; }
         .checkbox-container input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent-green); cursor: pointer; }
+        
         .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.83rem; }
         .stat-row:last-child { border-bottom: none; }
         .stat-row.sub-row { font-size: 0.74rem; padding: 5px 0 5px 10px; border-bottom: 1px dashed #e2e8f0; color: var(--text-sub); }
+        
         .val-highlight { font-weight: bold; color: var(--accent-green); }
         .val-orange { font-weight: bold; color: var(--accent-orange); }
         .val-red { font-weight: bold; color: var(--accent-red); }
+        
         .btn-add { background: var(--accent); color: #fff; font-weight: 700; border: none; padding: 10px; border-radius: 10px; width: 100%; font-size: 0.88rem; cursor: pointer; margin-top: 4px; box-shadow: 0 2px 8px rgba(2,132,199,0.2); }
         .btn-secondary { background: #e2e8f0; color: var(--text-main); font-weight: 700; border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-size: 0.73rem; cursor: pointer; }
+        
         .quick-btn-row { display: flex; gap: 5px; margin-bottom: 6px; }
         .quick-btn { flex: 1; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 8px; padding: 6px; font-size: 0.73rem; font-weight: bold; cursor: pointer; text-align: center; }
+        
         .history-list { display: flex; flex-direction: column; gap: 8px; }
         .history-item { background: var(--card-sub); padding: 10px 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
+        
         .badge { font-size: 0.6rem; padding: 2px 6px; border-radius: 5px; font-weight: 800; display: inline-block; margin-left: 3px; }
         .badge-dauer { background: #e0f2fe; color: #0369a1; } .badge-paused { background: #fee2e2; color: #991b1b; }
         .badge-once { background: #f1f5f9; color: #475569; } .badge-booked { background: #dcfce7; color: #166534; }
         .badge-kategorie { background: #f3e8ff; color: #7e22ce; } .badge-income { background: #dcfce7; color: #15803d; }
+        
         .goal-card-box { background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%); padding: 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 8px; box-shadow: var(--shadow-sm); }
         .history-date { font-weight: 800; font-size: 0.83rem; color: var(--accent); }
         .history-sub { font-size: 0.7rem; color: var(--text-sub); margin-top: 2px; }
+        
         .progress-bar-container { background: #e2e8f0; border-radius: 8px; height: 7px; width: 100%; margin-top: 6px; overflow: hidden; }
         .progress-bar-fill { background: var(--accent-green); height: 100%; width: 0%; transition: width 0.3s ease; }
+        
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 100; padding: 10px; }
         .modal.active { display: flex; }
         .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 18px; border-radius: 16px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2); }
+        
         .action-link { font-size: 0.68rem; cursor: pointer; padding: 3px 6px; border-radius: 5px; background: #e2e8f0; color: var(--text-main); font-weight: 700; }
         .table-wrapper { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
         .month-table { width: 100%; border-collapse: collapse; font-size: 0.74rem; min-width: 500px; }
         .month-table th { text-align: left; padding: 9px; background: #e2e8f0; color: var(--accent); border-bottom: 1px solid var(--border); font-weight: 800; }
         .month-table td { padding: 9px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        
         .cash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
         .cash-box { background: var(--card-sub); border: 1px solid var(--border); border-radius: 10px; padding: 8px; text-align: center; }
         .cash-badge-img { width: 34px; height: 22px; object-fit: contain; border-radius: 5px; margin: 0 auto 3px auto; display: block; border: 1px solid var(--border); background: #e2e8f0; }
         .coin-badge-img { width: 22px; height: 22px; object-fit: contain; border-radius: 50%; margin: 0 auto 3px auto; display: block; background: #f59e0b; }
         .cash-box label { font-size: 0.68rem; display: block; margin-bottom: 3px; color: #b45309; font-weight: bold; cursor: pointer; }
         .cash-box input { width: 100%; text-align: center; padding: 5px; font-size: 0.83rem; }
+        
         .chart-container { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
         .chart-bar-row { background: var(--card-sub); padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
         .chart-label-line { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; }
+        
         .receipt-btn { font-size: 0.68rem; background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; padding: 3px 6px; border-radius: 5px; font-weight: 700; }
         .storno-btn { font-size: 0.65rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 2px 5px; border-radius: 5px; font-weight: 700; margin-left: 5px; }
+        
         .calc-display { background: #0f172a; color: #38bdf8; font-size: 1.4rem; font-family: monospace; text-align: right; padding: 12px; border-radius: 10px; margin-bottom: 10px; min-height: 50px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.4); }
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         .calc-btn { background: #e2e8f0; border: 1px solid var(--border); padding: 12px; font-size: 1rem; font-weight: 800; border-radius: 10px; cursor: pointer; text-align: center; }
         .calc-btn.op { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
         .calc-btn.eq { background: var(--accent); color: #fff; }
         .calc-btn.ac { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
-        .envelope-card-item { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow-sm); }
-        .envelope-card-item.special { border-left-color: var(--accent-orange); background: linear-gradient(135deg, #fffdfa 0%, #fffbf5 100%); }
     </style>
 </head>
 <body>
 
     <div id="mainAppContainer">
         <header>
-            <h1>📊 Mein Dynamischer Finanzplan</h1>
+            <h1>📊 Mein Finanzplaner</h1>
             <div class="app-creator-sub">Ersteller: Marc Degele</div>
             <div class="user-bar">
                 <span>👤 Status: <strong style="color:var(--accent-green);">Lokal & Bereit ✅</strong></span>
                 <span class="cloud-status" onclick="openCloudModal()">⚡ Cloud-Sync</span>
                 <span id="lastUpdateDisplay" style="color:var(--text-sub);">Stand: Nie</span>
-                <div style="display:flex; gap:5px;">
+                <div style="display:flex; gap:4px;">
                     <button class="btn-secondary" style="padding: 3px 6px; font-size:0.68rem;" onclick="exportBackupJSON()">💾 Backup</button>
                     <button class="btn-secondary" style="padding: 3px 6px; font-size:0.68rem;" onclick="document.getElementById('importFile').click()">📂 Laden</button>
                     <input type="file" id="importFile" style="display:none" accept=".json" onchange="importBackupJSON(event)">
@@ -128,18 +166,43 @@
             </div>
         </header>
 
-        <!-- TAB 1: AKTUELL -->
+        <!-- TAB 1: AKTUELL (CLEAN DASHBOARD) -->
         <div id="aktuel-view" class="view-section active">
+            
+            <!-- HIGHLIGHT KPI DASHBOARD -->
+            <div class="kpi-grid">
+                <div class="kpi-card" style="background: var(--accent-soft); border-color: #bae6fd;">
+                    <div class="kpi-label" style="color: #0369a1;">Netto-Einnahmen</div>
+                    <div class="kpi-val" id="resNetto" style="color: #0284c7;">0,00 €</div>
+                </div>
+                <div class="kpi-card" style="background: var(--accent-red-soft); border-color: #fca5a5;">
+                    <div class="kpi-label" style="color: #991b1b;">Fixkosten Total</div>
+                    <div class="kpi-val" id="sumFixKpiDisplay" style="color: var(--accent-red);">0,00 €</div>
+                </div>
+                <div class="kpi-card" style="background: var(--accent-orange-soft); border-color: #fde68a;">
+                    <div class="kpi-label" style="color: #b45309;">🛒 Einkaufs-Geld</div>
+                    <div class="kpi-val" id="resEinkaufspufferKpi" style="color: #d97706;">0,00 €</div>
+                </div>
+                <div class="kpi-card" style="background: var(--accent-green-soft); border-color: #bbf7d0;">
+                    <div class="kpi-label" style="color: #166534;">Gesamt Sparen</div>
+                    <div class="kpi-val" id="resGesamtSparenKpi" style="color: var(--accent-green);">0,00 €</div>
+                </div>
+            </div>
+
+            <!-- EINGABE FORMULAR -->
             <div class="card">
-                <div class="card-title"><span>Monat erfassen</span></div>
+                <div class="card-title"><span>Monat konfigurieren (<span id="displayMonth" style="color:var(--accent);">-</span>)</span></div>
                 <div class="grid">
-                    <div class="input-group full"><label>Monat wählen</label><input type="month" id="monthInput" value="2026-12" min="2026-12" onchange="syncMonthInput(this.value)"></div>
+                    <div class="input-group full">
+                        <label>Monat auswählen</label>
+                        <input type="month" id="monthInput" value="2026-12" min="2026-12" onchange="syncMonthInput(this.value)">
+                    </div>
                     <div class="input-group full">
                         <label class="checkbox-container">
                             <input type="checkbox" id="gehaltBookedInput" onchange="autoSaveLive()">
                             <div>
-                                <strong style="color:var(--accent-green); font-size:0.8rem;">Gehalt für diesen Monat gebucht / erhalten ✅</strong>
-                                <div style="font-size:0.68rem; color:var(--text-sub);">Haken setzen, sobald das Geld da ist. Erst ab dann greifen Sparziele.</div>
+                                <strong style="color:var(--accent-green); font-size:0.8rem;">Gehalt verbucht & gebucht ✅</strong>
+                                <div style="font-size:0.68rem; color:var(--text-sub);">Haken aktivieren, sobald das Gehalt da ist. erst dann starten Sparraten!</div>
                             </div>
                         </label>
                     </div>
@@ -147,7 +210,7 @@
                     <div class="input-group"><label>Bargeld Bar (€)</label><input type="number" id="bargeldEinnahmeInput" placeholder="0" oninput="autoSaveLive()"></div>
                     
                     <div class="input-group full">
-                        <div style="background: var(--card-sub); border: 1px solid var(--border); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="background: var(--card-sub); border: 1px solid var(--border); padding: 10px 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
                             <div>
                                 <label style="color: var(--accent); font-weight: bold;">Ausgaben / Fixkosten</label>
                                 <div style="font-size: 0.83rem; margin-top: 1px;">Summe: <strong id="sumFixDisplay" class="val-red">0,00 €</strong></div>
@@ -158,11 +221,21 @@
                     </div>
 
                     <div class="input-group"><label>Einkaufs-Geld 🛒 (€)</label><input type="number" id="taschengeldInput" placeholder="200" oninput="autoSaveLive()"></div>
-                    <div class="input-group"><label>Girokonto-Puffer (€) 🏦</label><input type="number" id="giroPufferInput" placeholder="40" value="40" oninput="autoSaveLive()"></div>
-                    <div class="input-group full"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
+                    <div class="input-group"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
 
                     <div class="input-group full" style="margin-top: 4px;"><button class="btn-add" style="background: var(--accent-green);" onclick="saveCurrentMonthManual()">💾 Monat sichern</button></div>
                 </div>
+            </div>
+
+            <!-- DETAILED BREAKDOWN -->
+            <div class="card">
+                <div class="card-title"><span>📋 Aufschlüsselung & Sparraten</span></div>
+                <div class="stat-row" style="background:#f0fdf4; padding:7px 8px; border-radius:6px;"><span>🛡️ Notfallkonto (Restgeld automatisch):</span><span id="resNotfallAbzug" class="val-highlight">-0,00 €</span></div>
+                <div id="sparzieleBreakdownContainer"></div>
+                <div class="stat-row" style="background: var(--card-sub); padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border); margin-top: 6px;">
+                    <span>🏦 Sparpakete Abzug (Ziele):</span><span id="resSparzieleAbzug" class="val-red">-0,00 €</span>
+                </div>
+                <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
             </div>
 
             <details class="card">
@@ -173,27 +246,6 @@
                 </div>
                 <button class="btn-secondary" style="width:100%; margin-top:6px; font-weight:bold;" onclick="executeManualDistribution()">Manuell buchen ➕</button>
             </details>
-
-            <div class="card">
-                <div class="card-title">Ergebnis: <span id="displayMonth" style="color:var(--accent);">-</span></div>
-                <div class="stat-row"><span>Netto-Einnahmen:</span><span id="resNetto" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row" style="background:#fff7ed; padding:7px 8px; border-radius:6px;"><span>🛒 Einkaufs-Geld (Abzug):</span><span id="resEinkaufspuffer" class="val-orange">-0,00 €</span></div>
-                <div class="stat-row" style="background:#f0f9ff; padding:7px 8px; border-radius:6px; border:1px solid #bae6fd;">
-                    <span style="font-weight:700; color:#0369a1;">🏦 Girokonto-Puffer (Dauerauftrag / Verbleibt):</span>
-                    <span id="resGiroPuffer" style="font-weight:bold; color:#0284c7;">-40,00 €</span>
-                </div>
-                <div class="stat-row" style="background:#f0fdf4; padding:7px 8px; border-radius:6px;"><span>🛡️ Notfallkonto (Restgeld automatisch):</span><span id="resNotfallAbzug" class="val-highlight">-0,00 €</span></div>
-                <div class="stat-row"><span>FreizeitKonto:</span><span id="resFreizeit" class="val-orange">0,00 €</span></div>
-                <div id="sparzieleBreakdownContainer"></div>
-                <div class="stat-row" style="background: #f0fdf4; padding: 8px; border-radius: 8px; border: 1px solid #bbf7d0; margin: 5px 0;">
-                    <span style="font-weight:700; color:#15803d;">🎉 Frei verfügbar:</span><span id="resFreizeitRest" class="val-highlight">0,00 €</span>
-                </div>
-                <div class="stat-row"><span>Bargeld-Kasse 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
-                <div class="stat-row" style="background: var(--card-sub); padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border);">
-                    <span>🏦 Sparpakete Abzug:</span><span id="resSparzieleAbzug" class="val-red">-0,00 €</span>
-                </div>
-                <div class="stat-row" style="font-weight: bold;"><span>Gesamt Sparen:</span><span id="resGesamtSparen">0,00 €</span></div>
-            </div>
 
             <div class="card">
                 <div class="card-title">🔮 Vorschau (3 Monate)</div>
@@ -338,28 +390,27 @@
             </div>
         </div>
 
-        <!-- TAB 6: SPARZIELE -->
+        <!-- TAB 6: SPARZIELE & MANAGEMENT -->
         <div id="ziele-view" class="view-section">
             <div class="card">
-                <div class="card-title">🎯 Sparziel / Notfall-Unterkonto anlegen</div>
+                <div class="card-title">🎯 Sparziel / Unterkonto anlegen</div>
                 <div class="grid">
-                    <div class="input-group full"><label>Name</label><input type="text" id="zielName" placeholder="Z.B. Auto, Technik, Puffer..."></div>
+                    <div class="input-group full"><label>Name des Ziels</label><input type="text" id="zielName" placeholder="Z.B. Auto, Technik, Notfall..."></div>
                     <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="zielBetrag" placeholder="1500" oninput="autoCalculateMonthlyRate()"></div>
-                    <div class="input-group"><label>Monatliche Zuweisung (€/Mo)</label><input type="number" id="zielFixedMonthly" placeholder="100"></div>
+                    <div class="input-group"><label>Monatliche Sparrate (€/Mo)</label><input type="number" id="zielFixedMonthly" placeholder="100"></div>
                     <div class="input-group full"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
                     <div class="input-group full">
-                        <label>Typ / Zuordnung</label>
+                        <label>Typ / Kategorie</label>
                         <select id="zielTypeSelect">
-                            <option value="notfall_sub">🛡️ Notfallkonto-Unterkonto</option>
-                            <option value="giro_puffer">🏦 Girokonto-Puffer (Verbleibt auf Giro)</option>
-                            <option value="custom">⚙️ Manuell (Freizeitkonto)</option>
+                            <option value="notfall_sub">🛡️ Notfall-Unterkonto</option>
+                            <option value="custom">⚙️ Manuelles Sparziel</option>
                             <option value="notfall">🛡️ Haupt-Notfallkonto</option>
                             <option value="freizeit">🎉 Freizeitkonto</option>
                             <option value="kassette">🪙 Bargeld-Kassette</option>
                         </select>
                     </div>
                     <div class="input-group full">
-                        <label class="checkbox-container"><input type="checkbox" id="zielCapAtTargetCheckbox" checked><div><strong>Auto-Stopp bei Ziel</strong></div></label>
+                        <label class="checkbox-container"><input type="checkbox" id="zielCapAtTargetCheckbox" checked><div><strong>Auto-Stopp sobald Ziel erreicht</strong></div></label>
                     </div>
                     <div class="input-group full">
                         <label class="checkbox-container"><input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()"><div><strong>Gleichmäßig bis Endmonat aufteilen</strong></div></label>
@@ -371,22 +422,22 @@
                     <div class="input-group" id="zielStartDateGroup" style="display:none;"><label>Start</label><input type="date" id="zielStartDateInput"></div>
                     <div class="input-group" id="zielEndDateGroup" style="display:none;"><label>Ende</label><input type="date" id="zielEndDateInput"></div>
                 </div>
-                <button class="btn-add" onclick="saveGoal()">Unterkonto / Ziel Hinzufügen</button>
+                <button class="btn-add" onclick="saveGoal()">Neues Sparziel Hinzufügen ➕</button>
             </div>
 
             <div class="card" style="background:#f0fdf4; border:1.5px solid var(--accent-green);">
                 <div class="card-title" style="color:#15803d;"><span>🔄 Flexibler Ziel-zu-Ziel Transfer</span></div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">Verschiebe hier variabel Guthaben zwischen all deinen Sparzielen und Konten.</div>
+                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">Verschiebe hier variabel Guthaben zwischen all deinen Sparzielen.</div>
                 <div class="grid">
-                    <div class="input-group"><label>Von Ziel / Konto</label><select id="subKontosourceSelect" style="background:#fff;"></select></div>
-                    <div class="input-group"><label>Zu Ziel / Konto</label><select id="subKontoTargetSelect" style="background:#fff;"></select></div>
+                    <div class="input-group"><label>Von Ziel</label><select id="subKontosourceSelect" style="background:#fff;"></select></div>
+                    <div class="input-group"><label>Zu Ziel</label><select id="subKontoTargetSelect" style="background:#fff;"></select></div>
                     <div class="input-group full"><label>Betrag (€)</label><input type="number" id="subKontoTransferAmount" placeholder="0.00" style="background:#fff;"></div>
                 </div>
-                <button class="btn-secondary" style="width:100%; margin-top:6px; background:var(--accent-green); color:#fff; font-weight:bold;" onclick="executeSubKontoTransfer()">Geld zwischen Zielen verschieben 🔄</button>
+                <button class="btn-secondary" style="width:100%; margin-top:6px; background:var(--accent-green); color:#fff; font-weight:bold;" onclick="executeSubKontoTransfer()">Geld verschieben 🔄</button>
             </div>
 
             <div class="card">
-                <div class="card-title">📋 Meine Sparziele & Notfall-Unterkonten</div>
+                <div class="card-title">📋 Sparziele & Konten Übersicht</div>
                 <div id="goalsList"></div>
             </div>
         </div>
@@ -416,7 +467,7 @@
         <div class="modal-content">
             <div class="card-title" id="modalTitle">Ziel-Details</div>
             <div class="input-group" style="margin-bottom: 6px;"><label>Zielbetrag (€):</label><input type="number" id="modalTargetInput"></div>
-            <div class="input-group" style="margin-bottom: 6px;"><label>Dauerauftrag (€/Mo):</label><input type="number" id="modalFixedMonthlyInput"></div>
+            <div class="input-group" style="margin-bottom: 6px;"><label>Sparrate (€/Mo):</label><input type="number" id="modalFixedMonthlyInput"></div>
             <div class="input-group" style="margin-bottom: 6px;"><label>End-Monat:</label><input type="month" id="modalEndMonthInput"></div>
             <div class="input-group" style="margin-bottom: 6px;"><label>Stand (Aktuell / Geplant):</label><span><strong id="modalCurrentInputDisplay">0</strong> / <span id="modalPlannedStandDisplay">0</span></span></div>
             <div class="input-group" style="margin-bottom: 6px;"><input type="number" id="modalCurrentInput" style="display:none;"></div>
@@ -467,7 +518,7 @@
             });
         }
         if (Object.keys(entries).length === 0) {
-            entries = { "2026-12": { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 200, giroPuffer: 40, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] } };
+            entries = { "2026-12": { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 200, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] } };
         }
 
         let goals = null;
@@ -475,7 +526,6 @@
         if (!goals || !Array.isArray(goals)) {
             goals = [
                 { id: "notfall", name: "Notfallpuffer", target: 3000, manualOffset: 0, capAtTarget: false },
-                { id: "giro_puffer", name: "Girokonto-Puffer", target: 500, fixedMonthly: 40, manualOffset: 40, type: "giro_puffer", capAtTarget: false },
                 { id: "kassette", name: "Bargeld-Kassette", target: 1000, manualCurrent: 0, capAtTarget: false }
             ];
         } else {
@@ -671,7 +721,6 @@
                 pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
                 bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
                 taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200,
-                giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 40,
                 splitNotfall: 0,
                 splitMode: 'percent',
                 booked: document.getElementById('gehaltBookedInput').checked,
@@ -779,10 +828,9 @@
                 entries[m].items = items;
                 if (entries[m].gehalt === undefined) entries[m].gehalt = 2300;
                 if (entries[m].taschengeld === undefined) entries[m].taschengeld = 200;
-                if (entries[m].giroPuffer === undefined) entries[m].giroPuffer = 40;
                 return entries[m];
             }
-            return { gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], bargeld: 0, taschengeld: 200, giroPuffer: 40, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] };
+            return { gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], bargeld: 0, taschengeld: 200, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] };
         }
 
         function loadMonthData() {
@@ -792,7 +840,6 @@
             document.getElementById('bargeldEinnahmeInput').value = item.bargeldEinnahme || '';
             document.getElementById('bargeldInput').value = item.bargeld || 0;
             document.getElementById('taschengeldInput').value = item.taschengeld ?? 200;
-            document.getElementById('giroPufferInput').value = item.giroPuffer ?? 40;
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView(); populateManualDistributeDropdown();
@@ -901,7 +948,9 @@
         function getTotalFixForMonthData(item) { return item?.items ? item.items.reduce((s, i) => (item.pausedItems || []).includes(i.name) ? s : s + parseFloat(i.amount || 0), 0) : 0; }
         function updateTotalFixFromItems() {
             const total = currentMonthItems.reduce((s, i) => currentMonthPausedItems.includes(i.name) ? s : s + parseFloat(i.amount || 0), 0);
-            document.getElementById('sumFixDisplay').innerText = total.toFixed(2) + ' €'; document.getElementById('fixkostenInput').value = total;
+            document.getElementById('sumFixDisplay').innerText = total.toFixed(2) + ' €'; 
+            document.getElementById('sumFixKpiDisplay').innerText = total.toFixed(2) + ' €';
+            document.getElementById('fixkostenInput').value = total;
         }
 
         function toggleEndDateInput() { document.getElementById('endDateGroup').style.display = document.getElementById('expType').value === 'dauer' ? 'block' : 'none'; }
@@ -937,51 +986,47 @@
         }
 
         function calculateValuesFor(item) {
-            if(!item) return { netto: 0, einkaufsGeld: 0, giroPuffer: 40, notfallSparen: 0, ueberschuss: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
+            if(!item) return { netto: 0, einkaufsGeld: 0, notfallSparen: 0, ueberschuss: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
             const fix = getTotalFixForMonthData(item), g = (parseFloat(item.gehalt) || 2300) + (parseFloat(item.bargeldEinnahme) || 0);
             const netto = g - fix;
             
             const einkaufsGeld = parseFloat(item.taschengeld ?? 200) || 0;
-            const giroPuffer = parseFloat(item.giroPuffer ?? 40) || 0;
-            
-            const afterAbzuege = Math.max(0, netto - einkaufsGeld - giroPuffer);
+            const afterEinkauf = Math.max(0, netto - einkaufsGeld);
 
-            const notfall = afterAbzuege; // Restgeld fließt auf das Notfallkonto!
+            const notfall = afterEinkauf; // Alles Restgeld fließt automatisch auf das Notfallkonto!
             const bargeld = parseFloat(item.bargeld) || 0;
             
             return { 
                 netto: Math.round(netto*100)/100, 
                 einkaufsGeld: einkaufsGeld, 
-                giroPuffer: giroPuffer,
                 notfallSparen: Math.round(notfall*100)/100, 
                 ueberschuss: 0, 
                 freizeitSparen: 0, 
                 bargeldSparen: bargeld, 
-                gesamtSparen: Math.round((notfall+bargeld+giroPuffer)*100)/100 
+                gesamtSparen: Math.round((notfall+bargeld)*100)/100 
             };
         }
 
         function liveCalc() {
             const m = getSelectedMonthKey(), monthData = entries[m] || {};
             const isBooked = document.getElementById('gehaltBookedInput').checked;
-            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 40, splitNotfall: 0, splitMode: 'percent', booked: isBooked };
+            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, splitNotfall: 0, splitMode: 'percent', booked: isBooked };
             const calc = calculateValuesFor(item);
+            
             document.getElementById('displayMonth').innerText = m;
             document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
-            document.getElementById('resEinkaufspuffer').innerText = '-' + calc.einkaufsGeld.toFixed(2) + ' €';
-            document.getElementById('resGiroPuffer').innerText = '-' + calc.giroPuffer.toFixed(2) + ' €';
+            document.getElementById('resEinkaufspufferKpi').innerText = calc.einkaufsGeld.toFixed(2) + ' €';
             
             let extraNotfall = 0; 
             (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall' || goals.find(g=>g.id===tr.targetId)?.type === 'notfall_sub') extraNotfall += tr.amount; });
             
             document.getElementById('resNotfallAbzug').innerText = '-' + (calc.notfallSparen + (isBooked ? extraNotfall : 0)).toFixed(2) + ' €';
-            document.getElementById('resFreizeit').innerText = '0,00 €';
             
             const container = document.getElementById('sparzieleBreakdownContainer'); container.innerHTML = '';
             let totalDeductions = 0;
             
             goals.forEach(g => {
-                if(g.id === 'notfall' || g.type === 'giro_puffer') return;
+                if(g.id === 'notfall') return;
                 let share = isBooked ? getActiveDeductionsForGoal(g, m) : 0;
                 let extraShare = 0;
                 let extraId = null;
@@ -1001,10 +1046,11 @@
                 }
             });
 
-            document.getElementById('resFreizeitRest').innerText = '0,00 €';
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
             document.getElementById('resSparzieleAbzug').innerText = '-' + totalDeductions.toFixed(2) + ' €';
-            document.getElementById('resGesamtSparen').innerText = (calc.notfallSparen + totalDeductions + calc.bargeldSparen + calc.giroPuffer).toFixed(2) + ' €';
+            
+            const finalGesamtSparen = calc.notfallSparen + totalDeductions + calc.bargeldSparen;
+            document.getElementById('resGesamtSparenKpi').innerText = finalGesamtSparen.toFixed(2) + ' €';
 
             renderHaushaltView();
         }
@@ -1042,13 +1088,12 @@
             if(!goal) return 0;
             if(goal.id === 'kassette') return parseFloat(goal.manualCurrent || 0);
             let diff = 0; (transfersList || []).forEach(tr => { if(tr.dateKey < upto) { if(tr.fromId === goal.id) diff -= tr.amount; if(tr.toId === goal.id) diff += tr.amount; } });
-            if(goal.id === 'notfall' || goal.type === 'notfall_sub' || goal.type === 'giro_puffer') {
+            if(goal.id === 'notfall' || goal.type === 'notfall_sub') {
                 let sum = parseFloat(goal.manualOffset || 0);
                 Object.keys(entries || {}).sort().forEach(k => { 
                     if(k < upto && entries[k]?.booked) {
                         let calc = calculateValuesFor(entries[k]);
                         if(goal.id === 'notfall') sum += calc.notfallSparen;
-                        if(goal.type === 'giro_puffer') sum += calc.giroPuffer;
                         (entries[k]?.extraTransfers || []).forEach(tr => { if(tr.targetId === goal.id) sum += tr.amount; });
                     }
                 });
@@ -1104,8 +1149,6 @@
                 if (!isTerminated) {
                     if (goal.id === 'notfall' || goal.type === 'notfall_sub') {
                         if(goal.id === 'notfall') add = calc.notfallSparen;
-                    } else if (goal.type === 'giro_puffer') {
-                        add = calc.giroPuffer;
                     } else if (goal.id === 'kassette') {
                         add = calc.bargeldSparen;
                     } else if (goal.id !== 'freizeit') {
@@ -1212,7 +1255,7 @@
             
             let subKontenRunning = {};
             goals.forEach(g => {
-                if(g.type === 'notfall_sub' || g.type === 'giro_puffer') subKontenRunning[g.id] = parseFloat(g.manualOffset || g.manualCurrent || 0);
+                if(g.type === 'notfall_sub') subKontenRunning[g.id] = parseFloat(g.manualOffset || g.manualCurrent || 0);
             });
 
             let base = getSelectedMonthKey(), allM = new Set(); let t = base; 
@@ -1231,7 +1274,7 @@
                 runningKassette += calc.bargeldSparen;
 
                 goals.forEach(g => {
-                    if((g.type === 'notfall_sub' || g.type === 'giro_puffer') && subKontenRunning[g.id] !== undefined) {
+                    if(g.type === 'notfall_sub' && subKontenRunning[g.id] !== undefined) {
                         let scheduled = getActiveDeductionsForGoal(g, k);
                         subKontenRunning[g.id] += scheduled;
                     }
@@ -1413,15 +1456,13 @@
                 const isUrlaub = urlaubeList.some(u => u.goalId === g.id);
                 const isCompleted = pct >= 100;
                 const isSub = g.type === 'notfall_sub';
-                const isGiroPuffer = g.type === 'giro_puffer';
                 
                 list.innerHTML += `
-                    <div class="goal-card-box" style="${isSub ? 'border-left: 4px solid var(--accent-green);' : (isGiroPuffer ? 'border-left: 4px solid var(--accent);' : '')}">
+                    <div class="goal-card-box" style="${isSub ? 'border-left: 4px solid var(--accent-green);' : ''}">
                         <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openModal('${g.id}')">
                             <div>
                                 <strong style="font-size:0.95rem; color:var(--text-main);">${g.name}</strong>
                                 ${isSub ? '<span class="badge" style="background:#dcfce7; color:#166534; margin-left:6px;">🛡️ Notfall-Unterkonto</span>' : ''}
-                                ${isGiroPuffer ? '<span class="badge" style="background:#e0f2fe; color:#0369a1; margin-left:6px;">🏦 Giro-Puffer</span>' : ''}
                                 ${isUrlaub ? '<span class="badge" style="background:#fef3c7; color:#d97706; margin-left:6px;">✈️ Urlaubsplan aktiv</span>' : ''}
                                 ${isCompleted ? '<span class="badge" style="background:#fef3c7; color:#d97706; margin-left:6px;">👑 100% Erreicht! 🎉</span>' : ''}
                             </div>
@@ -1483,7 +1524,7 @@
             g.fixedMonthly = parseFloat(document.getElementById('modalFixedMonthlyInput').value) || 0;
             g.endDate = document.getElementById('modalEndMonthInput').value || null;
             const cur = parseFloat(document.getElementById('modalCurrentInput').value);
-            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') g.manualOffset = cur; else g.manualCurrent = cur;
+            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub') g.manualOffset = cur; else g.manualCurrent = cur;
             saveLocally(); renderGoals(); renderHistory(); closeModal();
         }
         function deleteCurrentModalGoal() {
@@ -1495,14 +1536,14 @@
         function addManualDepositToGoal() {
             const amt = parseFloat(document.getElementById('manualDepositAmount').value); if(isNaN(amt)||amt<=0) return alert('Bitte gültigen Betrag eingeben!');
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
-            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') g.manualOffset = (g.manualOffset || 0) + amt; else g.manualCurrent = (g.manualCurrent || 0) + amt;
+            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub') g.manualOffset = (g.manualOffset || 0) + amt; else g.manualCurrent = (g.manualCurrent || 0) + amt;
             document.getElementById('manualDepositAmount').value = '';
             saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert(`${amt.toFixed(2)} € erfolgreich eingezahlt! ➕`);
         }
         function withdrawManualFromGoal() {
             const amt = parseFloat(document.getElementById('manualWithdrawAmount').value); if(isNaN(amt)||amt<=0) return alert('Bitte gültigen Betrag eingeben!');
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
-            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') g.manualOffset = (g.manualOffset || 0) - amt; else g.manualCurrent = (g.manualCurrent || 0) - amt;
+            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub') g.manualOffset = (g.manualOffset || 0) - amt; else g.manualCurrent = (g.manualCurrent || 0) - amt;
             document.getElementById('manualWithdrawAmount').value = '';
             saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert(`${amt.toFixed(2)} € erfolgreich abgehoben! ➖`);
         }
@@ -1519,12 +1560,9 @@
             }
 
             saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = '';
-            renderGoals(); renderHistory(); checkUrlaubTabVisibility(); updateSubKontoDropdowns(); alert('Ziel / Unterkonto angelegt! 🎯');
+            renderGoals(); renderHistory(); checkUrlaubTabVisibility(); updateSubKontoDropdowns(); alert('Ziel angelegt! 🎯');
         }
     </script>
 </body>
 </html>
-```
-
-Die Datei `index.html` ist nun vollständig aktualisiert und enthält deinen Girokonto-Puffer von 40 € sichtbar eingebunden. Sag Bescheid, wenn du weitere Wünsche oder Ideen hast!
 ```
