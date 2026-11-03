@@ -45,7 +45,7 @@
         
         .tab-bar { display: flex; background: #e2e8f0; border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 3px; overflow-x: auto; margin-top: 4px; scrollbar-width: none; }
         .tab-bar::-webkit-scrollbar { display: none; }
-        .tab-btn { flex: 1; padding: 8px 10px; border: none; border-radius: 9px; background: transparent; color: var(--text-sub); font-weight: 600; font-size: 0.74rem; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
+        .tab-btn { flex: 1; padding: 8px 10px; border: none; border-radius: 99px; background: transparent; color: var(--text-sub); font-weight: 600; font-size: 0.74rem; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
         .tab-btn.active { background: #ffffff; color: var(--accent); font-weight: 800; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         
         .view-section { display: none; }
@@ -166,10 +166,10 @@
             </div>
         </header>
 
-        <!-- TAB 1: AKTUELL (CLEAN DASHBOARD) -->
+        <!-- TAB 1: AKTUELL (DASHBOARD) -->
         <div id="aktuel-view" class="view-section active">
             
-            <!-- HIGHLIGHT KPI DASHBOARD -->
+            <!-- KPI HIGHLIGHTS -->
             <div class="kpi-grid">
                 <div class="kpi-card" style="background: var(--accent-soft); border-color: #bae6fd;">
                     <div class="kpi-label" style="color: #0369a1;">Netto-Einnahmen</div>
@@ -202,7 +202,7 @@
                             <input type="checkbox" id="gehaltBookedInput" onchange="autoSaveLive()">
                             <div>
                                 <strong style="color:var(--accent-green); font-size:0.8rem;">Gehalt verbucht & gebucht ✅</strong>
-                                <div style="font-size:0.68rem; color:var(--text-sub);">Haken aktivieren, sobald das Gehalt da ist. erst dann starten Sparraten!</div>
+                                <div style="font-size:0.68rem; color:var(--text-sub);">Haken aktivieren, sobald das Gehalt auf dem Konto ist.</div>
                             </div>
                         </label>
                     </div>
@@ -221,15 +221,20 @@
                     </div>
 
                     <div class="input-group"><label>Einkaufs-Geld 🛒 (€)</label><input type="number" id="taschengeldInput" placeholder="200" oninput="autoSaveLive()"></div>
-                    <div class="input-group"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
+                    <div class="input-group"><label>Giro-Puffer (€) 🏦</label><input type="number" id="giroPufferInput" placeholder="20" value="20" oninput="autoSaveLive()"></div>
+                    <div class="input-group full"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
 
                     <div class="input-group full" style="margin-top: 4px;"><button class="btn-add" style="background: var(--accent-green);" onclick="saveCurrentMonthManual()">💾 Monat sichern</button></div>
                 </div>
             </div>
 
-            <!-- DETAILED BREAKDOWN -->
+            <!-- AUFSCHLÜSSELUNG -->
             <div class="card">
                 <div class="card-title"><span>📋 Aufschlüsselung & Sparraten</span></div>
+                <div class="stat-row" style="background:#e0f2fe; padding:7px 8px; border-radius:6px; border:1px solid #bae6fd; margin-bottom:6px;">
+                    <span style="font-weight:700; color:#0369a1;">🏦 Girokonto-Puffer (Verbleibt auf Konto):</span>
+                    <span id="resGiroPufferDisplay" style="font-weight:bold; color:#0284c7;">-20,00 €</span>
+                </div>
                 <div class="stat-row" style="background:#f0fdf4; padding:7px 8px; border-radius:6px;"><span>🛡️ Notfallkonto (Restgeld automatisch):</span><span id="resNotfallAbzug" class="val-highlight">-0,00 €</span></div>
                 <div id="sparzieleBreakdownContainer"></div>
                 <div class="stat-row" style="background: var(--card-sub); padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border); margin-top: 6px;">
@@ -518,7 +523,7 @@
             });
         }
         if (Object.keys(entries).length === 0) {
-            entries = { "2026-12": { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 200, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] } };
+            entries = { "2026-12": { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 200, giroPuffer: 20, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] } };
         }
 
         let goals = null;
@@ -721,6 +726,7 @@
                 pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
                 bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
                 taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200,
+                giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 20,
                 splitNotfall: 0,
                 splitMode: 'percent',
                 booked: document.getElementById('gehaltBookedInput').checked,
@@ -828,9 +834,10 @@
                 entries[m].items = items;
                 if (entries[m].gehalt === undefined) entries[m].gehalt = 2300;
                 if (entries[m].taschengeld === undefined) entries[m].taschengeld = 200;
+                if (entries[m].giroPuffer === undefined) entries[m].giroPuffer = 20;
                 return entries[m];
             }
-            return { gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], bargeld: 0, taschengeld: 200, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] };
+            return { gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], bargeld: 0, taschengeld: 200, giroPuffer: 20, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] };
         }
 
         function loadMonthData() {
@@ -840,6 +847,7 @@
             document.getElementById('bargeldEinnahmeInput').value = item.bargeldEinnahme || '';
             document.getElementById('bargeldInput').value = item.bargeld || 0;
             document.getElementById('taschengeldInput').value = item.taschengeld ?? 200;
+            document.getElementById('giroPufferInput').value = item.giroPuffer ?? 20;
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView(); populateManualDistributeDropdown();
@@ -986,36 +994,40 @@
         }
 
         function calculateValuesFor(item) {
-            if(!item) return { netto: 0, einkaufsGeld: 0, notfallSparen: 0, ueberschuss: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
+            if(!item) return { netto: 0, einkaufsGeld: 0, giroPuffer: 20, notfallSparen: 0, ueberschuss: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
             const fix = getTotalFixForMonthData(item), g = (parseFloat(item.gehalt) || 2300) + (parseFloat(item.bargeldEinnahme) || 0);
             const netto = g - fix;
             
             const einkaufsGeld = parseFloat(item.taschengeld ?? 200) || 0;
-            const afterEinkauf = Math.max(0, netto - einkaufsGeld);
+            const giroPuffer = parseFloat(item.giroPuffer ?? 20) || 0;
+            
+            const afterEinkaufAndPuffer = Math.max(0, netto - einkaufsGeld - giroPuffer);
 
-            const notfall = afterEinkauf; // Alles Restgeld fließt automatisch auf das Notfallkonto!
+            const notfall = afterEinkaufAndPuffer; // 20 € Giro-Puffer wird vor der Notfall-Berechnung fest abgezogen!
             const bargeld = parseFloat(item.bargeld) || 0;
             
             return { 
                 netto: Math.round(netto*100)/100, 
                 einkaufsGeld: einkaufsGeld, 
+                giroPuffer: giroPuffer,
                 notfallSparen: Math.round(notfall*100)/100, 
                 ueberschuss: 0, 
                 freizeitSparen: 0, 
                 bargeldSparen: bargeld, 
-                gesamtSparen: Math.round((notfall+bargeld)*100)/100 
+                gesamtSparen: Math.round((notfall+bargeld+giroPuffer)*100)/100 
             };
         }
 
         function liveCalc() {
             const m = getSelectedMonthKey(), monthData = entries[m] || {};
             const isBooked = document.getElementById('gehaltBookedInput').checked;
-            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, splitNotfall: 0, splitMode: 'percent', booked: isBooked };
+            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 20, splitNotfall: 0, splitMode: 'percent', booked: isBooked };
             const calc = calculateValuesFor(item);
             
             document.getElementById('displayMonth').innerText = m;
             document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
             document.getElementById('resEinkaufspufferKpi').innerText = calc.einkaufsGeld.toFixed(2) + ' €';
+            document.getElementById('resGiroPufferDisplay').innerText = '-' + calc.giroPuffer.toFixed(2) + ' €';
             
             let extraNotfall = 0; 
             (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall' || goals.find(g=>g.id===tr.targetId)?.type === 'notfall_sub') extraNotfall += tr.amount; });
@@ -1049,7 +1061,7 @@
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
             document.getElementById('resSparzieleAbzug').innerText = '-' + totalDeductions.toFixed(2) + ' €';
             
-            const finalGesamtSparen = calc.notfallSparen + totalDeductions + calc.bargeldSparen;
+            const finalGesamtSparen = calc.notfallSparen + totalDeductions + calc.bargeldSparen + calc.giroPuffer;
             document.getElementById('resGesamtSparenKpi').innerText = finalGesamtSparen.toFixed(2) + ' €';
 
             renderHaushaltView();
