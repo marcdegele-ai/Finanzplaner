@@ -437,106 +437,106 @@
         function parseFlexFloat(val) {
             if (val === undefined || val === null) return 0;
             if (typeof val === 'number') return isNaN(val) ? 0 : val;
-            let str = String(val).replace(',', '.').trim();
-            let parsed = parseFloat(str);
-            return isNaN(parsed) ? 0 : parsed;
-        }
-
-        let rawEntries = null;
-        try { rawEntries = JSON.parse(localStorage.getItem('finanz_entries_local')); } catch(e) { rawEntries = null; }
-
-        let entries = {};
-        if (rawEntries && typeof rawEntries === 'object') {
-            Object.keys(rawEntries).forEach(k => {
-                if (k >= "2026-12") { entries[k] = rawEntries[k]; entries[k].extraTransfers = entries[k].extraTransfers || []; }
-            });
-        }
-        if (Object.keys(entries).length === 0) {
-            entries = { "2026-12": { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 200, booked: false, extraTransfers: [] } };
-        }
-
-        let goals = null;
-        try { goals = JSON.parse(localStorage.getItem('finanz_goals_local')); } catch(e) { goals = null; }
-        if (!goals || !Array.isArray(goals)) {
-            goals = [
-                { id: "notfall", name: "Notfallkonto", target: 3000, manualOffset: 0, fixedMonthly: 0 },
-                { id: "kassette", name: "Bargeld-Kassette", target: 1000, manualCurrent: 0, fixedMonthly: 0 }
-            ];
-        }
-
-        let transfersList = [];
-        try { transfersList = JSON.parse(localStorage.getItem('finanz_transfers_local')) || []; } catch(e) { transfersList = []; }
-
-        let haushaltItems = [];
-        try { haushaltItems = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || []; } catch(e) { haushaltItems = []; }
-
-        let urlaubeList = [];
-        try { urlaubeList = JSON.parse(localStorage.getItem('finanz_urlaube_local')) || []; } catch(e) { urlaubeList = []; }
-        let activeUrlaubGoalId = localStorage.getItem('finanz_active_urlaub_goal_local') || null;
-
-        let cashBreakdown = { c100: 0, c50: 0, c20: 0, c10: 0, c5: 0, c2: 0, c1: 0, c050: 0, c020: 0 };
-        try { const cb = JSON.parse(localStorage.getItem('finanz_cash_local')); if(cb) cashBreakdown = cb; } catch(e) {}
-
-        let currentModalGoalId = null, currentMonthItems = [], currentMonthPausedItems = [];
-
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             const mInput = document.getElementById('monthInput');
             if(mInput) mInput.value = "2026-12";
+            
+            // Erst aktuelle Daten aus der Cloud laden (für Synchronisation PC & Handy)
+            if (cloudConfig && cloudConfig.url) {
+                await pullFromCloudNow(true);
+            }
+
             updateHHKategorien();
             loadMonthData();
             updateGlobalBankingDropdowns();
             renderGoals();
             loadCashBreakdownToUI();
             updateSubKontoDropdowns();
+            updateCloudStatusLabel();
         });
 
-        function switchTab(viewId, btnEl) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(viewId).classList.add('active'); btnEl.classList.add('active');
-            if(viewId === 'haushalt-view') renderHaushaltView();
-            if(viewId === 'uebersicht-view') renderHistory();
-            if(viewId === 'jahres-view') renderJahresView();
-            if(viewId === 'ziele-view') { renderGoals(); updateSubKontoDropdowns(); }
-        }
-
-        function getSelectedMonthKey() { return document.getElementById('monthInput').value || "2026-12"; }
-        function getNextMonthKey(k) { const [y, m] = k.split('-').map(Number); return m === 12 ? `${y+1}-01` : `${y}-${String(m+1).padStart(2, '0')}`; }
-
-        function getMonthDataOrFallback(m) {
-            if (entries[m]) return entries[m];
-            return { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 200, booked: false, extraTransfers: [] };
-        }
-
-        function saveLocally() {
+        async function pullFromCloudNow(isSilent = false) {
+            if (!cloudConfig || !cloudConfig.url) return;
             try {
-                localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
-                localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
-                localStorage.setItem('finanz_transfers_local', JSON.stringify(transfersList));
-                localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
-                localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
-                localStorage.setItem('finanz_urlaube_local', JSON.stringify(urlaubeList));
-            } catch(e) {}
+                let headers = {};
+                if (cloudConfig.key) { headers["X-Master-Key"] = cloudConfig.key; headers["X-Access-Key"] = cloudConfig.key; }
+                const response = await fetch(cloudConfig.url, { method: 'GET', headers: headers });
+                if (response.ok) {
+                    const jsonRes = await response.json();
+                    const remoteData = jsonRes.record ? jsonRes.record : jsonRes;
+                    if (remoteData.entries) {
+                        entries = remoteData.entries || {};
+                        goals = remoteData.goals || goals;
+                        transfersList = remoteData.transfersList || [];
+                        urlaubeList = remoteData.urlaubeList || [];
+                        cashBreakdown = remoteData.cashBreakdown || cashBreakdown;
+                        haushaltItems = remoteData.haushaltItems || [];
+                        
+                        localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
+                        localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
+                        localStorage.setItem('finanz_transfers_local', JSON.stringify(transfersList));
+                        localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
+                        localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
+                        localStorage.setItem('finanz_urlaube_local', JSON.stringify(urlaubeList));
+                        
+                        loadMonthData(); renderGoals(); renderHaushaltView(); renderJahresView();
+                        if (!isSilent) alert('Daten erfolgreich synchronisiert! 📥');
+                    }
+                }
+            } catch (err) {
+                if (!isSilent) alert('Fehler beim Abrufen der Cloud-Daten: ' + err.message);
+            }
         }
 
-        function handleGehaltBookedToggle(isBooked) {
-            autoSaveLive();
-            if (isBooked) {
-                goals.forEach(g => {
-                    if (g.autoForwardTargetId && g.fixedMonthly) {
-                        const fullAmt = parseFlexFloat(g.fixedMonthly);
-                        const maxAmt = parseFlexFloat(g.autoForwardMaxAmount);
-                        // Falls ein Max-Betrag angegeben ist, wird dieser als Höchstgrenze verwendet
-                        const amt = (maxAmt > 0 && maxAmt < fullAmt) ? maxAmt : fullAmt;
-                        const targetG = goals.find(x => x.id === g.autoForwardTargetId);
-                        if (targetG && amt > 0) {
-                            if (targetG.id === 'kassette') targetG.manualCurrent = (targetG.manualCurrent || 0) + amt;
-                            else targetG.manualOffset = (targetG.manualOffset || 0) + amt;
-                        }
-                    }
-                });
-                saveLocally();
-                renderGoals();
+        function openCloudModal() {
+            document.getElementById('cloudSyncUrlInput').value = cloudConfig.url || '';
+            document.getElementById('cloudSyncKeyInput').value = cloudConfig.key || '';
+            document.getElementById('cloudModal').classList.add('active');
+        }
+
+        function saveCloudConfig() {
+            cloudConfig.url = document.getElementById('cloudSyncUrlInput').value.trim();
+            cloudConfig.key = document.getElementById('cloudSyncKeyInput').value.trim();
+            localStorage.setItem('finanz_cloud_config', JSON.stringify(cloudConfig));
+            closeCloudModal();
+            updateCloudStatusLabel();
+            pullFromCloudNow(false);
+        }
+
+        function updateCloudStatusLabel() {
+            const statusEl = document.querySelector('.cloud-status');
+            if (!statusEl) return;
+            if (cloudConfig && cloudConfig.url) {
+                statusEl.style.color = 'var(--accent-green)';
+                statusEl.innerText = '⚡ Cloud-Sync (Aktiv)';
+            } else {
+                statusEl.style.color = 'var(--accent-orange)';
+                statusEl.innerText = '⚡ Cloud-Sync einrichten';
+            }
+        }
+
+        function renderHaushaltView() {
+            const m = getSelectedMonthKey(); 
+            document.getElementById('HHMonthDisplay').innerText = m;
+            const list = document.getElementById('HHList'); list.innerHTML = ''; 
+            let totalSpent = 0;
+
+            const currentMonthData = getMonthDataOrFallback(m);
+            const einkaufsGeldBudget = parseFlexFloat(currentMonthData.taschengeld ?? 200);
+
+            haushaltItems.filter(i => i.date?.startsWith(m)).forEach(item => {
+                totalSpent += parseFlexFloat(item.amount||0);
+                list.innerHTML += `<div class="history-item"><div><strong>${item.name}</strong> <span class="badge badge-kategorie">${item.category}</span></div><div class="val-red">-${parseFlexFloat(item.amount).toFixed(2)} €</div></div>`;
+            });
+
+            document.getElementById('HHTotalDisplay').innerText = totalSpent.toFixed(2) + ' €';
+            document.getElementById('HHPlannedExpenseDisplay').innerText = einkaufsGeldBudget.toFixed(2) + ' €';
+            
+            const rest = einkaufsGeldBudget - totalSpent;
+            const restEl = document.getElementById('HHRestDisplay');
+            if (restEl) {
+                restEl.innerText = rest.toFixed(2) + ' €';
+                restEl.className = rest >= 0 ? 'val-highlight' : 'val-red';
             }
         }
 
