@@ -437,6 +437,11 @@
         function parseFlexFloat(val) {
             if (val === undefined || val === null) return 0;
             if (typeof val === 'number') return isNaN(val) ? 0 : val;
+            let str = String(val).replace(',', '.').trim();
+            let parsed = parseFloat(str);
+            return isNaN(parsed) ? 0 : parsed;
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
             const mInput = document.getElementById('monthInput');
             if(mInput) mInput.value = "2026-12";
@@ -487,31 +492,31 @@
                 if (!isSilent) alert('Fehler beim Abrufen der Cloud-Daten: ' + err.message);
             }
         }
+        function handleGehaltBookedToggle(isBooked) {
+            autoSaveLive();
+            if (isBooked) {
+                // Auto-Dauerauftrag Weiterleitung mit Höchstbetrags-Prüfung ausführen
+                goals.forEach(g => {
+                    if (g.autoForwardTargetId) {
+                        const targetGoal = goals.find(tgt => tgt.id === g.autoForwardTargetId);
+                        if (targetGoal) {
+                            let fullRate = parseFlexFloat(g.fixedMonthly);
+                            let maxLimit = parseFlexFloat(g.autoForwardMaxAmount);
+                            let transferAmt = (maxLimit > 0) ? Math.min(fullRate, maxLimit) : fullRate;
 
-        function openCloudModal() {
-            document.getElementById('cloudSyncUrlInput').value = cloudConfig.url || '';
-            document.getElementById('cloudSyncKeyInput').value = cloudConfig.key || '';
-            document.getElementById('cloudModal').classList.add('active');
-        }
+                            if (transferAmt > 0) {
+                                if (g.id === 'kassette') g.manualCurrent = (g.manualCurrent || 0) - transferAmt;
+                                else g.manualOffset = (g.manualOffset || 0) - transferAmt;
 
-        function saveCloudConfig() {
-            cloudConfig.url = document.getElementById('cloudSyncUrlInput').value.trim();
-            cloudConfig.key = document.getElementById('cloudSyncKeyInput').value.trim();
-            localStorage.setItem('finanz_cloud_config', JSON.stringify(cloudConfig));
-            closeCloudModal();
-            updateCloudStatusLabel();
-            pullFromCloudNow(false);
-        }
-
-        function updateCloudStatusLabel() {
-            const statusEl = document.querySelector('.cloud-status');
-            if (!statusEl) return;
-            if (cloudConfig && cloudConfig.url) {
-                statusEl.style.color = 'var(--accent-green)';
-                statusEl.innerText = '⚡ Cloud-Sync (Aktiv)';
-            } else {
-                statusEl.style.color = 'var(--accent-orange)';
-                statusEl.innerText = '⚡ Cloud-Sync einrichten';
+                                if (targetGoal.id === 'kassette') targetGoal.manualCurrent = (targetGoal.manualCurrent || 0) + transferAmt;
+                                else targetGoal.manualOffset = (targetGoal.manualOffset || 0) + transferAmt;
+                            }
+                        }
+                    }
+                });
+                saveLocally();
+                renderGoals();
+                updateGlobalBankingDropdowns();
             }
         }
 
