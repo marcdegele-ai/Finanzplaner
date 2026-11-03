@@ -347,7 +347,6 @@
                         <label>Typ / Zuordnung</label>
                         <select id="zielTypeSelect">
                             <option value="notfall_sub">🛡️ Notfallkonto-Unterkonto</option>
-                            <option value="giro_puffer">🏦 Girokonto-Puffer (Verbleibt auf Giro)</option>
                             <option value="custom">⚙️ Manuell (Freizeitkonto)</option>
                             <option value="notfall">🛡️ Haupt-Notfallkonto</option>
                             <option value="freizeit">🎉 Freizeitkonto</option>
@@ -1116,7 +1115,7 @@
                 if (endLimitStr && k >= endLimitStr) isTerminated = true;
 
                 if (!isTerminated) {
-                    if (goal.id === 'notfall' || goal.type === 'notfall_sub' || goal.type === 'giro_puffer') {
+                    if (goal.id === 'notfall' || goal.type === 'notfall_sub') {
                         if(goal.id === 'notfall') add = calc.notfallSparen;
                     } else if (goal.id === 'kassette') {
                         add = calc.bargeldSparen;
@@ -1443,15 +1442,13 @@
                 const isUrlaub = urlaubeList.some(u => u.goalId === g.id);
                 const isCompleted = pct >= 100;
                 const isSub = g.type === 'notfall_sub';
-                const isGiroPuffer = g.type === 'giro_puffer';
                 
                 list.innerHTML += `
-                    <div class="goal-card-box" style="${isSub ? 'border-left: 4px solid var(--accent-green);' : (isGiroPuffer ? 'border-left: 4px solid var(--accent);' : '')}">
+                    <div class="goal-card-box" style="${isSub ? 'border-left: 4px solid var(--accent-green);' : ''}">
                         <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openModal('${g.id}')">
                             <div>
                                 <strong style="font-size:0.95rem; color:var(--text-main);">${g.name}</strong>
                                 ${isSub ? '<span class="badge" style="background:#dcfce7; color:#166534; margin-left:6px;">🛡️ Notfall-Unterkonto</span>' : ''}
-                                ${isGiroPuffer ? '<span class="badge" style="background:#e0f2fe; color:#0369a1; margin-left:6px;">🏦 Giro-Puffer</span>' : ''}
                                 ${isUrlaub ? '<span class="badge" style="background:#fef3c7; color:#d97706; margin-left:6px;">✈️ Urlaubsplan aktiv</span>' : ''}
                                 ${isCompleted ? '<span class="badge" style="background:#fef3c7; color:#d97706; margin-left:6px;">👑 100% Erreicht! 🎉</span>' : ''}
                             </div>
