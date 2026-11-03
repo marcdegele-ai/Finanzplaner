@@ -189,7 +189,7 @@
                 </div>
             </div>
 
-            <!-- UMSCHLAG & KONTO-ÜBERSICHT (ATM RECHNER & GIRO STAND) -->
+            <!-- UMSCHLAG & KONTO-ÜBERSICHT (ATM RECHNER INKL. SPAREN IN UMSCHLÄGE) -->
             <div class="card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1.5px solid #7dd3fc;">
                 <div class="card-title" style="color:#0369a1; margin-bottom: 6px;">
                     <span>🏧 Bank & Auszahlungs-Rechner</span>
@@ -198,10 +198,12 @@
                     <div style="background:#ffffff; padding:8px 10px; border-radius:10px; border:1px solid #bae6fd;">
                         <span style="font-size:0.68rem; color:var(--text-sub); font-weight:bold; display:block;">💵 BAR AM AUTOMATEN ABHEBEN</span>
                         <strong id="atmCashToWithdrawDisplay" style="font-size:1.05rem; color:#d97706;">0,00 €</strong>
+                        <div style="font-size:0.6rem; color:var(--text-sub); margin-top:2px;">(Einkaufs-Geld + Kassette + Spar-Umschläge)</div>
                     </div>
                     <div style="background:#ffffff; padding:8px 10px; border-radius:10px; border:1px solid #bae6fd;">
-                        <span style="font-size:0.68rem; color:var(--text-sub); font-weight:bold; display:block;">🏦 AUD DEM GIROKONTO BELASSEN</span>
+                        <span style="font-size:0.68rem; color:var(--text-sub); font-weight:bold; display:block;">🏦 AUF DEM GIROKONTO BELASSEN</span>
                         <strong id="giroKeepOnAccountDisplay" style="font-size:1.05rem; color:#0284c7;">0,00 €</strong>
+                        <div style="font-size:0.6rem; color:var(--text-sub); margin-top:2px;">(Fixkosten + 20€ Giro-Puffer)</div>
                     </div>
                 </div>
             </div>
@@ -1106,10 +1108,10 @@
             const finalGesamtSparen = calc.notfallSparen + totalDeductions + calc.bargeldSparen + calc.giroPuffer;
             document.getElementById('resGesamtSparenKpi').innerText = finalGesamtSparen.toFixed(2) + ' €';
 
-            // ATM & GIRO BERECHNUNG VISUELL HILFREICH
+            // ATM & GIRO BERECHNUNG VISUELL HILFREICH (SPAREN WIRD JETZT MIT ZUM BARGELD-ABHEBEN GERECHNET)
             const fixSum = getTotalFixForMonthData(item);
-            const toWithdraw = calc.einkaufsGeld + calc.bargeldSparen;
-            const keepOnGiro = fixSum + calc.giroPuffer + calc.notfallSparen + totalDeductions;
+            const toWithdraw = calc.einkaufsGeld + calc.bargeldSparen + calc.notfallSparen + totalDeductions;
+            const keepOnGiro = fixSum + calc.giroPuffer;
             document.getElementById('atmCashToWithdrawDisplay').innerText = toWithdraw.toFixed(2) + ' €';
             document.getElementById('giroKeepOnAccountDisplay').innerText = keepOnGiro.toFixed(2) + ' €';
 
@@ -1646,7 +1648,4 @@
     </script>
 </body>
 </html>
-```
-
-Alle Funktionen und Ansichten sind vollständig enthalten. Sag einfach Bescheid, wenn du weitere Wünsche oder Anpassungen benötigst!
 ```
