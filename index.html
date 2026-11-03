@@ -1006,16 +1006,6 @@
             renderHaushaltView();
         }
 
-        function renderHaushaltView() {
-            const m = getSelectedMonthKey(); document.getElementById('HHMonthDisplay').innerText = m;
-            const list = document.getElementById('HHList'); list.innerHTML = ''; let totalSpent = 0;
-            haushaltItems.filter(i => i.date?.startsWith(m)).forEach(item => {
-                totalSpent += parseFlexFloat(item.amount||0);
-                list.innerHTML += `<div class="history-item"><div><strong>${item.name}</strong> <span class="badge badge-kategorie">${item.category}</span></div><div class="val-red">-${item.amount.toFixed(2)} €</div></div>`;
-            });
-            document.getElementById('HHTotalDisplay').innerText = totalSpent.toFixed(2) + ' €';
-        }
-
         function executeHHRestToGoalTransfer() {
             const tgtId = document.getElementById('hhTransferTargetSelect').value, amt = parseFlexFloat(document.getElementById('hhTransferAmountInput').value);
             if(!tgtId || isNaN(amt) || amt <= 0) return alert('Gültiges Ziel und Betrag angeben!');
@@ -1024,48 +1014,15 @@
             document.getElementById('hhTransferAmountInput').value = ''; saveLocally(); renderGoals(); alert('Umbuchung erfolgreich!');
         }
 
-        function renderJahresView() {
-            const yr = document.getElementById('selectYear').value; 
-            let einnahmen = 0, geplantEinnahmen = 0;
-            let fix = 0, spent = 0;
-            let echtIst = 0, echtGeplant = 0;
-
-            for(let m=1; m<=12; m++) {
-                const mk = `${yr}-${String(m).padStart(2,'0')}`;
-                const item = getMonthDataOrFallback(mk);
-                const calc = calculateValuesFor(item);
-                
-                let e = (parseFlexFloat(item.gehalt) || 2300) + (parseFlexFloat(item.bargeldEinnahme) || 0);
-                geplantEinnahmen += e;
-                
-                let monthSpent = 0;
-                (haushaltItems || []).forEach(hi => { 
-                    if(hi.date?.startsWith(mk) && hi.type !== 'income') {
-                        monthSpent += parseFlexFloat(hi.amount || 0); 
-                    }
-                });
-                spent += monthSpent;
-                fix += getTotalFixForMonthData(item);
-
-                echtGeplant += calc.gesamtSparen - monthSpent;
-
-                if(item.booked) {
-                    einnahmen += e;
-                    echtIst += calc.gesamtSparen - monthSpent;
-                }
-            }
-
-            document.getElementById('jahrEinnahmen').innerText = einnahmen.toFixed(2) + ' €';
-            document.getElementById('jahrGeplantEinnahmen').innerText = geplantEinnahmen.toFixed(2) + ' € (Geplant)';
-            document.getElementById('jahrFix').innerText = fix.toFixed(2) + ' €';
-            document.getElementById('jahrHaushaltAusgaben').innerText = spent.toFixed(2) + ' €';
-            document.getElementById('jahrEchtesSparen').innerText = echtIst.toFixed(2) + ' € / ' + echtGeplant.toFixed(2) + ' € (Geplant)';
-            
-            let quoteBase = einnahmen > 0 ? einnahmen : geplantEinnahmen;
-            let quoteVal = einnahmen > 0 ? echtIst : echtGeplant;
-            let finalRate = quoteBase > 0 ? Math.max(0, (quoteVal / quoteBase) * 100) : 0;
-            
-            document.getElementById('jahrEchteSparquote').innerText = finalRate.toFixed(1) + '%';
+        function switchTab(viewId, btnEl) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById(viewId);
+            if (target) target.classList.add('active');
+            if (btnEl) btnEl.classList.add('active');
+            if(viewId === 'haushalt-view') renderHaushaltView();
+            if(viewId === 'jahres-view') renderJahresView();
+            if(viewId === 'ziele-view') { renderGoals(); updateSubKontoDropdowns(); }
         }
 
         function calcClear() { document.getElementById('calcDisplay').innerText = "0"; }
@@ -1073,7 +1030,11 @@
         function calcBack() { const d = document.getElementById('calcDisplay'); d.innerText = d.innerText.length > 1 ? d.innerText.slice(0, -1) : "0"; }
         function calcResult() { try { const d = document.getElementById('calcDisplay'); d.innerText = eval(d.innerText.replace(/×/g,'*').replace(/÷/g,'/')); } catch(e) {} }
 
-        function openCloudModal() { alert('Cloud-Sync ist auf diesem Gerät aktiv und synchronisiert automatisch! ⚡'); }
+        function openCloudModal() { 
+            const cloudModal = document.getElementById('cloudModal');
+            if (cloudModal) cloudModal.classList.add('active');
+            else alert('Cloud-Sync ist auf diesem Gerät aktiv und synchronisiert automatisch! ⚡'); 
+        }
 
         function exportBackupJSON() {
             const data = { entries, goals, transfersList, haushaltItems, cashBreakdown, urlaubeList };
