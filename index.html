@@ -342,9 +342,13 @@
                     <div class="input-group full" style="background:#e0f2fe; padding:8px; border-radius:8px; border:1px solid #bae6fd;">
                         <label style="color:#0369a1; font-weight:bold;">🔄 Auto-Dauerauftrag nach Gehaltseingang</label>
                         <div style="font-size:0.68rem; color:var(--text-sub); margin-bottom:4px;">Sobald Gehalt abgehakt ist, wird die monatliche Sparrate automatisch an folgendes Ziel weitergeleitet:</div>
-                        <select id="zielAutoForwardTargetSelect" style="background:#fff; font-size:0.78rem;">
+                        <select id="zielAutoForwardTargetSelect" style="background:#fff; font-size:0.78rem; margin-bottom:4px;">
                             <option value="">Keine Weiterleitung (auf diesem Konto belassen)</option>
                         </select>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <label style="font-size:0.68rem; white-space:nowrap;">Max. Betrag (€):</label>
+                            <input type="number" id="zielAutoForwardMaxAmount" placeholder="Unbegrenzt (gesamte Rate)" style="background:#fff; font-size:0.75rem; padding:4px;">
+                        </div>
                     </div>
                 </div>
                 <button class="btn-add" onclick="saveGoal()">Unterkonto / Ziel Hinzufügen</button>
@@ -520,7 +524,10 @@
             if (isBooked) {
                 goals.forEach(g => {
                     if (g.autoForwardTargetId && g.fixedMonthly) {
-                        const amt = parseFlexFloat(g.fixedMonthly);
+                        const fullAmt = parseFlexFloat(g.fixedMonthly);
+                        const maxAmt = parseFlexFloat(g.autoForwardMaxAmount);
+                        // Falls ein Max-Betrag angegeben ist, wird dieser als Höchstgrenze verwendet
+                        const amt = (maxAmt > 0 && maxAmt < fullAmt) ? maxAmt : fullAmt;
                         const targetG = goals.find(x => x.id === g.autoForwardTargetId);
                         if (targetG && amt > 0) {
                             if (targetG.id === 'kassette') targetG.manualCurrent = (targetG.manualCurrent || 0) + amt;
@@ -530,6 +537,44 @@
                 });
                 saveLocally();
                 renderGoals();
+            }
+        }
+
+        let syncTimeout = null;
+        function saveLocally() {
+            try {
+                localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
+                localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
+                localStorage.setItem('finanz_transfers_local', JSON.stringify(transfersList));
+                localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
+                localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
+                localStorage.setItem('finanz_urlaube_local', JSON.stringify(urlaubeList));
+                
+                // Live-Sync Trigger bei jeder lokalen Speicherung
+                if (cloudConfig && cloudConfig.url) {
+                    if (syncTimeout) clearTimeout(syncTimeout);
+                    syncTimeout = setTimeout(() => syncWithCloudNow(true), 800);
+                }
+            } catch(e) {}
+        }
+
+        async function syncWithCloudNow(isBackground = false) {
+            if (!cloudConfig || !cloudConfig.url) return;
+            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, lastUpdated: new Date().toISOString() };
+            try {
+                let headers = { "Content-Type": "application/json" };
+                if (cloudConfig.key) { headers["X-Master-Key"] = cloudConfig.key; headers["X-Access-Key"] = cloudConfig.key; }
+                const res = await fetch(cloudConfig.url, { method: 'PUT', headers: headers, body: JSON.stringify(payload) });
+                if (res.ok) {
+                    const statusEl = document.querySelector('.cloud-status');
+                    if (statusEl) {
+                        statusEl.style.color = 'var(--accent-green)';
+                        statusEl.innerText = '⚡ Cloud-Sync (Aktiv)';
+                    }
+                }
+            } catch (err) {
+                const statusEl = document.querySelector('.cloud-status');
+                if (statusEl) statusEl.style.color = 'var(--accent-red)';
             }
         }
 
@@ -899,14 +944,16 @@
             const endMonth = document.getElementById('zielEndMonat').value || '';
             const startVal = parseFlexFloat(document.getElementById('zielStart').value) || 0;
             const autoFwd = document.getElementById('zielAutoForwardTargetSelect').value || '';
+            const autoFwdMax = document.getElementById('zielAutoForwardMaxAmount').value || '';
 
             if(!name) return alert('Name eingeben!');
-            goals.push({ id: 'goal_' + Date.now(), name, target, fixedMonthly, endMonth, manualOffset: startVal, autoForwardTargetId: autoFwd });
+            goals.push({ id: 'goal_' + Date.now(), name, target, fixedMonthly, endMonth, manualOffset: startVal, autoForwardTargetId: autoFwd, autoForwardMaxAmount: autoFwdMax });
             
             document.getElementById('zielName').value = ''; 
             document.getElementById('zielBetrag').value = ''; 
             document.getElementById('zielFixedMonthly').value = '';
             document.getElementById('zielStart').value = '0';
+            document.getElementById('zielAutoForwardMaxAmount').value = '';
             
             saveLocally(); renderGoals(); alert('Unterkonto / Ziel Hinzufügen! 🎯');
         }
