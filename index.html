@@ -415,8 +415,10 @@
                 <button class="btn-secondary" style="width:100%; margin-top:8px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-weight:bold;" onclick="deleteCurrentUrlaubPlan()">🗑️ Planer löschen</button>
             </div>
             <div class="card">
-                <div class="card-title">📌 Fixkosten & Verpflegung</div>
+                <div class="card-title">📌 Reisezeitraum, Fixkosten & Verpflegung</div>
                 <div class="grid">
+                    <div class="input-group"><label>📅 Anreise-Datum</label><input type="date" id="uStartDateInput" onchange="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>📅 Abreise-Datum</label><input type="date" id="uEndDateInput" onchange="saveUrlaubConfigDynamic()"></div>
                     <div class="input-group"><label>Hotel (€)</label><input type="number" id="uFixHotel" onchange="saveUrlaubConfigDynamic()"></div>
                     <div class="input-group"><label>Kurtaxe (€)</label><input type="number" id="uFixKurtaxe" onchange="saveUrlaubConfigDynamic()"></div>
                     <div class="input-group"><label>Supermarkt (€)</label><input type="number" id="uFixSupermarkt" onchange="saveUrlaubConfigDynamic()"></div>
@@ -1574,6 +1576,8 @@
             document.getElementById('uTargetBudgetDisplay').innerText = getSavedAmountForGoal(goal).toFixed(2) + ' € (Aktuell)';
             document.getElementById('uPlannedBudgetDisplay').innerText = target.toFixed(2) + ' € (Ziel)';
             
+            document.getElementById('uStartDateInput').value = u.startDate || '';
+            document.getElementById('uEndDateInput').value = u.endDate || '';
             document.getElementById('uFixHotel').value = u.fixHotel || 0; 
             document.getElementById('uFixKurtaxe').value = u.fixKurtaxe || 0;
             document.getElementById('uFixSupermarkt').value = u.fixSupermarkt || 0; 
@@ -1659,6 +1663,8 @@
 
         function saveUrlaubConfigDynamic() {
             const u = getActiveUrlaub(); if(!u) return;
+            u.startDate = document.getElementById('uStartDateInput').value || '';
+            u.endDate = document.getElementById('uEndDateInput').value || '';
             u.fixHotel = parseFloat(document.getElementById('uFixHotel').value) || 0;
             u.fixKurtaxe = parseFloat(document.getElementById('uFixKurtaxe').value) || 0;
             u.fixSupermarkt = parseFloat(document.getElementById('uFixSupermarkt').value) || 0;
