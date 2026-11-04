@@ -573,12 +573,16 @@
         try { goals = JSON.parse(localStorage.getItem('finanz_goals_local')); } catch(e) { goals = null; }
         if (!goals || !Array.isArray(goals)) {
             goals = [
+                { id: "sparen", name: "Sparen", target: 10000, manualOffset: 0, capAtTarget: false },
                 { id: "notfall", name: "Notfallkonto", target: 6000, manualOffset: 0, capAtTarget: false },
                 { id: "giro_puffer", name: "Girokonto-Puffer", target: 500, fixedMonthly: 20, manualOffset: 0, type: "giro_puffer", capAtTarget: false },
                 { id: "kassette", name: "Bargeld-Kassette", target: 1000, manualCurrent: 0, capAtTarget: false }
             ];
         } else {
-            goals.forEach(g => { if (!['notfall', 'freizeit', 'kassette'].includes(g.id)) { if (g.fixedMonthly === undefined) g.fixedMonthly = 0; } });
+            if (!goals.some(g => g.id === 'sparen' || g.name.toLowerCase() === 'sparen')) {
+                goals.unshift({ id: "sparen", name: "Sparen", target: 10000, manualOffset: 0, capAtTarget: false });
+            }
+            goals.forEach(g => { if (!['notfall', 'freizeit', 'kassette', 'sparen'].includes(g.id)) { if (g.fixedMonthly === undefined) g.fixedMonthly = 0; } });
         }
 
         let transfersList = [];
@@ -1062,6 +1066,7 @@
             
             const afterAbzuege = Math.max(0, netto - einkaufsGeld - giroPuffer);
 
+            // Das Restgeld steht für automatische Sparziel-Verteilung und Notfall-Ansparen bereit
             const notfall = afterAbzuege;
             const bargeld = parseFloat(item.bargeld) || 0;
             
@@ -1088,16 +1093,12 @@
             document.getElementById('resEinkaufspufferKpi').innerText = calc.einkaufsGeld.toFixed(2) + ' €';
             document.getElementById('resGiroPufferDisplay').innerText = '-' + calc.giroPuffer.toFixed(2) + ' €';
             
-            let extraNotfall = 0; 
-            (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall' || goals.find(g=>g.id===tr.targetId)?.type === 'notfall_sub') extraNotfall += tr.amount; });
-            
-            document.getElementById('resNotfallAbzug').innerText = '-' + (calc.notfallSparen + (isBooked ? extraNotfall : 0)).toFixed(2) + ' €';
-            
             const container = document.getElementById('sparzieleBreakdownContainer'); container.innerHTML = '';
             let totalDeductions = 0;
             
+            // Feste Sparziel-Daueraufträge abziehen
             goals.forEach(g => {
-                if(g.id === 'notfall' || g.type === 'giro_puffer') return;
+                if(g.id === 'notfall' || g.id === 'sparen' || g.type === 'giro_puffer') return;
                 let share = isBooked ? getActiveDeductionsForGoal(g, m) : 0;
                 let extraShare = 0;
                 let extraId = null;
@@ -1107,7 +1108,7 @@
                         extraId = tr.id;
                     } 
                 });
-                
+
                 if (extraShare > 0 && isBooked) {
                     totalDeductions += extraShare;
                     container.innerHTML += `<div class="stat-row sub-row"><span>⚡ ${g.name} (Extra <button class="storno-btn" onclick="cancelExtraTransfer(${extraId})">Storno</button>)</span><span class="val-red">-${extraShare.toFixed(2)} €</span></div>`;
@@ -1117,14 +1118,32 @@
                 }
             });
 
+            // Sämtliches Restgeld fließt nach allen Abzügen direkt in das Ziel "Sparen"
+            let restGeld = Math.max(0, calc.notfallSparen - totalDeductions);
+            let finalSparenAmount = isBooked ? restGeld : 0;
+            
+            let extraSparen = 0; 
+            (monthData.extraTransfers || []).forEach(tr => { 
+                if (tr.targetId === 'sparen' || goals.find(g=>g.id===tr.targetId)?.name.toLowerCase() === 'sparen') {
+                    extraSparen += tr.amount; 
+                }
+            });
+            
+            let sparenGoalObj = goals.find(g => g.id === 'sparen' || g.name.toLowerCase() === 'sparen');
+            let sparenName = sparenGoalObj ? sparenGoalObj.name : "Sparen";
+            
+            document.getElementById('resNotfallAbzug').innerText = '-' + (finalSparenAmount + (isBooked ? extraSparen : 0)).toFixed(2) + ' €';
+            const notfallLabel = document.getElementById('resNotfallAbzug').previousElementSibling;
+            if(notfallLabel) notfallLabel.innerText = `🐖 ${sparenName} (Gesamtes Restgeld):`;
+
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
             document.getElementById('resSparzieleAbzug').innerText = '-' + totalDeductions.toFixed(2) + ' €';
             
-            const finalGesamtSparen = calc.notfallSparen + totalDeductions + calc.bargeldSparen + calc.giroPuffer;
+            const finalGesamtSparen = finalSparenAmount + totalDeductions + calc.bargeldSparen + calc.giroPuffer;
             document.getElementById('resGesamtSparenKpi').innerText = finalGesamtSparen.toFixed(2) + ' €';
 
             const fixSum = getTotalFixForMonthData(item);
-            const toWithdraw = calc.einkaufsGeld + calc.bargeldSparen + calc.notfallSparen + totalDeductions;
+            const toWithdraw = calc.einkaufsGeld + calc.bargeldSparen + finalSparenAmount + totalDeductions;
             const keepOnGiro = fixSum + calc.giroPuffer;
             document.getElementById('atmCashToWithdrawDisplay').innerText = toWithdraw.toFixed(2) + ' €';
             document.getElementById('giroKeepOnAccountDisplay').innerText = keepOnGiro.toFixed(2) + ' €';
