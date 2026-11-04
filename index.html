@@ -155,18 +155,18 @@
                 </div>
             </div>
             <div class="tab-bar">
-                <button class="tab-btn active" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
+                <button class="tab-btn" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
                 <button class="tab-btn" onclick="switchTab('haushalt-view', this)">🏠 Haushalt</button>
                 <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
                 <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres</button>
                 <button class="tab-btn" onclick="switchTab('urlaub-view', this)" id="urlaubTabBtn" style="display:none;">✈️ Urlaub</button>
-                <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
+                <button class="tab-btn active" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
                 <button class="tab-btn" onclick="switchTab('rechner-view', this)">🧮 Rechner</button>
             </div>
         </header>
 
         <!-- TAB 1: AKTUELL (DASHBOARD) -->
-        <div id="aktuel-view" class="view-section active">
+        <div id="aktuel-view" class="view-section">
             
             <!-- KPI HIGHLIGHTS -->
             <div class="kpi-grid">
@@ -187,8 +187,8 @@
                     <div class="kpi-val" id="resGesamtSparenKpi" style="color: var(--accent-green);">0,00 €</div>
                 </div>
             </div>
-
-            <!-- EINGABE FORMULAR -->
+        <!-- TAB 6: SPARZIELE -->
+        <div id="ziele-view" class="view-section active">
             <div class="card">
                 <div class="card-title"><span>Monat konfigurieren (<span id="displayMonth" style="color:var(--accent);">-</span>)</span></div>
                 <div class="grid">
@@ -395,7 +395,7 @@
         </div>
 
         <!-- TAB 6: SPARZIELE & MANAGEMENT -->
-        <div id="ziele-view" class="view-section">
+        <div id="ziele-view" class="view-section active">
             <div class="card">
                 <div class="card-title">🎯 Sparziel / Unterkonto anlegen</div>
                 <div class="grid">
@@ -1132,21 +1132,6 @@
                 }
             });
             return Math.max(0, total + diff);
-        }
-                });
-                return sum + diff;
-            }
-            if(goal.id === 'freizeit') return 0;
-            let total = parseFloat(goal.manualOffset || goal.manualCurrent || 0);
-            Object.keys(entries || {}).sort().forEach(k => {
-                if(k < upto && (!goal.startMonth || k >= goal.startMonth) && entries[k]?.booked) {
-                    let scheduled = getActiveDeductionsForGoal(goal, k);
-                    let extra = 0;
-                    (entries[k]?.extraTransfers || []).forEach(tr => { if (tr.targetId === goal.id) extra += tr.amount; });
-                    total += extra > 0 ? extra : scheduled;
-                }
-            });
-            return total + diff;
         }
 
         function getGoalData(goalId) {
