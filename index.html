@@ -25,6 +25,8 @@
             --accent-orange-soft: #fef3c7;
             --accent-red: #ef4444; 
             --accent-red-soft: #fee2e2;
+            --accent-purple: #8b5cf6;
+            --accent-purple-soft: #f3e8ff;
             --text-main: #0f172a; 
             --text-sub: #64748b;
             --border: #e2e8f0; 
@@ -84,6 +86,7 @@
         .val-highlight { font-weight: bold; color: var(--accent-green); }
         .val-orange { font-weight: bold; color: var(--accent-orange); }
         .val-red { font-weight: bold; color: var(--accent-red); }
+        .val-purple { font-weight: bold; color: var(--accent-purple); }
         
         .btn-add { background: var(--accent); color: #fff; font-weight: 700; border: none; padding: 10px; border-radius: 10px; width: 100%; font-size: 0.88rem; cursor: pointer; margin-top: 4px; box-shadow: 0 2px 8px rgba(2,132,199,0.2); }
         .btn-secondary { background: #e2e8f0; color: var(--text-main); font-weight: 700; border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-size: 0.73rem; cursor: pointer; }
@@ -158,6 +161,7 @@
             <div class="tab-bar">
                 <button class="tab-btn active" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
                 <button class="tab-btn" onclick="switchTab('haushalt-view', this)">🏠 Haushalt</button>
+                <button class="tab-btn" onclick="switchTab('schulden-view', this)">🤝 Schulden</button>
                 <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
                 <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres</button>
                 <button class="tab-btn" onclick="switchTab('urlaub-view', this)" id="urlaubTabBtn" style="display:none;">✈️ Urlaub</button>
@@ -203,7 +207,7 @@
                     <div style="background:#ffffff; padding:8px 10px; border-radius:10px; border:1px solid #bae6fd;">
                         <span style="font-size:0.68rem; color:var(--text-sub); font-weight:bold; display:block;">🏦 AUF DEM GIROKONTO BELASSEN</span>
                         <strong id="giroKeepOnAccountDisplay" style="font-size:1.05rem; color:#0284c7;">0,00 €</strong>
-                        <div style="font-size:0.6rem; color:var(--text-sub); margin-top:2px;">(Fixkosten + 20 € Giro-Puffer)</div>
+                        <div style="font-size:0.6rem; color:var(--text-sub); margin-top:2px;">(Fixkosten + Giro-Puffer)</div>
                     </div>
                 </div>
             </div>
@@ -240,7 +244,7 @@
                     </div>
 
                     <div class="input-group"><label>Einkaufs-Geld 🛒 (€)</label><input type="number" id="taschengeldInput" placeholder="200" oninput="autoSaveLive()"></div>
-                    <div class="input-group"><label>Giro-Puffer (€) 🏦</label><input type="number" id="giroPufferInput" placeholder="20" value="20" oninput="autoSaveLive()"></div>
+                    <div class="input-group"><label>Giro-Puffer (€) 🏦</label><input type="number" id="giroPufferInput" placeholder="40" value="40" oninput="autoSaveLive()"></div>
                     <div class="input-group full"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
 
                     <div class="input-group full" style="margin-top: 4px;"><button class="btn-add" style="background: var(--accent-green);" onclick="saveCurrentMonthManual()">💾 Monat sichern</button></div>
@@ -252,7 +256,7 @@
                 <div class="card-title"><span>📋 Aufschlüsselung & Sparraten</span></div>
                 <div class="stat-row" style="background:#e0f2fe; padding:7px 8px; border-radius:6px; border:1px solid #bae6fd; margin-bottom:6px;">
                     <span style="font-weight:700; color:#0369a1;">🏦 Girokonto-Puffer (Verbleibt auf Konto):</span>
-                    <span id="resGiroPufferDisplay" style="font-weight:bold; color:#0284c7;">-20,00 €</span>
+                    <span id="resGiroPufferDisplay" style="font-weight:bold; color:#0284c7;">-40,00 €</span>
                 </div>
                 <div class="stat-row" style="background:#f0fdf4; padding:7px 8px; border-radius:6px;"><span>🛡️ Notfallkonto (Restgeld automatisch):</span><span id="resNotfallAbzug" class="val-highlight">-0,00 €</span></div>
                 <div id="sparzieleBreakdownContainer"></div>
@@ -333,7 +337,7 @@
             </div>
 
             <div class="card" id="categoryChartCard" style="display:none;">
-                <div class="card-title">📊 Ausgaben nach Kategorie</div>
+                <div class="card-title">📊 Ausgaben nach Kategorie (Soll / Ist)</div>
                 <div class="chart-container" id="categoryChartContainer"></div>
             </div>
 
@@ -346,6 +350,85 @@
             <div class="card">
                 <div class="card-title">📋 Buchungen</div>
                 <div class="history-list" id="HHList"></div>
+            </div>
+        </div>
+
+        <!-- TAB SCHULDENBEREINIGUNG -->
+        <div id="schulden-view" class="view-section">
+            <div class="card" style="background: linear-gradient(135deg, #f3e8ff 0%, #ffffff 100%); border: 1.5px solid #c084fc;">
+                <div class="card-title" style="color:#7e22ce;">
+                    <span>🤝 Außergerichtliche Schuldenbereinigung</span>
+                    <span class="badge" style="background:#dcfce7; color:#15803d; font-size:0.75rem;">Aktiv ✅</span>
+                </div>
+                
+                <!-- PROGRESS BAR -->
+                <div style="margin-bottom: 12px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:bold; margin-bottom:4px;">
+                        <span>Tilgungsfortschritt</span>
+                        <span id="debtProgressPct" style="color:#7e22ce;">0%</span>
+                    </div>
+                    <div class="progress-bar-container" style="height:12px; background:#e9d5ff;">
+                        <div id="debtProgressBar" class="progress-bar-fill" style="background:#9333ea; width:0%;"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-sub); margin-top:4px;">
+                        <span>Start: Juni 2024</span>
+                        <span id="debtFreeDateDisplay" style="font-weight:bold; color:#166534;">Ziel: Mai 2029 🎯</span>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card" style="background:#ffffff;">
+                        <div class="kpi-label">Urspr. Schulden</div>
+                        <div class="kpi-val" style="color:#ef4444; font-size:1rem;">58.120,44 €</div>
+                    </div>
+                    <div class="kpi-card" style="background:#ffffff;">
+                        <div class="kpi-label">Ersparnis (Vergleich)</div>
+                        <div class="kpi-val" style="color:#10b981; font-size:1rem;">30.899,84 €</div>
+                    </div>
+                    <div class="kpi-card" style="background:#ffffff;">
+                        <div class="kpi-label">Vergleichssumme</div>
+                        <div class="kpi-val" style="color:#0284c7; font-size:1rem;">27.220,60 €</div>
+                    </div>
+                    <div class="kpi-card" style="background:#ffffff;">
+                        <div class="kpi-label">Bereits getilgt</div>
+                        <div class="kpi-val" id="debtPaidTotal" style="color:#15803d; font-size:1rem;">0,00 €</div>
+                    </div>
+                </div>
+
+                <div style="background:#ffffff; border:1px solid #e9d5ff; padding:10px; border-radius:10px; margin-top:8px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <span style="font-size:0.75rem; color:var(--text-sub); font-weight:bold;">AKTUELLE RESTSCHULD</span>
+                            <div id="debtRemainingTotal" style="font-size:1.3rem; font-weight:800; color:#9333ea;">0,00 €</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <span style="font-size:0.7rem; color:var(--text-sub);">Monatliche Gesamtrate</span>
+                            <div style="font-size:1rem; font-weight:bold; color:#0f172a;">453,95 € / Mo.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GLÄUBIGER DETAIL TABELLE -->
+            <div class="card">
+                <div class="card-title">📋 Übersicht aller 12 Gläubiger & Raten</div>
+                <div class="table-wrapper">
+                    <table class="month-table">
+                        <thead>
+                            <tr>
+                                <th>Nr.</th>
+                                <th>Empfänger / Gläubiger</th>
+                                <th>IBAN / Aktenzeichen</th>
+                                <th>Rate (€/Mo)</th>
+                                <th>Gesamt (€)</th>
+                                <th>Offen (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="debtCreditorsTableBody">
+                            <!-- Wird dynamisch per JS befüllt -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -368,8 +451,8 @@
             </div>
 
             <div class="card">
-                <div class="card-title">📈 Vermögensverlauf (Diagramm)</div>
-                <div id="netWorthChartContainer" style="background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%); border: 1px solid #bbf7d0; border-radius: 12px; padding: 12px 8px 8px 8px;"></div>
+                <div class="card-title">📈 Vermögensverlauf</div>
+                <div class="chart-container" id="netWorthChartContainer"></div>
             </div>
 
             <div class="card">
@@ -415,10 +498,8 @@
                 <button class="btn-secondary" style="width:100%; margin-top:8px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-weight:bold;" onclick="deleteCurrentUrlaubPlan()">🗑️ Planer löschen</button>
             </div>
             <div class="card">
-                <div class="card-title">📌 Reisezeitraum, Fixkosten & Verpflegung</div>
+                <div class="card-title">📌 Fixkosten & Verpflegung</div>
                 <div class="grid">
-                    <div class="input-group"><label>📅 Anreise-Datum</label><input type="date" id="uStartDateInput" onchange="saveUrlaubConfigDynamic()"></div>
-                    <div class="input-group"><label>📅 Abreise-Datum</label><input type="date" id="uEndDateInput" onchange="saveUrlaubConfigDynamic()"></div>
                     <div class="input-group"><label>Hotel (€)</label><input type="number" id="uFixHotel" onchange="saveUrlaubConfigDynamic()"></div>
                     <div class="input-group"><label>Kurtaxe (€)</label><input type="number" id="uFixKurtaxe" onchange="saveUrlaubConfigDynamic()"></div>
                     <div class="input-group"><label>Supermarkt (€)</label><input type="number" id="uFixSupermarkt" onchange="saveUrlaubConfigDynamic()"></div>
@@ -443,7 +524,7 @@
             <div class="card">
                 <div class="card-title">🎯 Sparziel oder Unterkonto anlegen</div>
                 <div class="grid">
-                    <div class="input-group full"><label>Name des Ziels</label><input type="text" id="zielName" placeholder="Z.B. Auto, Technik, Puffer..."></div>
+                    <div class="input-group full"><label>Name</label><input type="text" id="zielName" placeholder="Z.B. Auto, Technik, Puffer..."></div>
                     <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="zielBetrag" placeholder="1500" oninput="autoCalculateMonthlyRate()"></div>
                     <div class="input-group"><label>Sparrate (€/Mo)</label><input type="number" id="zielFixedMonthly" placeholder="100"></div>
                     <div class="input-group full"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
@@ -558,6 +639,22 @@
     <div id="receiptModal" class="modal"><div class="modal-content" style="text-align:center;"><div class="card-title">Beleg</div><img id="receiptModalImg" src="" style="max-width:100%; border-radius:8px; margin-bottom:8px;"><button class="btn-add" onclick="closeReceiptModal()">Schließen</button></div></div>
 
     <script>
+        // DANK SCHULZ & PARTNER UNTERLAGEN
+        const creditorsData = [
+            { id: 1, name: "Schulz & Partner", bank: "Hannoversche Volksbank", iban: "DE21 2519 0001 0782 4955 00", ref: "Mandant 27380", start: "2024-07", months: 40, rate: 50.00, total: 1975.41 },
+            { id: 2, name: "EOS Deutscher Inkasso-Dienst", bank: "Postbank Giro", iban: "DE14 2001 0020 0387 4392 09", ref: "67772587401", start: "2024-06", months: 60, rate: 18.93, total: 1135.56 },
+            { id: 3, name: "Hoist Finance AB Niederlassung DE", bank: "Deutsche Bank", iban: "DE45 3507 0030 0324 4001 05", ref: "3944643", start: "2024-06", months: 60, rate: 6.91, total: 414.41 },
+            { id: 4, name: "TARGOBANK AG", bank: "TARGOBANK", iban: "DE86 3002 0900 7108 0500 81", ref: "7108050081 3321990828", start: "2024-06", months: 60, rate: 351.02, total: 21061.20 },
+            { id: 5, name: "Novum Bank Limited", bank: "Novum Bank", iban: "MT55VOCB95 0170 0727 2760 0001 92802", ref: "10019296", start: "2024-06", months: 60, rate: 4.30, total: 258.17 },
+            { id: 6, name: "coeo Inkasso GmbH", bank: "Sparkasse Essen", iban: "DE39 3605 0105 0000 2071 59", ref: "1043057527-0", start: "2024-06", months: 60, rate: 0.64, total: 38.25 },
+            { id: 7, name: "coeo Inkasso GmbH", bank: "Sparkasse Essen", iban: "DE39 3605 0105 0000 2071 59", ref: "9762158157-0", start: "2024-06", months: 60, rate: 0.93, total: 56.10 },
+            { id: 8, name: "Alektum GmbH", bank: "UniCredit Bank", iban: "DE17 5032 0191 0031 7849 21", ref: "1631173/1638043", start: "2024-06", months: 60, rate: 9.72, total: 583.20 },
+            { id: 9, name: "SIGMA KREDITBANK AG", bank: "SIGMA KREDITBANK", iban: "DE38 6005 0101 0004 5128 79", ref: "54762133 1100821431 Marc Degele", start: "2024-06", months: 60, rate: 55.80, total: 3348.13 },
+            { id: 10, name: "coeo Inkasso GmbH", bank: "Sparkasse Essen", iban: "DE39 3605 0105 0000 2071 59", ref: "1043060236-0", start: "2024-06", months: 60, rate: 1.17, total: 70.14 },
+            { id: 11, name: "coeo Inkasso GmbH", bank: "Sparkasse Essen", iban: "DE39 3605 0105 0000 2071 59", ref: "9762168599-0", start: "2024-06", months: 60, rate: 0.58, total: 34.97 },
+            { id: 12, name: "coeo Inkasso GmbH", bank: "Sparkasse Essen", iban: "DE39 3605 0105 0000 2071 59", ref: "9916782721-0", start: "2024-06", months: 60, rate: 3.68, total: 220.60 }
+        ];
+
         let rawEntries = null;
         try { rawEntries = JSON.parse(localStorage.getItem('finanz_entries_local')); } catch(e) { rawEntries = null; }
 
@@ -568,23 +665,19 @@
             });
         }
         if (Object.keys(entries).length === 0) {
-            entries = { "2026-12": { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 200, giroPuffer: 20, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] } };
+            entries = { "2026-12": { gehalt: 2300, bargeldEinnahme: 0, items: [], pausedItems: [], bargeld: 0, taschengeld: 200, giroPuffer: 40, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] } };
         }
 
         let goals = null;
         try { goals = JSON.parse(localStorage.getItem('finanz_goals_local')); } catch(e) { goals = null; }
         if (!goals || !Array.isArray(goals)) {
             goals = [
-                { id: "sparen", name: "Sparen", target: 10000, manualOffset: 0, capAtTarget: false },
                 { id: "notfall", name: "Notfallkonto", target: 6000, manualOffset: 0, capAtTarget: false },
-                { id: "giro_puffer", name: "Girokonto-Puffer", target: 500, fixedMonthly: 20, manualOffset: 0, type: "giro_puffer", capAtTarget: false },
+                { id: "giro_puffer", name: "Girokonto-Puffer", target: 500, fixedMonthly: 40, manualOffset: 0, type: "giro_puffer", capAtTarget: false },
                 { id: "kassette", name: "Bargeld-Kassette", target: 1000, manualCurrent: 0, capAtTarget: false }
             ];
         } else {
-            if (!goals.some(g => g.id === 'sparen' || g.name.toLowerCase() === 'sparen')) {
-                goals.unshift({ id: "sparen", name: "Sparen", target: 10000, manualOffset: 0, capAtTarget: false });
-            }
-            goals.forEach(g => { if (!['notfall', 'freizeit', 'kassette', 'sparen'].includes(g.id)) { if (g.fixedMonthly === undefined) g.fixedMonthly = 0; } });
+            goals.forEach(g => { if (!['notfall', 'freizeit', 'kassette'].includes(g.id)) { if (g.fixedMonthly === undefined) g.fixedMonthly = 0; } });
         }
 
         let transfersList = [];
@@ -623,7 +716,51 @@
             updateCloudStatusLabel();
             updateSubKontoDropdowns();
             updateHaushaltSavingsDropdown();
+            renderSchuldenView();
         });
+
+        function renderSchuldenView() {
+            const now = new Date();
+            const curY = now.getFullYear();
+            const curM = now.getMonth() + 1; // 1-12
+
+            let totalComp = 0;
+            let totalPaid = 0;
+            const tbody = document.getElementById('debtCreditorsTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+
+            creditorsData.forEach(c => {
+                totalComp += c.total;
+                const [sY, sM] = c.start.split('-').map(Number);
+                let monthsPassed = (curY - sY) * 12 + (curM - sM) + 1;
+                if(monthsPassed < 0) monthsPassed = 0;
+                if(monthsPassed > c.months) monthsPassed = c.months;
+
+                const paid = Math.min(c.total, monthsPassed * c.rate);
+                const remaining = Math.max(0, c.total - paid);
+                totalPaid += paid;
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${c.id}</strong></td>
+                        <td>${c.name}<br><span style="font-size:0.65rem; color:var(--text-sub);">${c.bank}</span></td>
+                        <td style="font-size:0.65rem; font-family:monospace;">${c.iban}<br>Ref: ${c.ref}</td>
+                        <td><strong>${c.rate.toFixed(2)} €</strong></td>
+                        <td>${c.total.toFixed(2)} €</td>
+                        <td class="val-purple">${remaining.toFixed(2)} €</td>
+                    </tr>
+                `;
+            });
+
+            const remainingTotal = Math.max(0, totalComp - totalPaid);
+            const pct = Math.min(100, (totalPaid / totalComp) * 100);
+
+            document.getElementById('debtProgressPct').innerText = pct.toFixed(1) + '%';
+            document.getElementById('debtProgressBar').style.width = pct.toFixed(1) + '%';
+            document.getElementById('debtPaidTotal').innerText = totalPaid.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+            document.getElementById('debtRemainingTotal').innerText = remainingTotal.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+        }
 
         function toggleAutoUrlaubFields() {
             const isChecked = document.getElementById('zielAutoUrlaubCheckbox').checked;
@@ -747,7 +884,7 @@
                         if(remoteData.activeUrlaubGoalId) activeUrlaubGoalId = remoteData.activeUrlaubGoalId;
                         if(remoteData.cashBreakdown) cashBreakdown = remoteData.cashBreakdown;
                         if(remoteData.haushaltItems) haushaltItems = remoteData.haushaltItems;
-                        saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns();
+                        saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView();
                         if (!isSilent) alert('Aus Cloud geladen! 📥');
                     }
                 }
@@ -779,7 +916,7 @@
                 pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
                 bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
                 taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200,
-                giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 20,
+                giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 40,
                 splitNotfall: 0,
                 splitMode: 'percent',
                 booked: document.getElementById('gehaltBookedInput').checked,
@@ -805,7 +942,7 @@
                         if(p.goals) goals = p.goals; if(p.transfersList) transfersList = p.transfersList;
                         if(p.urlaubeList) urlaubeList = p.urlaubeList; if(p.activeUrlaubGoalId) activeUrlaubGoalId = p.activeUrlaubGoalId;
                         if(p.cashBreakdown) cashBreakdown = p.cashBreakdown; if(p.haushaltItems) haushaltItems = p.haushaltItems;
-                        saveLocally(); alert('Backup geladen! ✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns();
+                        saveLocally(); alert('Backup geladen! ✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView();
                     } catch (err) { alert('Fehler: ' + err.message); }
                 };
             }
@@ -881,6 +1018,7 @@
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active'); btnEl.classList.add('active');
             if(viewId === 'haushalt-view') renderHaushaltView();
+            if(viewId === 'schulden-view') renderSchuldenView();
             if(viewId === 'jahres-view') renderJahresView();
             if(viewId === 'urlaub-view') renderUrlaubView();
             if(viewId === 'ziele-view') { renderGoals(); updateSubKontoDropdowns(); }
@@ -899,10 +1037,10 @@
                 entries[m].items = items;
                 if (entries[m].gehalt === undefined) entries[m].gehalt = 2300;
                 if (entries[m].taschengeld === undefined) entries[m].taschengeld = 200;
-                if (entries[m].giroPuffer === undefined) entries[m].giroPuffer = 20;
+                if (entries[m].giroPuffer === undefined) entries[m].giroPuffer = 40;
                 return entries[m];
             }
-            return { gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], bargeld: 0, taschengeld: 200, giroPuffer: 20, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] };
+            return { gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], bargeld: 0, taschengeld: 200, giroPuffer: 40, splitNotfall: 0, splitMode: 'percent', booked: false, extraTransfers: [] };
         }
 
         function loadMonthData() {
@@ -912,7 +1050,7 @@
             document.getElementById('bargeldEinnahmeInput').value = item.bargeldEinnahme || '';
             document.getElementById('bargeldInput').value = item.bargeld || 0;
             document.getElementById('taschengeldInput').value = item.taschengeld ?? 200;
-            document.getElementById('giroPufferInput').value = item.giroPuffer ?? 20;
+            document.getElementById('giroPufferInput').value = item.giroPuffer ?? 40;
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView(); populateManualDistributeDropdown();
@@ -1059,16 +1197,15 @@
         }
 
         function calculateValuesFor(item) {
-            if(!item) return { netto: 0, einkaufsGeld: 0, giroPuffer: 20, notfallSparen: 0, ueberschuss: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
+            if(!item) return { netto: 0, einkaufsGeld: 0, giroPuffer: 40, notfallSparen: 0, ueberschuss: 0, freizeitSparen: 0, bargeldSparen: 0, gesamtSparen: 0 };
             const fix = getTotalFixForMonthData(item), g = (parseFloat(item.gehalt) || 2300) + (parseFloat(item.bargeldEinnahme) || 0);
             const netto = g - fix;
             
             const einkaufsGeld = parseFloat(item.taschengeld ?? 200) || 0;
-            const giroPuffer = parseFloat(item.giroPuffer ?? 20) || 0;
+            const giroPuffer = parseFloat(item.giroPuffer ?? 40) || 0;
             
             const afterAbzuege = Math.max(0, netto - einkaufsGeld - giroPuffer);
 
-            // Das Restgeld steht für automatische Sparziel-Verteilung und Notfall-Ansparen bereit
             const notfall = afterAbzuege;
             const bargeld = parseFloat(item.bargeld) || 0;
             
@@ -1087,7 +1224,7 @@
         function liveCalc() {
             const m = getSelectedMonthKey(), monthData = entries[m] || {};
             const isBooked = document.getElementById('gehaltBookedInput').checked;
-            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 20, splitNotfall: 0, splitMode: 'percent', booked: isBooked };
+            const item = { gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, items: currentMonthItems, pausedItems: currentMonthPausedItems, bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 40, splitNotfall: 0, splitMode: 'percent', booked: isBooked };
             const calc = calculateValuesFor(item);
             
             document.getElementById('displayMonth').innerText = m;
@@ -1095,12 +1232,16 @@
             document.getElementById('resEinkaufspufferKpi').innerText = calc.einkaufsGeld.toFixed(2) + ' €';
             document.getElementById('resGiroPufferDisplay').innerText = '-' + calc.giroPuffer.toFixed(2) + ' €';
             
+            let extraNotfall = 0; 
+            (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall' || goals.find(g=>g.id===tr.targetId)?.type === 'notfall_sub') extraNotfall += tr.amount; });
+            
+            document.getElementById('resNotfallAbzug').innerText = '-' + (calc.notfallSparen + (isBooked ? extraNotfall : 0)).toFixed(2) + ' €';
+            
             const container = document.getElementById('sparzieleBreakdownContainer'); container.innerHTML = '';
             let totalDeductions = 0;
             
-            // Feste Sparziel-Daueraufträge abziehen
             goals.forEach(g => {
-                if(g.id === 'notfall' || g.id === 'sparen' || g.type === 'giro_puffer') return;
+                if(g.id === 'notfall' || g.type === 'giro_puffer') return;
                 let share = isBooked ? getActiveDeductionsForGoal(g, m) : 0;
                 let extraShare = 0;
                 let extraId = null;
@@ -1110,7 +1251,7 @@
                         extraId = tr.id;
                     } 
                 });
-
+                
                 if (extraShare > 0 && isBooked) {
                     totalDeductions += extraShare;
                     container.innerHTML += `<div class="stat-row sub-row"><span>⚡ ${g.name} (Extra <button class="storno-btn" onclick="cancelExtraTransfer(${extraId})">Storno</button>)</span><span class="val-red">-${extraShare.toFixed(2)} €</span></div>`;
@@ -1120,32 +1261,14 @@
                 }
             });
 
-            // Sämtliches Restgeld fließt nach allen Abzügen direkt in das Ziel "Sparen"
-            let restGeld = Math.max(0, calc.notfallSparen - totalDeductions);
-            let finalSparenAmount = isBooked ? restGeld : 0;
-            
-            let extraSparen = 0; 
-            (monthData.extraTransfers || []).forEach(tr => { 
-                if (tr.targetId === 'sparen' || goals.find(g=>g.id===tr.targetId)?.name.toLowerCase() === 'sparen') {
-                    extraSparen += tr.amount; 
-                }
-            });
-            
-            let sparenGoalObj = goals.find(g => g.id === 'sparen' || g.name.toLowerCase() === 'sparen');
-            let sparenName = sparenGoalObj ? sparenGoalObj.name : "Sparen";
-            
-            document.getElementById('resNotfallAbzug').innerText = '-' + (finalSparenAmount + (isBooked ? extraSparen : 0)).toFixed(2) + ' €';
-            const notfallLabel = document.getElementById('resNotfallAbzug').previousElementSibling;
-            if(notfallLabel) notfallLabel.innerText = `🐖 ${sparenName} (Gesamtes Restgeld):`;
-
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
             document.getElementById('resSparzieleAbzug').innerText = '-' + totalDeductions.toFixed(2) + ' €';
             
-            const finalGesamtSparen = finalSparenAmount + totalDeductions + calc.bargeldSparen + calc.giroPuffer;
+            const finalGesamtSparen = calc.notfallSparen + totalDeductions + calc.bargeldSparen + calc.giroPuffer;
             document.getElementById('resGesamtSparenKpi').innerText = finalGesamtSparen.toFixed(2) + ' €';
 
             const fixSum = getTotalFixForMonthData(item);
-            const toWithdraw = calc.einkaufsGeld + calc.bargeldSparen + finalSparenAmount + totalDeductions;
+            const toWithdraw = calc.einkaufsGeld + calc.bargeldSparen + calc.notfallSparen + totalDeductions;
             const keepOnGiro = fixSum + calc.giroPuffer;
             document.getElementById('atmCashToWithdrawDisplay').innerText = toWithdraw.toFixed(2) + ' €';
             document.getElementById('giroKeepOnAccountDisplay').innerText = keepOnGiro.toFixed(2) + ' €';
@@ -1186,10 +1309,9 @@
             if(!goal) return 0;
             if(goal.id === 'kassette') return parseFloat(goal.manualCurrent || 0);
             
-            // IST-Stand ist exakt 0,00 € solange gebucht = false!
             let diff = 0; 
             (transfersList || []).forEach(tr => { 
-                if(tr.dateKey <= upto && entries[tr.dateKey]?.booked) { 
+                if(tr.dateKey < upto && entries[tr.dateKey]?.booked) { 
                     if(tr.fromId === goal.id) diff -= tr.amount; 
                     if(tr.toId === goal.id) diff += tr.amount; 
                 } 
@@ -1406,11 +1528,9 @@
             const tableBody = document.getElementById('monthSavingsTableBody'); if(!tableBody) return; tableBody.innerHTML = '';
             let runningNotfall = parseFloat(goals.find(g => g.id === 'notfall')?.manualOffset || 0), runningFreizeit = 0, runningKassette = parseFloat(goals.find(g => g.id === 'kassette')?.manualCurrent || 0);
             
-            let allGoalsRunning = {};
+            let subKontenRunning = {};
             goals.forEach(g => {
-                if(g.id !== 'notfall' && g.id !== 'kassette') {
-                    allGoalsRunning[g.id] = parseFloat(g.manualOffset || g.manualCurrent || 0);
-                }
+                if(g.type === 'notfall_sub' || g.type === 'giro_puffer') subKontenRunning[g.id] = parseFloat(g.manualOffset || g.manualCurrent || 0);
             });
 
             let base = getSelectedMonthKey(), allM = new Set(); let t = base; 
@@ -1422,103 +1542,34 @@
                 let extraN = 0; 
                 (item.extraTransfers || []).forEach(tr => { 
                     if (tr.targetId === 'notfall') extraN += tr.amount; 
-                    else if (allGoalsRunning[tr.targetId] !== undefined) allGoalsRunning[tr.targetId] += tr.amount;
+                    else if (subKontenRunning[tr.targetId] !== undefined) subKontenRunning[tr.targetId] += tr.amount;
                 });
 
                 runningNotfall += calc.notfallSparen + extraN; 
                 runningKassette += calc.bargeldSparen;
 
                 goals.forEach(g => {
-                    if(g.id !== 'notfall' && g.id !== 'kassette' && allGoalsRunning[g.id] !== undefined) {
+                    if((g.type === 'notfall_sub' || g.type === 'giro_puffer') && subKontenRunning[g.id] !== undefined) {
                         let scheduled = getActiveDeductionsForGoal(g, k);
-                        allGoalsRunning[g.id] += scheduled;
+                        subKontenRunning[g.id] += scheduled;
                     }
                 });
 
-                const total = runningNotfall + runningKassette + Object.values(allGoalsRunning).reduce((a,b)=>a+b, 0); 
+                const total = runningNotfall + runningKassette + Object.values(subKontenRunning).reduce((a,b)=>a+b, 0); 
                 netWorth.push({ month: k, stand: total, booked: item.booked });
                 
-                tableBody.innerHTML += `<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'PLAN 🔮'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} € (Geplant)</td><td>${(runningNotfall + Object.values(allGoalsRunning).reduce((a,b)=>a+b,0)).toFixed(2)} €</td><td>0,00 €</td><td>${total.toFixed(2)} €</td></tr>`;
+                tableBody.innerHTML += `<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'PLAN 🔮'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} € (Geplant)</td><td>${(runningNotfall + Object.values(subKontenRunning).reduce((a,b)=>a+b,0)).toFixed(2)} €</td><td>0,00 €</td><td>${total.toFixed(2)} €</td></tr>`;
             });
             renderNetWorthChart(netWorth); renderGoals(); updateSubKontoDropdowns();
         }
 
         function renderNetWorthChart(data) {
-            const container = document.getElementById('netWorthChartContainer'); 
-            if(!container) return; 
-            container.innerHTML = '';
-
-            if(!data || data.length === 0) return;
-
-            const maxVal = Math.max(...data.map(d => d.stand), 1);
-            const minVal = Math.min(...data.map(d => d.stand), 0);
-            const range = (maxVal - minVal) || 1;
-
-            const height = 140;
-            const width = 320;
-            const padding = 20;
-
-            const points = data.map((d, idx) => {
-                const x = padding + (idx / Math.max(1, data.length - 1)) * (width - 2 * padding);
-                const y = height - padding - ((d.stand - minVal) / range) * (height - 2 * padding);
-                return { x, y, data: d };
-            });
-
-            let pathD = `M ${points[0].x} ${points[0].y}`;
-            for (let i = 1; i < points.length; i++) {
-                pathD += ` L ${points[i].x} ${points[i].y}`;
-            }
-
-            const areaD = `${pathD} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
-
-            let svgHtml = `
-                <div style="position:relative; width:100%; overflow-x:auto;">
-                    <svg viewBox="0 0 ${width} ${height}" style="width:100%; height:auto; display:block;">
-                        <defs>
-                            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stop-color="#10b981" stop-opacity="0.35"/>
-                                <stop offset="100%" stop-color="#10b981" stop-opacity="0.0"/>
-                            </linearGradient>
-                        </defs>
-                        <!-- Gitterlinien -->
-                        <line x1="${padding}" y1="${padding}" x2="${width - padding}" y2="${padding}" stroke="#e2e8f0" stroke-dasharray="2" />
-                        <line x1="${padding}" y1="${height/2}" x2="${width - padding}" y2="${height/2}" stroke="#e2e8f0" stroke-dasharray="2" />
-                        <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#cbd5e1" />
-
-                        <!-- Verlaufsfläche -->
-                        <path d="${areaD}" fill="url(#chartGradient)" />
-                        <!-- Kurvenlinie -->
-                        <path d="${pathD}" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-            `;
-
-            const selectedM = getSelectedMonthKey();
-            points.forEach(p => {
-                const isSelected = p.data.month === selectedM;
-                const dotColor = isSelected ? '#0284c7' : (p.data.booked ? '#10b981' : '#f59e0b');
-                const radius = isSelected ? '6' : '4';
-
-                svgHtml += `
-                    <circle cx="${p.x}" cy="${p.y}" r="${radius}" fill="${dotColor}" stroke="#ffffff" stroke-width="2" />
-                `;
-            });
-
-            svgHtml += `</svg></div>`;
-
-            // Horizontale Monatskarten / Legend-Chips
-            let legendHtml = `<div style="display:flex; gap:6px; overflow-x:auto; padding-top:10px; scrollbar-width:none;">`;
+            const container = document.getElementById('netWorthChartContainer'); if(!container) return; container.innerHTML = '';
+            const max = Math.max(...data.map(d=>d.stand), 1);
             data.forEach(d => {
-                const isSelected = d.month === selectedM;
-                legendHtml += `
-                    <div onclick="syncMonthInput('${d.month}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);" 
-                         style="flex: 0 0 auto; background: ${isSelected ? '#e0f2fe' : '#ffffff'}; border: 1px solid ${isSelected ? '#0284c7' : '#e2e8f0'}; border-radius: 8px; padding: 5px 8px; text-align: center; cursor: pointer;">
-                        <div style="font-size:0.65rem; color:var(--text-sub); font-weight:bold;">${d.month} ${d.booked ? '✅' : '🔮'}</div>
-                        <div style="font-size:0.75rem; font-weight:800; color:${isSelected ? '#0284c7' : 'var(--accent-green)'};">${d.stand.toFixed(0)} €</div>
-                    </div>
-                `;
+                const pct = (d.stand / max) * 100;
+                container.innerHTML += `<div class="chart-bar-row"><div class="chart-line"><span>${d.month} ${d.booked?'✅':'(Geplant)'}</span><span class="val-highlight">${d.stand.toFixed(2)} €</span></div><div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div></div>`;
             });
-            legendHtml += `</div>`;
-
-            container.innerHTML = svgHtml + legendHtml;
         }
 
         function renderJahresView() {
@@ -1576,8 +1627,6 @@
             document.getElementById('uTargetBudgetDisplay').innerText = getSavedAmountForGoal(goal).toFixed(2) + ' € (Aktuell)';
             document.getElementById('uPlannedBudgetDisplay').innerText = target.toFixed(2) + ' € (Ziel)';
             
-            document.getElementById('uStartDateInput').value = u.startDate || '';
-            document.getElementById('uEndDateInput').value = u.endDate || '';
             document.getElementById('uFixHotel').value = u.fixHotel || 0; 
             document.getElementById('uFixKurtaxe').value = u.fixKurtaxe || 0;
             document.getElementById('uFixSupermarkt').value = u.fixSupermarkt || 0; 
@@ -1663,8 +1712,6 @@
 
         function saveUrlaubConfigDynamic() {
             const u = getActiveUrlaub(); if(!u) return;
-            u.startDate = document.getElementById('uStartDateInput').value || '';
-            u.endDate = document.getElementById('uEndDateInput').value || '';
             u.fixHotel = parseFloat(document.getElementById('uFixHotel').value) || 0;
             u.fixKurtaxe = parseFloat(document.getElementById('uFixKurtaxe').value) || 0;
             u.fixSupermarkt = parseFloat(document.getElementById('uFixSupermarkt').value) || 0;
