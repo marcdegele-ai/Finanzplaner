@@ -140,6 +140,23 @@
         .calc-btn.op { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
         .calc-btn.eq { background: var(--accent); color: #fff; }
         .calc-btn.ac { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+
+        /* Style for editable debt inputs */
+        .debt-input {
+            width: 80px;
+            padding: 4px;
+            font-size: 0.75rem;
+            text-align: right;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: #ffffff;
+            font-weight: bold;
+            color: var(--accent-purple);
+        }
+        .debt-input:focus {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -411,21 +428,24 @@
 
             <!-- GLÄUBIGER DETAIL TABELLE -->
             <div class="card">
-                <div class="card-title">📋 Übersicht aller 12 Gläubiger & Raten</div>
+                <div class="card-title">
+                    <span>📋 Übersichten & Manuelle Anpassung</span>
+                    <button class="btn-secondary" style="font-size:0.65rem; padding:3px 6px;" onclick="resetDebtOverrides()">Reset</button>
+                </div>
+                <div style="font-size:0.7rem; color:var(--text-sub); margin-bottom:8px;">Du kannst die offene Restsumme direkt in den Tabellenfeldern manuell überschreiben.</div>
                 <div class="table-wrapper">
                     <table class="month-table">
                         <thead>
                             <tr>
                                 <th>Nr.</th>
-                                <th>Empfänger / Gläubiger</th>
-                                <th>IBAN / Aktenzeichen</th>
-                                <th>Rate (€/Mo)</th>
-                                <th>Gesamt (€)</th>
-                                <th>Offen (€)</th>
+                                <th>Gläubiger</th>
+                                <th>Rate (€)</th>
+                                <th>Vergleich (€)</th>
+                                <th>Offen (€) [Edit]</th>
                             </tr>
                         </thead>
                         <tbody id="debtCreditorsTableBody">
-                            <!-- Wird dynamisch per JS befüllt -->
+                            <!-- Dynamisch befüllt -->
                         </tbody>
                     </table>
                 </div>
@@ -655,6 +675,9 @@
             { id: 12, name: "coeo Inkasso GmbH", bank: "Sparkasse Essen", iban: "DE39 3605 0105 0000 2071 59", ref: "9916782721-0", start: "2024-06", months: 60, rate: 3.68, total: 220.60 }
         ];
 
+        let debtOverrides = {};
+        try { debtOverrides = JSON.parse(localStorage.getItem('finanz_debt_overrides_local')) || {}; } catch(e) {}
+
         let rawEntries = null;
         try { rawEntries = JSON.parse(localStorage.getItem('finanz_entries_local')); } catch(e) { rawEntries = null; }
 
@@ -737,18 +760,22 @@
                 if(monthsPassed < 0) monthsPassed = 0;
                 if(monthsPassed > c.months) monthsPassed = c.months;
 
-                const paid = Math.min(c.total, monthsPassed * c.rate);
-                const remaining = Math.max(0, c.total - paid);
+                const calcRemaining = Math.max(0, c.total - (monthsPassed * c.rate));
+                
+                // Check for manual override
+                const remaining = debtOverrides[c.id] !== undefined ? debtOverrides[c.id] : calcRemaining;
+                const paid = Math.max(0, c.total - remaining);
                 totalPaid += paid;
 
                 tbody.innerHTML += `
                     <tr>
                         <td><strong>${c.id}</strong></td>
                         <td>${c.name}<br><span style="font-size:0.65rem; color:var(--text-sub);">${c.bank}</span></td>
-                        <td style="font-size:0.65rem; font-family:monospace;">${c.iban}<br>Ref: ${c.ref}</td>
                         <td><strong>${c.rate.toFixed(2)} €</strong></td>
                         <td>${c.total.toFixed(2)} €</td>
-                        <td class="val-purple">${remaining.toFixed(2)} €</td>
+                        <td>
+                            <input type="number" class="debt-input" value="${remaining.toFixed(2)}" step="0.01" onchange="updateDebtOverride(${c.id}, this.value)">
+                        </td>
                     </tr>
                 `;
             });
@@ -760,6 +787,25 @@
             document.getElementById('debtProgressBar').style.width = pct.toFixed(1) + '%';
             document.getElementById('debtPaidTotal').innerText = totalPaid.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
             document.getElementById('debtRemainingTotal').innerText = remainingTotal.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+        }
+
+        function updateDebtOverride(id, val) {
+            const num = parseFloat(val);
+            if(!isNaN(num) && num >= 0) {
+                debtOverrides[id] = num;
+            } else {
+                delete debtOverrides[id];
+            }
+            saveLocally();
+            renderSchuldenView();
+        }
+
+        function resetDebtOverrides() {
+            if(confirm('Möchtest du alle manuellen Schulden-Anpassungen zurücksetzen?')) {
+                debtOverrides = {};
+                saveLocally();
+                renderSchuldenView();
+            }
         }
 
         function toggleAutoUrlaubFields() {
@@ -838,6 +884,7 @@
                 localStorage.setItem('finanz_active_urlaub_goal_local', activeUrlaubGoalId || '');
                 localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
                 localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
+                localStorage.setItem('finanz_debt_overrides_local', JSON.stringify(debtOverrides));
                 setTimestampNow();
             } catch(e) {}
             if (cloudConfig.url) {
@@ -858,7 +905,7 @@
 
         async function syncWithCloudNow(isBackground = false) {
             if (!cloudConfig.url) { if (!isBackground) openCloudModal(); return; }
-            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, lastUpdated: new Date().toISOString() };
+            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, lastUpdated: new Date().toISOString() };
             try {
                 let headers = { "Content-Type": "application/json" };
                 if (cloudConfig.key) { headers["X-Master-Key"] = cloudConfig.key; headers["X-Access-Key"] = cloudConfig.key; }
@@ -884,6 +931,7 @@
                         if(remoteData.activeUrlaubGoalId) activeUrlaubGoalId = remoteData.activeUrlaubGoalId;
                         if(remoteData.cashBreakdown) cashBreakdown = remoteData.cashBreakdown;
                         if(remoteData.haushaltItems) haushaltItems = remoteData.haushaltItems;
+                        if(remoteData.debtOverrides) debtOverrides = remoteData.debtOverrides;
                         saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView();
                         if (!isSilent) alert('Aus Cloud geladen! 📥');
                     }
@@ -926,7 +974,7 @@
         }
 
         function exportBackupJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems }, null, 2));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides }, null, 2));
             const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `Finanzplan_Backup.json`);
             document.body.appendChild(dl); dl.click(); dl.remove();
         }
@@ -942,6 +990,7 @@
                         if(p.goals) goals = p.goals; if(p.transfersList) transfersList = p.transfersList;
                         if(p.urlaubeList) urlaubeList = p.urlaubeList; if(p.activeUrlaubGoalId) activeUrlaubGoalId = p.activeUrlaubGoalId;
                         if(p.cashBreakdown) cashBreakdown = p.cashBreakdown; if(p.haushaltItems) haushaltItems = p.haushaltItems;
+                        if(p.debtOverrides) debtOverrides = p.debtOverrides;
                         saveLocally(); alert('Backup geladen! ✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView();
                     } catch (err) { alert('Fehler: ' + err.message); }
                 };
