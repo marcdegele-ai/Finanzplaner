@@ -18,8 +18,8 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Nutzen des stabilen Endpunkts ohne 'models/' Präfix in der URL
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Absolut stabiler Endpunkt mit korrekter Modell- und URL-Struktur
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -43,14 +43,24 @@ export default async function handler(req, res) {
       })
     });
 
-    const data = await apiResponse.json();
-    
-    if (!apiResponse.ok) {
-      throw new Error(data.error?.message || 'Gemini API Fehler');
+    const rawText = await apiResponse.text();
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      return res.status(500).json({ error: 'API-Antwort kein JSON: ' + rawText.substring(0, 80) });
     }
 
-    const responseText = data.candidates[0].content.parts[0].text.trim();
-    const cleanedText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    if (!apiResponse.ok) {
+      return res.status(500).json({ error: data.error?.message || 'Unbekannter Gemini API Fehler' });
+    }
+
+    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!candidateText) {
+      return res.status(500).json({ error: 'Kein Text in der Gemini-Antwort' });
+    }
+
+    const cleanedText = candidateText.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
     const jsonResult = JSON.parse(cleanedText);
 
     return res.status(200).json(jsonResult);
