@@ -141,7 +141,6 @@
         .calc-btn.eq { background: var(--accent); color: #fff; }
         .calc-btn.ac { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
 
-        /* Style for editable debt inputs */
         .debt-input {
             width: 80px;
             padding: 4px;
@@ -157,6 +156,11 @@
             border-color: var(--accent-purple);
             box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
         }
+
+        /* Malle Radar Styles */
+        .malle-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+        .malle-link-btn { text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; background: #fff; border: 1.5px solid var(--border); padding: 8px; border-radius: 10px; color: var(--text-main); font-size: 0.75rem; font-weight: 700; transition: all 0.2s ease; }
+        .malle-link-btn:hover { border-color: var(--accent-orange); background: #fffbeb; }
     </style>
 </head>
 <body>
@@ -512,7 +516,6 @@
                 <select id="urlaubSelectSwitch" onchange="switchActiveUrlaub(this.value)" style="font-weight: bold; color: var(--accent); background: #fff;"></select>
             </div>
             
-            <!-- NEU: Manuelle Datumsanpassung für den Urlaubsplaner -->
             <div class="card">
                 <div class="card-title"><span>📅 Urlaubszeitraum manuell anpassen</span></div>
                 <div class="grid">
@@ -524,6 +527,31 @@
                         <label>Enddatum</label>
                         <input type="date" id="urlaubManualEndDate" onchange="saveUrlaubDatesManual()">
                     </div>
+                </div>
+            </div>
+
+            <!-- NEU: MALLE PARTY RADAR & LIVE LINE-UP SUCHE -->
+            <div class="card" style="border: 2px solid #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);">
+                <div class="card-title" style="color: #b45309;">
+                    <span>🌴 Malle-Party-Radar & Line-up</span>
+                    <span class="badge" style="background:#fef3c7; color:#b45309;">Live-Info 🍻</span>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px;">
+                    Finde tagesaktuell heraus, welcher Künstler (Peter Wackel, Julian Sommer, Ikke Hüftgold & Co.) wann im Bierkönig oder Megapark auftritt:
+                </div>
+                <div class="malle-btn-grid">
+                    <a href="https://www.google.com/search?q=Bierkönig+Mallorca+Programm+heute" target="_blank" class="malle-link-btn">
+                        <span>🍺 Bierkönig Heute</span>
+                    </a>
+                    <a href="https://www.google.com/search?q=Megapark+Mallorca+Programm+heute" target="_blank" class="malle-link-btn">
+                        <span>🔴 Megapark Heute</span>
+                    </a>
+                    <a href="https://www.google.com/search?q=Malle+Radar+Auftritte+Playa+de+Palma" target="_blank" class="malle-link-btn">
+                        <span>📡 Malle-Radar</span>
+                    </a>
+                    <a href="https://www.google.com/search?q=Peter+Wackel+Auftritte+Mallorca" target="_blank" class="malle-link-btn">
+                        <span>🎤 Peter Wackel</span>
+                    </a>
                 </div>
             </div>
 
@@ -1692,7 +1720,6 @@
             document.getElementById('uTargetBudgetDisplay').innerText = getSavedAmountForGoal(goal).toFixed(2) + ' € (Aktuell)';
             document.getElementById('uPlannedBudgetDisplay').innerText = target.toFixed(2) + ' € (Ziel)';
             
-            // Setzen der manuellen Datumsfelder im UI
             document.getElementById('urlaubManualStartDate').value = u.startDate || '';
             document.getElementById('urlaubManualEndDate').value = u.endDate || '';
 
@@ -1767,7 +1794,6 @@
             }
         }
 
-        // NEU: Funktion zum manuellen Aktualisieren und Speichern der Urlaubsdaten
         function saveUrlaubDatesManual() {
             const u = getActiveUrlaub(); if(!u) return;
             u.startDate = document.getElementById('urlaubManualStartDate').value;
