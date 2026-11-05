@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).js on({ error: 'GEMINI_API_KEY fehlt in Vercel' });
+      return res.status(200).json({ error: 'FEHLER: GEMINI_API_KEY fehlt in Vercel' });
     }
 
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
@@ -43,22 +43,22 @@ export default async function handler(req, res) {
     });
 
     const rawText = await apiResponse.text();
-
-    // Wir geben den rohen Text direkt als Fehler aus, falls die API einen Fehler sendet
+    
+    // Wenn Google einen Fehler meldet, geben wir ihn als JSON zurück, damit er direkt in der App steht
     if (!apiResponse.ok) {
-      return res.status(500).json({ error: 'API Raw Fehler: ' + rawText.substring(0, 150) });
+      return res.status(200).json({ error: 'Google API: ' + rawText.substring(0, 100) });
     }
 
     let data;
     try {
       data = JSON.parse(rawText);
     } catch (e) {
-      return res.status(500).json({ error: 'Kein JSON von Google: ' + rawText.substring(0, 150) });
+      return res.status(200).json({ error: 'JSON Parse Fehler' });
     }
 
     const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!candidateText) {
-      return res.status(500).json({ error: 'Kein Kandidat in Google-Antwort: ' + rawText.substring(0, 100) });
+      return res.status(200).json({ error: 'Kein Text in Gemini-Antwort' });
     }
 
     const cleanedText = candidateText.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
@@ -66,6 +66,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json(jsonResult);
   } catch (error) {
-    return res.status(500).json({ error: 'Catch Fehler: ' + error.message });
+    return res.status(200).json({ error: 'Code-Fehler: ' + error.message });
   }
 }
