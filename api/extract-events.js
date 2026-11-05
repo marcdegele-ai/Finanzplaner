@@ -18,8 +18,8 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Wir nutzen hier den direkten generativen Endpunkt für Gemini 1.5 Flash
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Wir nutzen hier den exakten, von Google für v1 empfohlenen Endpunkt
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
                 }
               },
               {
-                text: 'Analysiere diesen Screenshot. Extrahiere den Namen des Künstlers oder Events sowie die Uhrzeit. Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit"}'
+                text: 'Analysiere diesen Screenshot. Extrahiere den Namen des Künstlers und die Uhrzeit. Antworte AUSSCHLIESSLICH als JSON ohne Markdown: {"name": "Künstler", "time": "Uhrzeit"}'
               }
             ]
           }
@@ -44,21 +44,20 @@ export default async function handler(req, res) {
     });
 
     const rawText = await apiResponse.text();
-    
-    if (!apiResponse.ok) {
-      return res.status(500).json({ error: 'Google API Fehler: ' + rawText.substring(0, 150) });
-    }
-
     let data;
     try {
       data = JSON.parse(rawText);
     } catch (e) {
-      return res.status(500).json({ error: 'Antwort konnte nicht als JSON gelesen werden' });
+      return res.status(500).json({ error: 'Google API Antwort ungültig.' });
+    }
+
+    if (!apiResponse.ok) {
+      return res.status(500).json({ error: data.error?.message || 'API Fehler aufgetreten.' });
     }
 
     const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!candidateText) {
-      return res.status(500).json({ error: 'Kein Text in der Gemini-Antwort' });
+      return res.status(500).json({ error: 'Kein Text in der Antwort.' });
     }
 
     const cleanedText = candidateText.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
@@ -66,6 +65,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json(jsonResult);
   } catch (error) {
-    return res.status(500).json({ error: 'Server Fehler: ' + error.message });
+    return res.status(500).json({ error: error.message });
   }
 }
