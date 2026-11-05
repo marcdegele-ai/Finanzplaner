@@ -18,10 +18,11 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Wir nutzen den absolut stabilen v1 Endpunkt mit dem korrekten Modellpfad
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Nutzen der stabilen v1beta-Schnittstelle mit dem korrekten Endpunkt ohne 'models/' Präfix in der URL
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`;
 
-    const apiResponse = await fetch(geminiUrl, {
+    // Wir nutzen hier den OpenAI-kompatiblen Endpoint von Google, der extrem stabil mit Bildern (Vision) via fetch funktioniert
+    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -29,10 +30,13 @@ export default async function handler(req, res) {
           {
             parts: [
               {
-                inlineData: { mimeType: mimeType, data: base64Data }
+                inlineData: {
+                  mimeType: mimeType,
+                  data: base64Data
+                }
               },
               {
-                text: 'Analysiere diesen Screenshot. Extrahiere den Namen des Künstlers/Events sowie die Uhrzeit. Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit"}'
+                text: 'Analysiere diesen Screenshot. Extrahiere den Namen des Künstlers oder Events sowie die Uhrzeit. Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit"}'
               }
             ]
           }
@@ -41,21 +45,21 @@ export default async function handler(req, res) {
     });
 
     const rawText = await apiResponse.text();
-
-    // Abfangen, falls Google kein JSON (z.B. HTML-Fehlerseite) liefert
-    if (!rawText.startsWith('{') && !rawText.startsWith('[')) {
-      return res.status(500).json({ error: 'Google API Fehler (Kein JSON erhalten)' });
+    
+    if (!apiResponse.ok) {
+      return res.status(500).json({ error: 'Google API Fehler: ' + rawText.substring(0, 120) });
     }
 
-    const data = JSON.parse(rawText);
-
-    if (!apiResponse.ok) {
-      return res.status(500).json({ error: data.error?.message || 'Gemini API Fehler' });
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      return res.status(500).json({ error: 'Antwort konnte nicht als JSON gelesen werden' });
     }
 
     const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!candidateText) {
-      return res.status(500).json({ error: 'Kein Text in Gemini-Antwort' });
+      return res.status(500).json({ error: 'Kein Text in der Gemini-Antwort' });
     }
 
     const cleanedText = candidateText.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
@@ -63,6 +67,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json(jsonResult);
   } catch (error) {
-    return res.status(500).json({ error: 'Fehler: ' + error.message });
+    return res.status(500).json({ error: 'Server Fehler: ' + error.message });
   }
 }
