@@ -11,14 +11,13 @@ export default async function handler(req, res) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY ist nicht konfiguriert' });
+      return res.status(500).json({ error: 'GEMINI_API_KEY fehlt in Vercel' });
     }
 
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Absolut direkter Endpunkt mit gemini-1.5-flash
     const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
@@ -44,20 +43,22 @@ export default async function handler(req, res) {
     });
 
     const rawText = await apiResponse.text();
+
+    // Wir geben den rohen Text direkt als Fehler aus, falls die API einen Fehler sendet
+    if (!apiResponse.ok) {
+      return res.status(500).json({ error: 'API Raw Fehler: ' + rawText.substring(0, 150) });
+    }
+
     let data;
     try {
       data = JSON.parse(rawText);
     } catch (e) {
-      return res.status(500).json({ error: 'API-Antwort kein JSON: ' + rawText.substring(0, 80) });
-    }
-
-    if (!apiResponse.ok) {
-      return res.status(500).json({ error: data.error?.message || 'Gemini API Fehler' });
+      return res.status(500).json({ error: 'Kein JSON von Google: ' + rawText.substring(0, 150) });
     }
 
     const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!candidateText) {
-      return res.status(500).json({ error: 'Kein Text in der Gemini-Antwort' });
+      return res.status(500).json({ error: 'Kein Kandidat in Google-Antwort: ' + rawText.substring(0, 100) });
     }
 
     const cleanedText = candidateText.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
@@ -65,6 +66,6 @@ export default async function handler(req, res) {
 
     return res.status(200).json(jsonResult);
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: 'Catch Fehler: ' + error.message });
   }
 }
