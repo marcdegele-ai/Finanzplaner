@@ -157,10 +157,12 @@
             box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
         }
 
-        /* Malle Radar Styles */
+        /* Malle Radar & Facebook Live Styles */
         .malle-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
-        .malle-link-btn { text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; background: #fff; border: 1.5px solid var(--border); padding: 8px; border-radius: 10px; color: var(--text-main); font-size: 0.75rem; font-weight: 700; transition: all 0.2s ease; }
+        .malle-link-btn { text-decoration: none; border: none; display: flex; align-items: center; justify-content: center; gap: 5px; background: #fff; border: 1.5px solid var(--border); padding: 8px; border-radius: 10px; color: var(--text-main); font-size: 0.75rem; font-weight: 700; transition: all 0.2s ease; cursor: pointer; }
         .malle-link-btn:hover { border-color: var(--accent-orange); background: #fffbeb; }
+        .malle-link-btn.fb { background: #1877f2; color: #fff; border-color: #1877f2; }
+        .malle-link-btn.fb:hover { background: #166fe5; }
     </style>
 </head>
 <body>
@@ -530,28 +532,43 @@
                 </div>
             </div>
 
-            <!-- NEU: MALLE PARTY RADAR & LIVE LINE-UP SUCHE -->
+            <!-- MALLE PARTY RADAR, FACEBOOK SUCHE & SAUBERE EVENT-LISTE -->
             <div class="card" style="border: 2px solid #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);">
                 <div class="card-title" style="color: #b45309;">
                     <span>🌴 Malle-Party-Radar & Line-up</span>
-                    <span class="badge" style="background:#fef3c7; color:#b45309;">Live-Info 🍻</span>
+                    <span class="badge" style="background:#fef3c7; color:#b45309;">Blitz-Suche 🍻</span>
                 </div>
                 <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px;">
-                    Finde tagesaktuell heraus, welcher Künstler (Peter Wackel, Julian Sommer, Ikke Hüftgold & Co.) wann im Bierkönig oder Megapark auftritt:
+                    Durchsuche per Knopfdruck die aktuellsten Facebook-Posts, Google-News und Line-ups nach den heutigen Auftritten:
                 </div>
+                
                 <div class="malle-btn-grid">
-                    <a href="https://www.google.com/search?q=Bierkönig+Mallorca+Programm+heute" target="_blank" class="malle-link-btn">
-                        <span>🍺 Bierkönig Heute</span>
-                    </a>
-                    <a href="https://www.google.com/search?q=Megapark+Mallorca+Programm+heute" target="_blank" class="malle-link-btn">
-                        <span>🔴 Megapark Heute</span>
-                    </a>
-                    <a href="https://www.google.com/search?q=Malle+Radar+Auftritte+Playa+de+Palma" target="_blank" class="malle-link-btn">
-                        <span>📡 Malle-Radar</span>
-                    </a>
-                    <a href="https://www.google.com/search?q=Peter+Wackel+Auftritte+Mallorca" target="_blank" class="malle-link-btn">
-                        <span>🎤 Peter Wackel</span>
-                    </a>
+                    <button onclick="triggerMalleSearch('Bierkönig')" class="malle-link-btn fb">
+                        <span>💙 Bierkönig FB-Suche</span>
+                    </button>
+                    <button onclick="triggerMalleSearch('Megapark')" class="malle-link-btn fb">
+                        <span>🔴 Megapark FB-Suche</span>
+                    </button>
+                    <button onclick="triggerMalleSearch('Google')" class="malle-link-btn">
+                        <span>🔍 Google-Live-Radar</span>
+                    </button>
+                    <button onclick="triggerMalleSearch('MalleRadar')" class="malle-link-btn">
+                        <span>📡 Malle-Anfang Radar</span>
+                    </button>
+                </div>
+
+                <!-- MANUELLE LISTE FÜR DIE GEFUNDENEN ACTS -->
+                <div style="margin-top: 14px; border-top: 1px dashed #fcd34d; padding-top: 10px;">
+                    <span style="font-size: 0.78rem; font-weight: bold; color: #b45309; display:block; margin-bottom: 6px;">📋 Tagesaktuelles Line-up (Meine Liste)</span>
+                    <div class="grid" style="gap: 5px;">
+                        <input type="text" id="malleArtistInput" placeholder="Künstler (z.B. Peter Wackel)" style="background:#fff; font-size:0.75rem;">
+                        <input type="text" id="malleLocInput" placeholder="Ort (z.B. Bierkönig)" style="background:#fff; font-size:0.75rem;">
+                        <input type="time" id="malleTimeInput" style="background:#fff; font-size:0.75rem;">
+                        <button class="btn-secondary" style="background:#f59e0b; color:#fff; font-weight:bold; border:none;" onclick="addMalleAct()">Hinzufügen ➕</button>
+                    </div>
+                    <div id="malleActsList" class="history-list" style="margin-top: 8px;">
+                        <!-- Dynamisch geladen -->
+                    </div>
                 </div>
             </div>
 
@@ -760,6 +777,9 @@
         let haushaltItems = [];
         try { haushaltItems = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || []; } catch(e) { haushaltItems = []; }
 
+        let malleActs = [];
+        try { malleActs = JSON.parse(localStorage.getItem('finanz_malle_acts_local')) || []; } catch(e) { malleActs = []; }
+
         let cloudConfig = { url: '', key: '' };
         try { const cc = JSON.parse(localStorage.getItem('finanz_cloud_config')); if(cc) cloudConfig = cc; } catch(e) {}
 
@@ -784,7 +804,63 @@
             updateSubKontoDropdowns();
             updateHaushaltSavingsDropdown();
             renderSchuldenView();
+            renderMalleActsList();
         });
+
+        /* MALLE SEARCH & LIVE ACTS SPEICHERUNG */
+        function triggerMalleSearch(type) {
+            let url = "";
+            if (type === 'Bierkönig') {
+                url = "https://www.facebook.com/search/posts/?q=Bierkönig%20Programm%20heute";
+            } else if (type === 'Megapark') {
+                url = "https://www.facebook.com/search/posts/?q=Megapark%20Programm%20heute";
+            } else if (type === 'Google') {
+                url = "https://www.google.com/search?q=Bierkönig+Megapark+Programm+heute+Auftritte";
+            } else if (type === 'MalleRadar') {
+                url = "https://www.google.com/search?q=Malle+Radar+Auftritte+Playa+de+Palma";
+            }
+            if (url) window.open(url, '_blank');
+        }
+
+        function addMalleAct() {
+            const artist = document.getElementById('malleArtistInput').value.trim();
+            const loc = document.getElementById('malleLocInput').value.trim();
+            const time = document.getElementById('malleTimeInput').value;
+            if(!artist) return alert('Bitte mindestens den Namen des Künstlers eingeben!');
+            malleActs.push({ id: Date.now(), artist, loc: loc || 'Bierkönig/Megapark', time: time || '--:--' });
+            document.getElementById('malleArtistInput').value = '';
+            document.getElementById('malleLocInput').value = '';
+            document.getElementById('malleTimeInput').value = '';
+            saveLocally();
+            renderMalleActsList();
+        }
+
+        function deleteMalleAct(id) {
+            malleActs = malleActs.filter(a => a.id !== id);
+            saveLocally();
+            renderMalleActsList();
+        }
+
+        function renderMalleActsList() {
+            const list = document.getElementById('malleActsList');
+            if(!list) return;
+            list.innerHTML = '';
+            if(malleActs.length === 0) {
+                list.innerHTML = '<div style="font-size:0.7rem; color:var(--text-sub); text-align:center; padding:6px;">Noch keine Acts eingetragen. Führe die Suche aus und trage deine Favoriten ein!</div>';
+                return;
+            }
+            malleActs.forEach(act => {
+                list.innerHTML += `
+                    <div class="history-item" style="background:#fffbeb; border-color:#fde68a;">
+                        <div>
+                            <strong style="font-size:0.83rem; color:#b45309;">🎤 ${act.artist}</strong>
+                            <div class="history-sub">📍 ${act.loc} | 🕒 ${act.time} Uhr</div>
+                        </div>
+                        <span style="color:#ef4444; cursor:pointer; font-size:0.85rem;" onclick="deleteMalleAct(${act.id})">🗑️</span>
+                    </div>
+                `;
+            });
+        }
 
         function renderSchuldenView() {
             const now = new Date();
@@ -806,7 +882,6 @@
 
                 const calcRemaining = Math.max(0, c.total - (monthsPassed * c.rate));
                 
-                // Check for manual override
                 const remaining = debtOverrides[c.id] !== undefined ? debtOverrides[c.id] : calcRemaining;
                 const paid = Math.max(0, c.total - remaining);
                 totalPaid += paid;
@@ -929,6 +1004,7 @@
                 localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
                 localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
                 localStorage.setItem('finanz_debt_overrides_local', JSON.stringify(debtOverrides));
+                localStorage.setItem('finanz_malle_acts_local', JSON.stringify(malleActs));
                 setTimestampNow();
             } catch(e) {}
             if (cloudConfig.url) {
@@ -949,7 +1025,7 @@
 
         async function syncWithCloudNow(isBackground = false) {
             if (!cloudConfig.url) { if (!isBackground) openCloudModal(); return; }
-            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, lastUpdated: new Date().toISOString() };
+            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, malleActs, lastUpdated: new Date().toISOString() };
             try {
                 let headers = { "Content-Type": "application/json" };
                 if (cloudConfig.key) { headers["X-Master-Key"] = cloudConfig.key; headers["X-Access-Key"] = cloudConfig.key; }
@@ -976,7 +1052,8 @@
                         if(remoteData.cashBreakdown) cashBreakdown = remoteData.cashBreakdown;
                         if(remoteData.haushaltItems) haushaltItems = remoteData.haushaltItems;
                         if(remoteData.debtOverrides) debtOverrides = remoteData.debtOverrides;
-                        saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView();
+                        if(remoteData.malleActs) malleActs = remoteData.malleActs;
+                        saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView(); renderMalleActsList();
                         if (!isSilent) alert('Aus Cloud geladen! 📥');
                     }
                 }
@@ -1018,7 +1095,7 @@
         }
 
         function exportBackupJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides }, null, 2));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, malleActs }, null, 2));
             const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `Finanzplan_Backup.json`);
             document.body.appendChild(dl); dl.click(); dl.remove();
         }
@@ -1034,8 +1111,8 @@
                         if(p.goals) goals = p.goals; if(p.transfersList) transfersList = p.transfersList;
                         if(p.urlaubeList) urlaubeList = p.urlaubeList; if(p.activeUrlaubGoalId) activeUrlaubGoalId = p.activeUrlaubGoalId;
                         if(p.cashBreakdown) cashBreakdown = p.cashBreakdown; if(p.haushaltItems) haushaltItems = p.haushaltItems;
-                        if(p.debtOverrides) debtOverrides = p.debtOverrides;
-                        saveLocally(); alert('Backup geladen! ✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView();
+                        if(p.debtOverrides) debtOverrides = p.debtOverrides; if(p.malleActs) malleActs = p.malleActs;
+                        saveLocally(); alert('Backup geladen! ✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView(); renderMalleActsList();
                     } catch (err) { alert('Fehler: ' + err.message); }
                 };
             }
@@ -1792,6 +1869,7 @@
                 `;
                 tbody.appendChild(tr);
             }
+            renderMalleActsList();
         }
 
         function saveUrlaubDatesManual() {
