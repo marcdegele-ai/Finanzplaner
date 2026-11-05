@@ -11,12 +11,58 @@ export default async function handler(req, res) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY fehlt in Vercel Environment Variables.' });
+      return res.status(500).json({ error: 'GEMINI_API_KEY fehlt in Vercel.' });
     }
 
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Korrekter Endpunkt ohne -latest Suffix
-    const geminiUrl = `https
+    // Wir nutzen den absolut stabilen v1 Endpunkt mit dem korrekten Modellpfad
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const apiResponse = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                inlineData: { mimeType: mimeType, data: base64Data }
+              },
+              {
+                text: 'Analysiere diesen Screenshot. Extrahiere den Namen des Künstlers/Events sowie die Uhrzeit. Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit"}'
+              }
+            ]
+          }
+        ]
+      })
+    });
+
+    const rawText = await apiResponse.text();
+
+    // Abfangen, falls Google kein JSON (z.B. HTML-Fehlerseite) liefert
+    if (!rawText.startsWith('{') && !rawText.startsWith('[')) {
+      return res.status(500).json({ error: 'Google API Fehler (Kein JSON erhalten)' });
+    }
+
+    const data = JSON.parse(rawText);
+
+    if (!apiResponse.ok) {
+      return res.status(500).json({ error: data.error?.message || 'Gemini API Fehler' });
+    }
+
+    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!candidateText) {
+      return res.status(500).json({ error: 'Kein Text in Gemini-Antwort' });
+    }
+
+    const cleanedText = candidateText.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    const jsonResult = JSON.parse(cleanedText);
+
+    return res.status(200).json(jsonResult);
+  } catch (error) {
+    return res.status(500).json({ error: 'Fehler: ' + error.message });
+  }
+}
