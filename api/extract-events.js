@@ -18,7 +18,7 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Absolut stabiler Endpunkt mit korrekter Modell- und URL-Struktur
+    // Nutzen des aktuellen, stabilen Endpunkts für die Text- und Bildanalyse
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
@@ -52,7 +52,7 @@ export default async function handler(req, res) {
     }
 
     if (!apiResponse.ok) {
-      return res.status(500).json({ error: data.error?.message || 'Unbekannter Gemini API Fehler' });
+      return res.status(500).json({ error: data.error?.message || 'Gemini API Fehler' });
     }
 
     const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
