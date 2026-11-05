@@ -1,5 +1,6 @@
 {
   "name": "finanzplaner",
   "version": "1.0.0",
-  "dependencies": {}
-}
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0"
+  }
