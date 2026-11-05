@@ -18,11 +18,10 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Nutzen der stabilen v1beta-Schnittstelle mit dem korrekten Endpunkt ohne 'models/' Präfix in der URL
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`;
+    // Absolut sauberer v1beta-Endpunkt für generateContent
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-    // Wir nutzen hier den OpenAI-kompatiblen Endpoint von Google, der extrem stabil mit Bildern (Vision) via fetch funktioniert
-    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -47,7 +46,7 @@ export default async function handler(req, res) {
     const rawText = await apiResponse.text();
     
     if (!apiResponse.ok) {
-      return res.status(500).json({ error: 'Google API Fehler: ' + rawText.substring(0, 120) });
+      return res.status(500).json({ error: 'Google API Fehler: ' + rawText.substring(0, 150) });
     }
 
     let data;
