@@ -1,3 +1,5 @@
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -14,53 +16,25 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'GEMINI_API_KEY ist nicht konfiguriert' });
     }
 
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Nutzen des aktuellen, stabilen Endpunkts für die Text- und Bildanalyse
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const result = await model.generateContent([
+      {
+        inlineData: {
+          data: base64Data,
+          mimeType: mimeType
+        }
+      },
+      'Analysiere diesen Screenshot. Extrahiere den Namen des Künstlers/Events sowie die Uhrzeit. Antworte AUSSCHLIESSLICH als JSON ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit"}'
+    ]);
 
-    const apiResponse = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: base64Data
-                }
-              },
-              {
-                text: 'Analysiere diesen Screenshot eines Event- oder Line-up-Plans. Extrahiere den Namen des Künstlers/Events sowie die Uhrzeit. Antworte AUSSCHLIESSLICH im folgenden JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit"}'
-              }
-            ]
-          }
-        ]
-      })
-    });
-
-    const rawText = await apiResponse.text();
-    let data;
-    try {
-      data = JSON.parse(rawText);
-    } catch (e) {
-      return res.status(500).json({ error: 'API-Antwort kein JSON: ' + rawText.substring(0, 80) });
-    }
-
-    if (!apiResponse.ok) {
-      return res.status(500).json({ error: data.error?.message || 'Gemini API Fehler' });
-    }
-
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!candidateText) {
-      return res.status(500).json({ error: 'Kein Text in der Gemini-Antwort' });
-    }
-
-    const cleanedText = candidateText.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
+    const responseText = result.response.text().trim();
+    const cleanedText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
     const jsonResult = JSON.parse(cleanedText);
 
     return res.status(200).json(jsonResult);
