@@ -532,7 +532,7 @@
                 </div>
             </div>
 
-            <!-- MALLE PARTY RADAR, FACEBOOK SUCHE & SAUBERE EVENT-LISTE -->
+            <!-- MALLE PARTY RADAR, FACEBOOK SUCHE & SCREENSHOT EVENT ERFASSUNG -->
             <div class="card" style="border: 2px solid #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);">
                 <div class="card-title" style="color: #b45309;">
                     <span>🌴 Malle-Party-Radar & Line-up</span>
@@ -555,6 +555,14 @@
                     <button onclick="triggerMalleSearch('MalleRadar')" class="malle-link-btn">
                         <span>📡 Malle-Anfang Radar</span>
                     </button>
+                </div>
+
+                <!-- NEU: SCREENSHOT EVENT ERFASSUNG (GEMINI API) -->
+                <div style="margin-top: 14px; border-top: 1px dashed #fcd34d; padding-top: 10px;">
+                    <span style="font-size: 0.78rem; font-weight: bold; color: #b45309; display:block; margin-bottom: 4px;">📸 Event per Screenshot auslesen (Gemini)</span>
+                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Wähle einen Screenshot aus Line-up oder Plan aus – Name und Uhrzeit werden automatisch erkannt!</div>
+                    <input type="file" id="screenshotInput" accept="image/*" onchange="uploadScreenshot(event)" style="background:#fff; font-size:0.75rem;">
+                    <div id="eventErgebnis" style="margin-top: 8px; font-weight: bold; font-size: 0.75rem;"></div>
                 </div>
 
                 <!-- MANUELLE LISTE FÜR DIE GEFUNDENEN ACTS -->
@@ -720,7 +728,7 @@
     <div id="receiptModal" class="modal"><div class="modal-content" style="text-align:center;"><div class="card-title">Beleg</div><img id="receiptModalImg" src="" style="max-width:100%; border-radius:8px; margin-bottom:8px;"><button class="btn-add" onclick="closeReceiptModal()">Schließen</button></div></div>
 
     <script>
-        // DANK SCHULZ & PARTNER UNTERLAGEN
+        // DANK SCHULZ & PARTNER UNDERLAGEN
         const creditorsData = [
             { id: 1, name: "Schulz & Partner", bank: "Hannoversche Volksbank", iban: "DE21 2519 0001 0782 4955 00", ref: "Mandant 27380", start: "2024-07", months: 40, rate: 50.00, total: 1975.41 },
             { id: 2, name: "EOS Deutscher Inkasso-Dienst", bank: "Postbank Giro", iban: "DE14 2001 0020 0387 4392 09", ref: "67772587401", start: "2024-06", months: 60, rate: 18.93, total: 1135.56 },
@@ -846,7 +854,7 @@
             if(!list) return;
             list.innerHTML = '';
             if(malleActs.length === 0) {
-                list.innerHTML = '<div style="font-size:0.7rem; color:var(--text-sub); text-align:center; padding:6px;">Noch keine Acts eingetragen. Führe die Suche aus und trage deine Favoriten ein!</div>';
+                list.innerHTML = '<div style="font-size:0.7rem; color:var(--text-sub); text-align:center; padding:6px;">Noch keine Acts eingetragen. Führe die Suche aus oder nutze den Screenshot-Upload!</div>';
                 return;
             }
             malleActs.forEach(act => {
@@ -860,6 +868,48 @@
                     </div>
                 `;
             });
+        }
+
+        /* NEU: SCREENSHOT UPLOAD & GEMINI API ANBINDUNG */
+        async function uploadScreenshot(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const ergebnisDiv = document.getElementById('eventErgebnis');
+            ergebnisDiv.className = "";
+            ergebnisDiv.innerText = "Screenshot wird von Gemini analysiert...";
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64Image = e.target.result;
+
+                try {
+                    const response = await fetch('/api/extract-events', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ imageBase64: base64Image })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        ergebnisDiv.style.color = "#166534";
+                        ergebnisDiv.innerHTML = `✅ Erkannt:<br><b>Event:</b> ${data.name}<br><b>Uhrzeit:</b> ${data.time}`;
+                        
+                        // Direkt als Malle Act in die Liste übernehmen
+                        malleActs.push({ id: Date.now(), artist: data.name, loc: 'Bierkönig/Megapark', time: data.time || '--:--' });
+                        saveLocally();
+                        renderMalleActsList();
+                    } else {
+                        ergebnisDiv.style.color = "#dc2626";
+                        ergebnisDiv.innerText = "❌ Fehler: " + (data.error || "Unbekannter Fehler");
+                    }
+                } catch (err) {
+                    ergebnisDiv.style.color = "#dc2626";
+                    ergebnisDiv.innerText = "❌ Verbindungsfehler zur API.";
+                }
+            };
+            reader.readAsDataURL(file);
         }
 
         function renderSchuldenView() {
