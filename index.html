@@ -870,13 +870,14 @@
             });
         }
 
-        /* NEU: SCREENSHOT UPLOAD & GEMINI API ANBINDUNG */
+        /* SCREENSHOT UPLOAD & GEMINI API ANBINDUNG (Mit verbessertem Error Handling) */
         async function uploadScreenshot(event) {
             const file = event.target.files[0];
             if (!file) return;
 
             const ergebnisDiv = document.getElementById('eventErgebnis');
             ergebnisDiv.className = "";
+            ergebnisDiv.style.color = "var(--text-sub)";
             ergebnisDiv.innerText = "Screenshot wird von Gemini analysiert...";
 
             const reader = new FileReader();
@@ -892,21 +893,22 @@
 
                     const data = await response.json();
 
-                    if (response.ok) {
-                        ergebnisDiv.style.color = "#166534";
-                        ergebnisDiv.innerHTML = `✅ Erkannt:<br><b>Event:</b> ${data.name}<br><b>Uhrzeit:</b> ${data.time}`;
-                        
-                        // Direkt als Malle Act in die Liste übernehmen
-                        malleActs.push({ id: Date.now(), artist: data.name, loc: 'Bierkönig/Megapark', time: data.time || '--:--' });
-                        saveLocally();
-                        renderMalleActsList();
-                    } else {
-                        ergebnisDiv.style.color = "#dc2626";
-                        ergebnisDiv.innerText = "❌ Fehler: " + (data.error || "Unbekannter Fehler");
+                    // Wenn der Server einen Fehler im JSON zurückgibt oder der Status fehlerhaft ist
+                    if (!response.ok || data.error) {
+                        throw new Error(data.error || 'Verbindungsfehler zur API.');
                     }
+
+                    ergebnisDiv.style.color = "#166534";
+                    ergebnisDiv.innerHTML = `✅ Erkannt:<br><b>Event:</b> ${data.name}<br><b>Uhrzeit:</b> ${data.time}`;
+                    
+                    // Direkt als Malle Act in die Liste übernehmen
+                    malleActs.push({ id: Date.now(), artist: data.name, loc: 'Bierkönig/Megapark', time: data.time || '--:--' });
+                    saveLocally();
+                    renderMalleActsList();
+
                 } catch (err) {
                     ergebnisDiv.style.color = "#dc2626";
-                    ergebnisDiv.innerText = "❌ Verbindungsfehler zur API.";
+                    ergebnisDiv.innerText = "❌ " + err.message;
                 }
             };
             reader.readAsDataURL(file);
@@ -1567,7 +1569,7 @@
             const goal = goals.find(g => g.id === goalId); if(!goal) return { total: 0, projectedTotal: 0, breakdown: [] };
             
             let endLimitStr = goal.endDate ? goal.endDate : null;
-            const u = urlaubeList.find(item => item.goalId === goalId);
+            const u = urlaubeList.find(item => item.goalId === goal.id);
             if (u && u.endDate) endLimitStr = u.endDate.slice(0, 7);
 
             let base = getSelectedMonthKey();
