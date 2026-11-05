@@ -1,5 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -16,26 +14,41 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'GEMINI_API_KEY ist nicht konfiguriert' });
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    const imagePart = {
-      inlineData: {
-        data: base64Data,
-        mimeType: mimeType
-      },
-    };
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-    const result = await model.generateContent([
-      imagePart,
-      'Analysiere diesen Screenshot eines Event- oder Line-up-Plans. Extrahiere den Namen des Künstlers/Events sowie die Uhrzeit. Antworte AUSSCHLIESSLICH im folgenden JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit"}'
-    ]);
+    const apiResponse = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                inlineData: {
+                  mimeType: mimeType,
+                  data: base64Data
+                }
+              },
+              {
+                text: 'Analysiere diesen Screenshot eines Event- oder Line-up-Plans. Extrahiere den Namen des Künstlers/Events sowie die Uhrzeit. Antworte AUSSCHLIESSLICH im folgenden JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit"}'
+              }
+            ]
+          }
+        ]
+      })
+    });
 
-    const responseText = result.response.text().trim();
+    const data = await apiResponse.json();
+    
+    if (!apiResponse.ok) {
+      throw new Error(data.error?.message || 'Gemini API Fehler');
+    }
+
+    const responseText = data.candidates[0].content.parts[0].text.trim();
     const cleanedText = responseText.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
     const jsonResult = JSON.parse(cleanedText);
 
