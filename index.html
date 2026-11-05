@@ -511,6 +511,22 @@
                 <div class="card-title" style="color: var(--accent);"><span>✈️ Urlaubs-Planer wählen</span></div>
                 <select id="urlaubSelectSwitch" onchange="switchActiveUrlaub(this.value)" style="font-weight: bold; color: var(--accent); background: #fff;"></select>
             </div>
+            
+            <!-- NEU: Manuelle Datumsanpassung für den Urlaubsplaner -->
+            <div class="card">
+                <div class="card-title"><span>📅 Urlaubszeitraum manuell anpassen</span></div>
+                <div class="grid">
+                    <div class="input-group">
+                        <label>Startdatum</label>
+                        <input type="date" id="urlaubManualStartDate" onchange="saveUrlaubDatesManual()">
+                    </div>
+                    <div class="input-group">
+                        <label>Enddatum</label>
+                        <input type="date" id="urlaubManualEndDate" onchange="saveUrlaubDatesManual()">
+                    </div>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-title"><span id="uHeaderTitle">✈️ Urlaub</span></div>
                 <div class="stat-row"><span>Ziel:</span><strong id="uTargetGoalName" style="color:var(--accent);">-</strong></div>
@@ -1676,6 +1692,10 @@
             document.getElementById('uTargetBudgetDisplay').innerText = getSavedAmountForGoal(goal).toFixed(2) + ' € (Aktuell)';
             document.getElementById('uPlannedBudgetDisplay').innerText = target.toFixed(2) + ' € (Ziel)';
             
+            // Setzen der manuellen Datumsfelder im UI
+            document.getElementById('urlaubManualStartDate').value = u.startDate || '';
+            document.getElementById('urlaubManualEndDate').value = u.endDate || '';
+
             document.getElementById('uFixHotel').value = u.fixHotel || 0; 
             document.getElementById('uFixKurtaxe').value = u.fixKurtaxe || 0;
             document.getElementById('uFixSupermarkt').value = u.fixSupermarkt || 0; 
@@ -1745,6 +1765,15 @@
                 `;
                 tbody.appendChild(tr);
             }
+        }
+
+        // NEU: Funktion zum manuellen Aktualisieren und Speichern der Urlaubsdaten
+        function saveUrlaubDatesManual() {
+            const u = getActiveUrlaub(); if(!u) return;
+            u.startDate = document.getElementById('urlaubManualStartDate').value;
+            u.endDate = document.getElementById('urlaubManualEndDate').value;
+            saveLocally();
+            renderUrlaubView();
         }
 
         function updateUrlaubBonus(dayIndex, val) {
