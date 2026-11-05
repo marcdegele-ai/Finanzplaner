@@ -11,7 +11,7 @@ export default async function handler(req, res) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY fehlt in Vercel' });
+      return res.status(500).js on({ error: 'GEMINI_API_KEY fehlt in Vercel' });
     }
 
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
