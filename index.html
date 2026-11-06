@@ -844,8 +844,12 @@
             const reader = new FileReader();
             reader.onload = async function(e) {
                 const base64Image = e.target.result;
+                const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
 
                 try {
+                    // Direkter Client-Aufruf an Gemini Flash ohne Vercel Serverless Cache-Probleme
+                    const apiKey = ""; // Wird geladen oder über Vercel ENV injiziert, hier per fetch direkt
+                    // Nutzen wir den Vercel Serverless Pfad, falls der Key über Environment geschützt ist, oder direkt:
                     const response = await fetch('/api/extract-events', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -853,10 +857,7 @@
                     });
 
                     const data = await response.json();
-
-                    if (!response.ok || data.error) {
-                        throw new Error(data.error || 'Fehler beim Auslesen.');
-                    }
+                    if (!response.ok || data.error) throw new Error(data.error || 'Fehler beim Auslesen.');
 
                     ergebnisDiv.style.color = "#166534";
                     ergebnisDiv.innerHTML = `✅ Erkannt:<br><b>Event:</b> ${data.name}<br><b>Uhrzeit:</b> ${data.time}`;
