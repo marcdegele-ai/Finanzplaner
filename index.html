@@ -558,8 +558,8 @@
             <div class="card">
                 <div class="card-title">🎯 Sparziel oder Unterkonto anlegen</div>
                 <div class="grid">
-                    <div class="input-group full"><label>Name</label><input type="text" id="zielName" placeholder="Z.B. Auto, Technik, Puffer..."></div>
-                    <div class="input-group"><label>Zielbetrag (€)</label><input type="number" id="zielBetrag" placeholder="1500" oninput="autoCalculateMonthlyRate()"></div>
+                    <div class="input-group full"><label>Name</label><input type="text" id="zielName" placeholder="Z.B. Auto, Technik, Rücklagen..."></div>
+                    <div class="input-group"><label>Zielbetrag (€) (Opt. / 0 = Endlos)</label><input type="number" id="zielBetrag" placeholder="0 oder 1500" oninput="autoCalculateMonthlyRate()"></div>
                     <div class="input-group"><label>Sparrate (€/Mo)</label><input type="number" id="zielFixedMonthly" placeholder="100"></div>
                     <div class="input-group full"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
                     <div class="input-group full">
@@ -567,7 +567,7 @@
                         <select id="zielTypeSelect">
                             <option value="notfall_sub">🛡️ Notfallkonto-Unterkonto</option>
                             <option value="giro_puffer">🏦 Girokonto-Puffer (Verbleibt auf Giro)</option>
-                            <option value="custom">⚙️ Manuell (Freizeitkonto)</option>
+                            <option value="custom">⚙️ Manuell (Freizeitkonto / Endlos)</option>
                             <option value="notfall">🛡️ Haupt-Notfallkonto</option>
                             <option value="freizeit">🎉 Freizeitkonto</option>
                             <option value="kassette">🪙 Bargeld-Kassette</option>
@@ -631,7 +631,7 @@
     <div id="goalModal" class="modal">
         <div class="modal-content">
             <div class="card-title" id="modalTitle">Ziel-Details</div>
-            <div class="input-group" style="margin-bottom: 6px;"><label>Zielbetrag (€):</label><input type="number" id="modalTargetInput"></div>
+            <div class="input-group" style="margin-bottom: 6px;"><label>Zielbetrag (€) (0 = Endlos):</label><input type="number" id="modalTargetInput"></div>
             <div class="input-group" style="margin-bottom: 6px;"><label>Dauerauftrag (€/Mo):</label><input type="number" id="modalFixedMonthlyInput"></div>
             <div class="input-group" style="margin-bottom: 6px;"><label>End-Monat:</label><input type="month" id="modalEndMonthInput"></div>
             <div class="input-group" style="margin-bottom: 6px;"><label>Stand (Aktuell / Geplant):</label><span><strong id="modalCurrentInputDisplay">0</strong> / <span id="modalPlannedStandDisplay">0</span></span></div>
@@ -1146,10 +1146,11 @@
             if (u && u.endDate && mKey > u.endDate.slice(0, 7)) return 0;
 
             if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
-                if (goal.capAtTarget && goal.target > 0) {
+                const targetVal = parseFloat(goal.target) || 0;
+                if (goal.capAtTarget && targetVal > 0) {
                     const savedBefore = getSavedAmountForGoalUpTo(goal, mKey);
-                    if (savedBefore >= goal.target) return 0;
-                    return Math.min(parseFloat(goal.fixedMonthly), goal.target - savedBefore);
+                    if (savedBefore >= targetVal) return 0;
+                    return Math.min(parseFloat(goal.fixedMonthly), targetVal - savedBefore);
                 }
                 return parseFloat(goal.fixedMonthly);
             }
@@ -1688,7 +1689,7 @@
             document.getElementById('uTargetGoalName').innerText = goal ? goal.name : '-';
             const target = goal ? goal.target : 0; 
             document.getElementById('uTargetBudgetDisplay').innerText = getSavedAmountForGoal(goal).toFixed(2) + ' € (Aktuell)';
-            document.getElementById('uPlannedBudgetDisplay').innerText = target.toFixed(2) + ' € (Ziel)';
+            document.getElementById('uPlannedBudgetDisplay').innerText = target > 0 ? (target.toFixed(2) + ' € (Ziel)') : 'Endlos';
             
             document.getElementById('urlaubManualStartDate').value = u.startDate || '';
             document.getElementById('urlaubManualEndDate').value = u.endDate || '';
@@ -1800,25 +1801,31 @@
             const list = document.getElementById('goalsList'); list.innerHTML = '';
             goals.forEach((g, idx) => {
                 const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey()); 
-                const pct = g.target > 0 ? Math.min(100, (cur / g.target) * 100) : 0;
+                const targetVal = parseFloat(g.target) || 0;
+                const hasTarget = targetVal > 0;
+                const pct = hasTarget ? Math.min(100, (cur / targetVal) * 100) : 0;
                 const data = getGoalData(g.id);
                 const isUrlaub = urlaubeList.some(u => u.goalId === g.id);
-                const isCompleted = pct >= 100;
+                const isCompleted = hasTarget && pct >= 100;
                 const isSub = g.type === 'notfall_sub';
                 const isGiroPuffer = g.type === 'giro_puffer';
 
-                let reachText = "Erreicht! 🎉";
-                if (!isCompleted && g.target > 0 && g.fixedMonthly > 0) {
-                    const remaining = g.target - cur;
-                    const monthsNeeded = Math.ceil(remaining / g.fixedMonthly);
-                    const [curY, curM] = getSelectedMonthKey().split('-').map(Number);
-                    let targetMonth = curM + monthsNeeded;
-                    let targetYear = curY;
-                    while (targetMonth > 12) {
-                        targetMonth -= 12;
-                        targetYear += 1;
+                let reachText = "Endlos-Sparziel ♾️";
+                if (hasTarget) {
+                    if (isCompleted) {
+                        reachText = "Erreicht! 🎉";
+                    } else if (g.fixedMonthly > 0) {
+                        const remaining = targetVal - cur;
+                        const monthsNeeded = Math.ceil(remaining / g.fixedMonthly);
+                        const [curY, curM] = getSelectedMonthKey().split('-').map(Number);
+                        let targetMonth = curM + monthsNeeded;
+                        let targetYear = curY;
+                        while (targetMonth > 12) {
+                            targetMonth -= 12;
+                            targetYear += 1;
+                        }
+                        reachText = `Ziel erreicht: ${String(targetMonth).padStart(2,'0')}/${targetYear}`;
                     }
-                    reachText = `Ziel erreicht: ${String(targetMonth).padStart(2,'0')}/${targetYear}`;
                 }
                 
                 list.innerHTML += `
@@ -1832,17 +1839,18 @@
                                 ${isCompleted ? '<span class="badge" style="background:#fef3c7; color:#d97706; margin-left:4px;">👑 100%</span>' : ''}
                             </div>
                             <div style="display:flex; align-items:center; gap:8px;">
-                                <strong class="${pct < 0 ? 'val-red' : 'val-highlight'}" style="font-size:0.9rem;">${pct.toFixed(1)}%</strong>
+                                <strong class="${pct < 0 ? 'val-red' : 'val-highlight'}" style="font-size:0.9rem;">${hasTarget ? pct.toFixed(1) + '%' : '♾️'}</strong>
                                 <span style="font-size:0.7rem; color:#ef4444; cursor:pointer;" onclick="event.stopPropagation(); deleteGoalDirect(${idx})">Löschen</span>
                             </div>
                         </div>
                         <div class="history-sub" style="display:flex; justify-content:space-between; margin-top:4px; cursor:pointer;" onclick="openModal('${g.id}')">
-                            <span>Stand: <strong>${cur.toFixed(2)} €</strong> / ${g.target.toFixed(2)} €</span>
+                            <span>Stand: <strong>${cur.toFixed(2)} €</strong> ${hasTarget ? ('/ ' + targetVal.toFixed(2) + ' €') : '(Endlos)'}</span>
                             <span style="color:var(--accent); font-weight:700;">Ø ${(g.fixedMonthly||0).toFixed(2)} €/Mo.</span>
                         </div>
+                        ${hasTarget ? `
                         <div class="progress-bar-container" style="cursor:pointer;" onclick="openModal('${g.id}')">
                             <div class="progress-bar-fill" style="width:${Math.max(0, pct)}%;"></div>
-                        </div>
+                        </div>` : ''}
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px; font-size:0.68rem; color:var(--text-sub);">
                             <div style="font-weight:bold; color:var(--accent-green);">${reachText}</div>
                             <div style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="openModal('${g.id}')">Bearbeiten ⚙️</div>
@@ -1857,7 +1865,7 @@
         function openModal(gid) {
             currentModalGoalId = gid; const g = goals.find(x => x.id === gid); if(!g) return;
             document.getElementById('modalTitle').innerText = g.name;
-            document.getElementById('modalTargetInput').value = g.target;
+            document.getElementById('modalTargetInput').value = g.target || '';
             document.getElementById('modalFixedMonthlyInput').value = g.fixedMonthly || '';
             document.getElementById('modalEndMonthInput').value = g.endDate || '';
             
@@ -1886,7 +1894,7 @@
         function closeModal() { document.getElementById('goalModal').classList.remove('active'); }
         function saveModalChanges() {
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
-            g.target = parseFloat(document.getElementById('modalTargetInput').value) || g.target;
+            g.target = parseFloat(document.getElementById('modalTargetInput').value) || 0;
             g.fixedMonthly = parseFloat(document.getElementById('modalFixedMonthlyInput').value) || 0;
             g.endDate = document.getElementById('modalEndMonthInput').value || null;
             const cur = parseFloat(document.getElementById('modalCurrentInput').value);
@@ -1915,8 +1923,9 @@
         }
 
         function saveGoal() {
-            const name = document.getElementById('zielName').value.trim(), target = parseFloat(document.getElementById('zielBetrag').value) || 0;
-            if(!name || target <= 0) return alert('Name und Zielbetrag eingeben!');
+            const name = document.getElementById('zielName').value.trim();
+            if(!name) return alert('Bitte einen Namen eingeben!');
+            const target = parseFloat(document.getElementById('zielBetrag').value) || 0;
             const id = 'goal_' + Date.now(), type = document.getElementById('zielTypeSelect').value;
             goals.push({ id, name, target, type, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), endDate: document.getElementById('zielAutoDivideCheckbox').checked?document.getElementById('zielEndMonthInput').value:null, manualCurrent: parseFloat(document.getElementById('zielStart').value)||0, manualOffset: parseFloat(document.getElementById('zielStart').value)||0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked });
             
@@ -1926,7 +1935,7 @@
             }
 
             saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = '';
-            renderGoals(); renderHistory(); checkUrlaubTabVisibility(); updateSubKontoDropdowns(); alert('Ziel / Unterkonto angelegt! 🎯');
+            renderGoals(); renderHistory(); checkUrlaubTabVisibility(); updateSubKontoDropdowns(); alert('Sparziel / Unterkonto angelegt! 🎯');
         }
     </script>
 </body>
