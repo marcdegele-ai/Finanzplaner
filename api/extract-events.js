@@ -18,8 +18,8 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Hier ist das entscheidende Detail: Ohne das blockierte "models/" im Pfad
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Verwende den offiziellen v1-Endpunkt für das stabile gemini-1.5-flash Modell
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
                 inlineData: { mimeType: mimeType, data: base64Data }
               },
               {
-                text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und erkenne den Veranstaltungsort (z.B. Bierkönig, Megapark oder standardmäßig "Bierkönig"). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
+                text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und den Veranstaltungsort (z.B. Bierkönig, Megapark). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
               }
             ]
           }
@@ -41,15 +41,16 @@ export default async function handler(req, res) {
     });
 
     const rawText = await apiResponse.text();
+    
+    if (!apiResponse.ok) {
+      return res.status(500).json({ error: 'Google API Fehler: ' + rawText });
+    }
+
     let data;
     try {
       data = JSON.parse(rawText);
     } catch (e) {
-      return res.status(500).json({ error: 'Google API Antwort ungültig: ' + rawText });
-    }
-
-    if (!apiResponse.ok) {
-      return res.status(500).json({ error: data.error?.message || 'API Fehler aufgetreten.' });
+      return res.status(500).json({ error: 'Ungültige API-Antwort erhalten.' });
     }
 
     const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
