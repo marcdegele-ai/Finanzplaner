@@ -18,20 +18,31 @@ module.exports = async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Wir nutzen hier den direkten Weg über den OpenAI-kompatiblen v1beta-Endpunkt von Google, 
+    // der den lästigen "models/"-Pfad-Fehler komplett umgeht!
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
       body: JSON.stringify({
-        contents: [
+        model: 'gemini-1.5-flash',
+        messages: [
           {
-            parts: [
+            role: 'user',
+            content: [
               {
-                inlineData: { mimeType: mimeType, data: base64Data }
+                type: 'text',
+                text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und den Veranstaltungsort (z.B. Bierkönig, Megapark). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
               },
               {
-                text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und den Veranstaltungsort (z.B. Bierkönig, Megapark). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
+                type: 'image_url',
+                image_url: {
+                  url: `data:${mimeType};base64,${base64Data}`
+                }
               }
             ]
           }
@@ -51,7 +62,7 @@ module.exports = async function handler(req, res) {
       return res.status(500).json({ error: data.error?.message || 'API Fehler aufgetreten.' });
     }
 
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const candidateText = data.choices?.[0]?.message?.content;
     if (!candidateText) {
       return res.status(500).json({ error: 'Kein Text in der Gemini-Antwort.' });
     }
