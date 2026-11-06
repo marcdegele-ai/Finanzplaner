@@ -55,6 +55,7 @@
         .card { background: var(--card-bg); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
         .card-title { font-size: 0.95rem; font-weight: 800; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
         
+        /* Dashboard KPI Highlights */
         .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
         .kpi-card { background: var(--card-sub); border-radius: 10px; padding: 10px 12px; border: 1px solid var(--border); text-align: center; }
         .kpi-card.full { grid-column: span 2; }
@@ -156,6 +157,7 @@
             box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
         }
 
+        /* Malle Radar & Facebook Live Styles */
         .malle-btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
         .malle-link-btn { text-decoration: none; border: none; display: flex; align-items: center; justify-content: center; gap: 5px; background: #fff; border: 1.5px solid var(--border); padding: 8px; border-radius: 10px; color: var(--text-main); font-size: 0.75rem; font-weight: 700; transition: all 0.2s ease; cursor: pointer; }
         .malle-link-btn:hover { border-color: var(--accent-orange); background: #fffbeb; }
@@ -193,6 +195,8 @@
 
         <!-- TAB 1: AKTUELL (DASHBOARD) -->
         <div id="aktuel-view" class="view-section active">
+            
+            <!-- KPI HIGHLIGHTS -->
             <div class="kpi-grid">
                 <div class="kpi-card" style="background: var(--accent-soft); border-color: #bae6fd;">
                     <div class="kpi-label" style="color: #0369a1;">Netto-Einnahmen</div>
@@ -212,6 +216,7 @@
                 </div>
             </div>
 
+            <!-- ATM & AUSZAHLUNGS-RECHNER -->
             <div class="card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1.5px solid #7dd3fc;">
                 <div class="card-title" style="color:#0369a1; margin-bottom: 6px;">
                     <span>Atm Auszahlungs-Rechner</span>
@@ -230,6 +235,7 @@
                 </div>
             </div>
 
+            <!-- EINGABE FORMULAR -->
             <div class="card">
                 <div class="card-title"><span>Monat konfigurieren (<span id="displayMonth" style="color:var(--accent);">-</span>)</span></div>
                 <div class="grid">
@@ -268,6 +274,7 @@
                 </div>
             </div>
 
+            <!-- AUFSCHLÜSSELUNG -->
             <div class="card">
                 <div class="card-title"><span>📋 Aufschlüsselung & Sparraten</span></div>
                 <div class="stat-row" style="background:#e0f2fe; padding:7px 8px; border-radius:6px; border:1px solid #bae6fd; margin-bottom:6px;">
@@ -306,6 +313,7 @@
                     <input type="month" id="hhMonthInput" min="2026-12" onchange="syncMonthInput(this.value)" style="background:#fff; font-weight:bold; color:var(--accent);">
                 </div>
 
+                <!-- Restgeld aufs Sparkonto überweisen -->
                 <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
                     <span style="font-size: 0.75rem; font-weight: bold; color: #15803d; display:block; margin-bottom: 4px;">🐖 Restgeld / Wochenpuffer aufs Sparkonto</span>
                     <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Nicht benötigtes Budget direkt auf ein Sparziel buchen.</div>
@@ -316,6 +324,7 @@
                     </div>
                 </div>
 
+                <!-- BLITZ-BUCHUNG QUICK ADD -->
                 <div style="background: #fdf4ff; border: 1px solid #f5d0fe; padding: 8px; border-radius: 10px; margin-bottom: 10px;">
                     <span style="font-size: 0.73rem; font-weight: bold; color: #a21caf; display:block; margin-bottom: 4px;">⚡ Blitz-Ausgabe (Unterwegs)</span>
                     <div style="display: flex; gap: 5px;">
@@ -375,6 +384,7 @@
                     <span class="badge" style="background:#dcfce7; color:#15803d; font-size:0.75rem;">Aktiv ✅</span>
                 </div>
                 
+                <!-- PROGRESS BAR -->
                 <div style="margin-bottom: 12px;">
                     <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:bold; margin-bottom:4px;">
                         <span>Tilgungsfortschritt</span>
@@ -422,6 +432,7 @@
                 </div>
             </div>
 
+            <!-- GLÄUBIGER DETAIL TABELLE -->
             <div class="card">
                 <div class="card-title">
                     <span>📋 Übersichten & Manuelle Anpassung</span>
@@ -439,7 +450,9 @@
                                 <th>Offen (€) [Edit]</th>
                             </tr>
                         </thead>
-                        <tbody id="debtCreditorsTableBody"></tbody>
+                        <tbody id="debtCreditorsTableBody">
+                            <!-- Dynamisch befüllt -->
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -519,7 +532,7 @@
                 </div>
             </div>
 
-            <!-- MALLE PARTY RADAR & SCREENSHOT EVENT ERFASSUNG -->
+            <!-- MALLE PARTY RADAR, FACEBOOK SUCHE & SCREENSHOT EVENT ERFASSUNG -->
             <div class="card" style="border: 2px solid #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%);">
                 <div class="card-title" style="color: #b45309;">
                     <span>🌴 Malle-Party-Radar & Line-up</span>
@@ -530,12 +543,21 @@
                 </div>
                 
                 <div class="malle-btn-grid">
-                    <button onclick="triggerMalleSearch('Bierkönig')" class="malle-link-btn fb"><span>💙 Bierkönig FB-Suche</span></button>
-                    <button onclick="triggerMalleSearch('Megapark')" class="malle-link-btn fb"><span>🔴 Megapark FB-Suche</span></button>
-                    <button onclick="triggerMalleSearch('Google')" class="malle-link-btn"><span>🔍 Google-Live-Radar</span></button>
-                    <button onclick="triggerMalleSearch('MalleRadar')" class="malle-link-btn"><span>📡 Malle-Anfang Radar</span></button>
+                    <button onclick="triggerMalleSearch('Bierkönig')" class="malle-link-btn fb">
+                        <span>💙 Bierkönig FB-Suche</span>
+                    </button>
+                    <button onclick="triggerMalleSearch('Megapark')" class="malle-link-btn fb">
+                        <span>🔴 Megapark FB-Suche</span>
+                    </button>
+                    <button onclick="triggerMalleSearch('Google')" class="malle-link-btn">
+                        <span>🔍 Google-Live-Radar</span>
+                    </button>
+                    <button onclick="triggerMalleSearch('MalleRadar')" class="malle-link-btn">
+                        <span>📡 Malle-Anfang Radar</span>
+                    </button>
                 </div>
 
+                <!-- NEU: SCREENSHOT EVENT ERFASSUNG (GEMINI API) -->
                 <div style="margin-top: 14px; border-top: 1px dashed #fcd34d; padding-top: 10px;">
                     <span style="font-size: 0.78rem; font-weight: bold; color: #b45309; display:block; margin-bottom: 4px;">📸 Event per Screenshot auslesen (Gemini)</span>
                     <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Wähle einen Screenshot aus Line-up oder Plan aus – Name und Uhrzeit werden automatisch erkannt!</div>
@@ -543,6 +565,7 @@
                     <div id="eventErgebnis" style="margin-top: 8px; font-weight: bold; font-size: 0.75rem;"></div>
                 </div>
 
+                <!-- MANUELLE LISTE FÜR DIE GEFUNDENEN ACTS -->
                 <div style="margin-top: 14px; border-top: 1px dashed #fcd34d; padding-top: 10px;">
                     <span style="font-size: 0.78rem; font-weight: bold; color: #b45309; display:block; margin-bottom: 6px;">📋 Tagesaktuelles Line-up (Meine Liste)</span>
                     <div class="grid" style="gap: 5px;">
@@ -551,7 +574,9 @@
                         <input type="time" id="malleTimeInput" style="background:#fff; font-size:0.75rem;">
                         <button class="btn-secondary" style="background:#f59e0b; color:#fff; font-weight:bold; border:none;" onclick="addMalleAct()">Hinzufügen ➕</button>
                     </div>
-                    <div id="malleActsList" class="history-list" style="margin-top: 8px;"></div>
+                    <div id="malleActsList" class="history-list" style="margin-top: 8px;">
+                        <!-- Dynamisch geladen -->
+                    </div>
                 </div>
             </div>
 
@@ -603,10 +628,16 @@
                             <option value="kassette">🪙 Bargeld-Kassette</option>
                         </select>
                     </div>
-                    <div class="input-group full"><label class="checkbox-container"><input type="checkbox" id="zielCapAtTargetCheckbox" checked><div><strong>Auto-Stopp bei Erreichen</strong></div></label></div>
-                    <div class="input-group full"><label class="checkbox-container"><input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()"><div><strong>Gleichmäßig bis Endmonat aufteilen</strong></div></label></div>
+                    <div class="input-group full">
+                        <label class="checkbox-container"><input type="checkbox" id="zielCapAtTargetCheckbox" checked><div><strong>Auto-Stopp bei Erreichen</strong></div></label>
+                    </div>
+                    <div class="input-group full">
+                        <label class="checkbox-container"><input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()"><div><strong>Gleichmäßig bis Endmonat aufteilen</strong></div></label>
+                    </div>
                     <div class="input-group full" id="zielEndMonthGroup" style="display:none;"><label>Endmonat</label><input type="month" id="zielEndMonthInput" value="2027-12"></div>
-                    <div class="input-group full"><label class="checkbox-container"><input type="checkbox" id="zielAutoUrlaubCheckbox" onchange="toggleAutoUrlaubFields()"><div><strong>✨ Urlaubs-Planer generieren</strong></div></label></div>
+                    <div class="input-group full">
+                        <label class="checkbox-container"><input type="checkbox" id="zielAutoUrlaubCheckbox" onchange="toggleAutoUrlaubFields()"><div><strong>✨ Urlaubs-Planer generieren</strong></div></label>
+                    </div>
                     <div class="input-group" id="zielStartDateGroup" style="display:none;"><label>Start</label><input type="date" id="zielStartDateInput"></div>
                     <div class="input-group" id="zielEndDateGroup" style="display:none;"><label>Ende</label><input type="date" id="zielEndDateInput"></div>
                 </div>
@@ -697,6 +728,7 @@
     <div id="receiptModal" class="modal"><div class="modal-content" style="text-align:center;"><div class="card-title">Beleg</div><img id="receiptModalImg" src="" style="max-width:100%; border-radius:8px; margin-bottom:8px;"><button class="btn-add" onclick="closeReceiptModal()">Schließen</button></div></div>
 
     <script>
+        // DANK SCHULZ & PARTNER UNDERLAGEN
         const creditorsData = [
             { id: 1, name: "Schulz & Partner", bank: "Hannoversche Volksbank", iban: "DE21 2519 0001 0782 4955 00", ref: "Mandant 27380", start: "2024-07", months: 40, rate: 50.00, total: 1975.41 },
             { id: 2, name: "EOS Deutscher Inkasso-Dienst", bank: "Postbank Giro", iban: "DE14 2001 0020 0387 4392 09", ref: "67772587401", start: "2024-06", months: 60, rate: 18.93, total: 1135.56 },
@@ -783,12 +815,18 @@
             renderMalleActsList();
         });
 
+        /* MALLE SEARCH & LIVE ACTS SPEICHERUNG */
         function triggerMalleSearch(type) {
             let url = "";
-            if (type === 'Bierkönig') url = "https://www.facebook.com/search/posts/?q=Bierkönig%20Programm%20heute";
-            else if (type === 'Megapark') url = "https://www.facebook.com/search/posts/?q=Megapark%20Programm%20heute";
-            else if (type === 'Google') url = "https://www.google.com/search?q=Bierkönig+Megapark+Programm+heute+Auftritte";
-            else if (type === 'MalleRadar') url = "https://www.google.com/search?q=Malle+Radar+Auftritte+Playa+de+Palma";
+            if (type === 'Bierkönig') {
+                url = "https://www.facebook.com/search/posts/?q=Bierkönig%20Programm%20heute";
+            } else if (type === 'Megapark') {
+                url = "https://www.facebook.com/search/posts/?q=Megapark%20Programm%20heute";
+            } else if (type === 'Google') {
+                url = "https://www.google.com/search?q=Bierkönig+Megapark+Programm+heute+Auftritte";
+            } else if (type === 'MalleRadar') {
+                url = "https://www.google.com/search?q=Malle+Radar+Auftritte+Playa+de+Palma";
+            }
             if (url) window.open(url, '_blank');
         }
 
@@ -832,6 +870,7 @@
             });
         }
 
+        /* SCREENSHOT UPLOAD & GEMINI API ANBINDUNG (Mit verbessertem Error Handling) */
         async function uploadScreenshot(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -839,7 +878,7 @@
             const ergebnisDiv = document.getElementById('eventErgebnis');
             ergebnisDiv.className = "";
             ergebnisDiv.style.color = "var(--text-sub)";
-            ergebnisDiv.innerText = "Screenshot wird analysiert (Künstler wird erfasst)...";
+            ergebnisDiv.innerText = "Screenshot wird von Gemini analysiert...";
 
             const reader = new FileReader();
             reader.onload = async function(e) {
@@ -854,23 +893,16 @@
 
                     const data = await response.json();
 
+                    // Wenn der Server einen Fehler im JSON zurückgibt oder der Status fehlerhaft ist
                     if (!response.ok || data.error) {
-                        throw new Error(data.error || 'Fehler beim Auslesen.');
+                        throw new Error(data.error || 'Verbindungsfehler zur API.');
                     }
 
-                    const artistName = data.name || 'Unbekannter Act';
-                    const eventTime = data.time || '--:--';
-
                     ergebnisDiv.style.color = "#166534";
-                    ergebnisDiv.innerHTML = `✅ Erkannt & Erfasst:<br><b>Künstler:</b> ${artistName}<br><b>Uhrzeit:</b> ${eventTime} Uhr`;
+                    ergebnisDiv.innerHTML = `✅ Erkannt:<br><b>Event:</b> ${data.name}<br><b>Uhrzeit:</b> ${data.time}`;
                     
-                    malleActs.push({ 
-                        id: Date.now(), 
-                        artist: artistName, 
-                        loc: 'Bierkönig / Megapark', 
-                        time: eventTime 
-                    });
-                    
+                    // Direkt als Malle Act in die Liste übernehmen
+                    malleActs.push({ id: Date.now(), artist: data.name, loc: 'Bierkönig/Megapark', time: data.time || '--:--' });
                     saveLocally();
                     renderMalleActsList();
 
@@ -885,7 +917,7 @@
         function renderSchuldenView() {
             const now = new Date();
             const curY = now.getFullYear();
-            const curM = now.getMonth() + 1;
+            const curM = now.getMonth() + 1; // 1-12
 
             let totalComp = 0;
             let totalPaid = 0;
@@ -901,6 +933,7 @@
                 if(monthsPassed > c.months) monthsPassed = c.months;
 
                 const calcRemaining = Math.max(0, c.total - (monthsPassed * c.rate));
+                
                 const remaining = debtOverrides[c.id] !== undefined ? debtOverrides[c.id] : calcRemaining;
                 const paid = Math.max(0, c.total - remaining);
                 totalPaid += paid;
@@ -911,7 +944,9 @@
                         <td>${c.name}<br><span style="font-size:0.65rem; color:var(--text-sub);">${c.bank}</span></td>
                         <td><strong>${c.rate.toFixed(2)} €</strong></td>
                         <td>${c.total.toFixed(2)} €</td>
-                        <td><input type="number" class="debt-input" value="${remaining.toFixed(2)}" step="0.01" onchange="updateDebtOverride(${c.id}, this.value)"></td>
+                        <td>
+                            <input type="number" class="debt-input" value="${remaining.toFixed(2)}" step="0.01" onchange="updateDebtOverride(${c.id}, this.value)">
+                        </td>
                     </tr>
                 `;
             });
@@ -927,7 +962,11 @@
 
         function updateDebtOverride(id, val) {
             const num = parseFloat(val);
-            if(!isNaN(num) && num >= 0) debtOverrides[id] = num; else delete debtOverrides[id];
+            if(!isNaN(num) && num >= 0) {
+                debtOverrides[id] = num;
+            } else {
+                delete debtOverrides[id];
+            }
             saveLocally();
             renderSchuldenView();
         }
@@ -1243,7 +1282,9 @@
             const sel = document.getElementById('manualDistributeGoalSelect');
             if(!sel) return;
             sel.innerHTML = '';
-            goals.forEach(g => { sel.add(new Option(g.name, g.id)); });
+            goals.forEach(g => {
+                sel.add(new Option(g.name, g.id));
+            });
         }
 
         function executeManualDistribution() {
@@ -1384,6 +1425,7 @@
             
             const einkaufsGeld = parseFloat(item.taschengeld ?? 200) || 0;
             const giroPuffer = parseFloat(item.giroPuffer ?? 40) || 0;
+            
             const afterAbzuege = Math.max(0, netto - einkaufsGeld - giroPuffer);
 
             const notfall = afterAbzuege;
@@ -1426,7 +1468,10 @@
                 let extraShare = 0;
                 let extraId = null;
                 (monthData.extraTransfers || []).forEach(tr => { 
-                    if (tr.targetId === g.id) { extraShare += tr.amount; extraId = tr.id; } 
+                    if (tr.targetId === g.id) { 
+                        extraShare += tr.amount; 
+                        extraId = tr.id;
+                    } 
                 });
                 
                 if (extraShare > 0 && isBooked) {
@@ -1524,7 +1569,7 @@
             const goal = goals.find(g => g.id === goalId); if(!goal) return { total: 0, projectedTotal: 0, breakdown: [] };
             
             let endLimitStr = goal.endDate ? goal.endDate : null;
-            const u = urlaubeList.find(item => item.goalId === goalId);
+            const u = urlaubeList.find(item => item.goalId === goal.id);
             if (u && u.endDate) endLimitStr = u.endDate.slice(0, 7);
 
             let base = getSelectedMonthKey();
@@ -1534,20 +1579,25 @@
             const currentYear = parseInt(base.split('-')[0]) || 2026;
             const maxPlanningMonth = `${currentYear + 1}-12`;
             
-            while (sim <= maxPlanningMonth) { monthList.push(sim); sim = getNextMonthKey(sim); }
+            while (sim <= maxPlanningMonth) { 
+                monthList.push(sim); 
+                sim = getNextMonthKey(sim); 
+            }
 
             let sum = goal.id === 'kassette' ? parseFloat(goal.manualCurrent || 0) : parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             let proj = sum, breakdown = [];
 
             let fixedRate = 0;
             if (goal.fixedMonthly !== undefined && goal.fixedMonthly !== null) {
-                fixedRate = parseFloat(String(goal.fixedMonthly).replace(',', '.')) || 0;
+                let strVal = String(goal.fixedMonthly).replace(',', '.');
+                fixedRate = parseFloat(strVal) || 0;
             }
             
             monthList.forEach(k => {
                 const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
                 let add = 0;
-                let isTerminated = endLimitStr && k >= endLimitStr;
+                let isTerminated = false;
+                if (endLimitStr && k >= endLimitStr) isTerminated = true;
 
                 if (!isTerminated) {
                     if (goal.id === 'notfall' || goal.type === 'notfall_sub') {
@@ -1619,7 +1669,9 @@
             const sel = document.getElementById('hhSaveTargetSelect');
             if(!sel) return;
             sel.innerHTML = '';
-            goals.forEach(g => { sel.add(new Option(g.name, g.id)); });
+            goals.forEach(g => {
+                sel.add(new Option(g.name, g.id));
+            });
         }
 
         function executeHaushaltSavingsTransfer() {
@@ -1627,7 +1679,9 @@
             const amt = parseFloat(document.getElementById('hhSaveAmountInput').value);
             const m = getSelectedMonthKey();
 
-            if(!targetId || isNaN(amt) || amt <= 0) return alert('Bitte Ziel und einen gültigen Betrag eingeben!');
+            if(!targetId || isNaN(amt) || amt <= 0) {
+                return alert('Bitte Ziel und einen gültigen Betrag eingeben!');
+            }
 
             const targetGoal = goals.find(g => g.id === targetId);
             if(!targetGoal) return;
@@ -1635,7 +1689,12 @@
             if(!entries[m]) entries[m] = getMonthDataOrFallback(m);
             if(!entries[m].extraTransfers) entries[m].extraTransfers = [];
 
-            entries[m].extraTransfers.push({ id: Date.now(), targetId: targetId, targetName: targetGoal.name + " (Haushalt-Puffer)", amount: amt });
+            entries[m].extraTransfers.push({
+                id: Date.now(),
+                targetId: targetId,
+                targetName: targetGoal.name + " (Haushalt-Puffer)",
+                amount: amt
+            });
 
             document.getElementById('hhSaveAmountInput').value = '';
             saveLocally();
@@ -1652,9 +1711,12 @@
             const currentGoal = goals.find(g => g.id === currentModalGoalId);
 
             if (!currentGoal || !stornoMonth || !targetGoalId) return alert('Ungültige Eingabe!');
+
             if (!confirm(`Möchtest du das Ziel "${currentGoal.name}" ab Monat ${stornoMonth} stoppen und die geplanten monatlichen Beträge auf ${goals.find(g=>g.id===targetGoalId)?.name} verschieben?`)) return;
 
-            let monthlyAmt = parseFloat(currentGoal.fixedMonthly) || 45;
+            let monthlyAmt = parseFloat(currentGoal.fixedMonthly) || 0;
+            if (monthlyAmt <= 0) monthlyAmt = 45;
+
             currentGoal.endDate = stornoMonth;
 
             let simMonth = stornoMonth;
@@ -1665,8 +1727,14 @@
                 if (!entries[simMonth].extraTransfers) entries[simMonth].extraTransfers = [];
 
                 if (!entries[simMonth].extraTransfers.some(t => t.targetId === targetGoalId && t.amount === monthlyAmt)) {
-                    entries[simMonth].extraTransfers.push({ id: Date.now() + Math.random(), targetId: targetGoalId, targetName: targetGoalObj ? targetGoalObj.name : 'Ziel', amount: monthlyAmt });
+                    entries[simMonth].extraTransfers.push({
+                        id: Date.now() + Math.random(),
+                        targetId: targetGoalId,
+                        targetName: targetGoalObj ? targetGoalObj.name : 'Ziel',
+                        amount: monthlyAmt
+                    });
                 }
+
                 simMonth = getNextMonthKey(simMonth);
             }
 
@@ -1675,12 +1743,12 @@
             renderHistory();
             loadMonthData();
             closeModal();
-            alert(`Ziel wurde ab Monat ${stornoMonth} gestoppt und die Raten wurden übertragen! 🚀`);
+            alert(`Ziel wurde ab Monat ${stornoMonth} gestoppt und die monatlichen Raten wurden fehlerfrei übertragen! 🚀`);
         }
 
         function renderHistory() {
             const tableBody = document.getElementById('monthSavingsTableBody'); if(!tableBody) return; tableBody.innerHTML = '';
-            let runningNotfall = parseFloat(goals.find(g => g.id === 'notfall')?.manualOffset || 0), runningKassette = parseFloat(goals.find(g => g.id === 'kassette')?.manualCurrent || 0);
+            let runningNotfall = parseFloat(goals.find(g => g.id === 'notfall')?.manualOffset || 0), runningFreizeit = 0, runningKassette = parseFloat(goals.find(g => g.id === 'kassette')?.manualCurrent || 0);
             
             let subKontenRunning = {};
             goals.forEach(g => {
@@ -1728,7 +1796,9 @@
 
         function renderJahresView() {
             const yr = document.getElementById('selectYear').value; 
-            let einnahmen = 0, geplantEinnahmen = 0, fix = 0, spent = 0, echtIst = 0, echtGeplant = 0;
+            let einnahmen = 0, geplantEinnahmen = 0;
+            let fix = 0, spent = 0;
+            let echtIst = 0, echtGeplant = 0;
 
             for(let m=1; m<=12; m++) {
                 const mk = `${yr}-${String(m).padStart(2,'0')}`;
@@ -1739,12 +1809,20 @@
                 geplantEinnahmen += e;
                 
                 let monthSpent = 0;
-                (haushaltItems || []).forEach(hi => { if(hi.date?.startsWith(mk) && hi.type !== 'income') monthSpent += parseFloat(hi.amount || 0); });
+                (haushaltItems || []).forEach(hi => { 
+                    if(hi.date?.startsWith(mk) && hi.type !== 'income') {
+                        monthSpent += parseFloat(hi.amount || 0); 
+                    }
+                });
                 spent += monthSpent;
                 fix += getTotalFixForMonthData(item);
+
                 echtGeplant += calc.gesamtSparen - monthSpent;
 
-                if(item.booked) { einnahmen += e; echtIst += calc.gesamtSparen - monthSpent; }
+                if(item.booked) {
+                    einnahmen += e;
+                    echtIst += calc.gesamtSparen - monthSpent;
+                }
             }
 
             document.getElementById('jahrEinnahmen').innerText = einnahmen.toFixed(2) + ' €';
@@ -1756,6 +1834,7 @@
             let quoteBase = einnahmen > 0 ? einnahmen : geplantEinnahmen;
             let quoteVal = einnahmen > 0 ? echtIst : echtGeplant;
             let finalRate = quoteBase > 0 ? Math.max(0, (quoteVal / quoteBase) * 100) : 0;
+            
             document.getElementById('jahrEchteSparquote').innerText = finalRate.toFixed(1) + '%';
         }
 
@@ -1781,6 +1860,7 @@
             document.getElementById('uFixAbreiseTag').value = u.fixAbreiseTag || '';
 
             let days = 4; if (u.startDate && u.endDate) days = Math.max(1, Math.floor((new Date(u.endDate) - new Date(u.startDate))/(1000*60*60*24))+1);
+            
             if (!u.dailyBonuses || u.dailyBonuses.length !== days) {
                 u.dailyBonuses = new Array(days).fill(0);
                 u.dailyActuals = new Array(days).fill('');
@@ -1801,14 +1881,20 @@
                 let bonus = u.dailyBonuses[i] || 0;
                 let available = dayBase + bonus;
                 let actual = parseFloat(u.dailyActuals[i]);
-                if(!isNaN(actual) && actual < available && !isAbreise) unassignedSurplus += (available - actual);
+                if(!isNaN(actual) && actual < available) {
+                    if(!isAbreise) {
+                        unassignedSurplus += (available - actual);
+                    }
+                }
             }
 
             let activeRegularDays = [];
             for(let i=0; i<days; i++) {
                 let isAbreise = (abreiseTagBudget !== null && i === days - 1);
                 let actual = parseFloat(u.dailyActuals[i]);
-                if(!isAbreise && (isNaN(actual) || actual >= (isAbreise ? abreiseTagBudget : baseRegular) + (u.dailyBonuses[i]||0))) activeRegularDays.push(i);
+                if(!isAbreise && (isNaN(actual) || actual >= (isAbreise ? abreiseTagBudget : baseRegular) + (u.dailyBonuses[i]||0))) {
+                    activeRegularDays.push(i);
+                }
             }
 
             let bonusPerActiveDay = activeRegularDays.length > 0 ? unassignedSurplus / activeRegularDays.length : 0;
@@ -1824,16 +1910,16 @@
                 let actual = parseFloat(u.dailyActuals[i]);
                 let rest = isNaN(actual) ? available : Math.max(0, available - actual);
 
-                tbody.innerHTML += `
-                    <tr>
-                        <td>Tag ${i+1}${isAbreise ? ' 🧳' : ''}</td>
-                        <td>${dayBase.toFixed(2)} €</td>
-                        <td><input type="number" id="bonus_${i}" style="width:65px; padding:3px; font-size:0.72rem;" value="${manualBonus !== 0 ? manualBonus : ''}" placeholder="+/-" onchange="updateUrlaubBonus(${i}, this.value)"></td>
-                        <td><strong>${available.toFixed(2)} €</strong></td>
-                        <td><input type="number" id="actual_${i}" style="width:65px; padding:3px; font-size:0.72rem;" value="${u.dailyActuals[i] !== undefined && u.dailyActuals[i] !== '' ? u.dailyActuals[i] : ''}" placeholder="Ist" onchange="updateUrlaubActual(${i}, this.value)"></td>
-                        <td><span class="${rest > 0 ? 'val-highlight' : ''}">${rest.toFixed(2)} €</span></td>
-                    </tr>
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>Tag ${i+1}${isAbreise ? ' 🧳' : ''}</td>
+                    <td>${dayBase.toFixed(2)} €</td>
+                    <td><input type="number" id="bonus_${i}" style="width:65px; padding:3px; font-size:0.72rem;" value="${manualBonus !== 0 ? manualBonus : ''}" placeholder="+/-" onchange="updateUrlaubBonus(${i}, this.value)"></td>
+                    <td><strong>${available.toFixed(2)} €</strong></td>
+                    <td><input type="number" id="actual_${i}" style="width:65px; padding:3px; font-size:0.72rem;" value="${u.dailyActuals[i] !== undefined && u.dailyActuals[i] !== '' ? u.dailyActuals[i] : ''}" placeholder="Ist" onchange="updateUrlaubActual(${i}, this.value)"></td>
+                    <td><span class="${rest > 0 ? 'val-highlight' : ''}">${rest.toFixed(2)} €</span></td>
                 `;
+                tbody.appendChild(tr);
             }
             renderMalleActsList();
         }
@@ -1842,11 +1928,21 @@
             const u = getActiveUrlaub(); if(!u) return;
             u.startDate = document.getElementById('urlaubManualStartDate').value;
             u.endDate = document.getElementById('urlaubManualEndDate').value;
+            saveLocally();
+            renderUrlaubView();
+        }
+
+        function updateUrlaubBonus(dayIndex, val) {
+            const u = getActiveUrlaub(); if(!u) return;
+            u.dailyBonuses[dayIndex] = parseFloat(val) || 0;
             saveLocally(); renderUrlaubView();
         }
 
-        function updateUrlaubBonus(dayIndex, val) { const u = getActiveUrlaub(); if(!u) return; u.dailyBonuses[dayIndex] = parseFloat(val) || 0; saveLocally(); renderUrlaubView(); }
-        function updateUrlaubActual(dayIndex, val) { const u = getActiveUrlaub(); if(!u) return; u.dailyActuals[dayIndex] = val; saveLocally(); renderUrlaubView(); }
+        function updateUrlaubActual(dayIndex, val) {
+            const u = getActiveUrlaub(); if(!u) return;
+            u.dailyActuals[dayIndex] = val;
+            saveLocally(); renderUrlaubView();
+        }
 
         function saveUrlaubConfigDynamic() {
             const u = getActiveUrlaub(); if(!u) return;
@@ -1865,6 +1961,7 @@
             goals.forEach((g, idx) => {
                 const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey()); 
                 const pct = g.target > 0 ? Math.min(100, (cur / g.target) * 100) : 0;
+                const data = getGoalData(g.id);
                 const isUrlaub = urlaubeList.some(u => u.goalId === g.id);
                 const isCompleted = pct >= 100;
                 const isSub = g.type === 'notfall_sub';
@@ -1875,8 +1972,12 @@
                     const remaining = g.target - cur;
                     const monthsNeeded = Math.ceil(remaining / g.fixedMonthly);
                     const [curY, curM] = getSelectedMonthKey().split('-').map(Number);
-                    let targetMonth = curM + monthsNeeded, targetYear = curY;
-                    while (targetMonth > 12) { targetMonth -= 12; targetYear += 1; }
+                    let targetMonth = curM + monthsNeeded;
+                    let targetYear = curY;
+                    while (targetMonth > 12) {
+                        targetMonth -= 12;
+                        targetYear += 1;
+                    }
                     reachText = `Ziel erreicht: ${String(targetMonth).padStart(2,'0')}/${targetYear}`;
                 }
                 
@@ -1899,10 +2000,12 @@
                             <span>Stand: <strong>${cur.toFixed(2)} €</strong> / ${g.target.toFixed(2)} €</span>
                             <span style="color:var(--accent); font-weight:700;">Ø ${(g.fixedMonthly||0).toFixed(2)} €/Mo.</span>
                         </div>
-                        <div class="progress-bar-container" style="cursor:pointer;" onclick="openModal('${g.id}')"><div class="progress-bar-fill" style="width:${Math.max(0, pct)}%;"></div></div>
+                        <div class="progress-bar-container" style="cursor:pointer;" onclick="openModal('${g.id}')">
+                            <div class="progress-bar-fill" style="width:${Math.max(0, pct)}%;"></div>
+                        </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px; font-size:0.68rem; color:var(--text-sub);">
                             <div style="font-weight:bold; color:var(--accent-green);">${reachText}</div>
-                            <div style="cursor:pointer; color:var(--accent; font-weight:600;" onclick="openModal('${g.id}')">Bearbeiten ⚙️</div>
+                            <div style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="openModal('${g.id}')">Bearbeiten ⚙️</div>
                         </div>
                     </div>
                 `;
@@ -1918,15 +2021,21 @@
             document.getElementById('modalFixedMonthlyInput').value = g.fixedMonthly || '';
             document.getElementById('modalEndMonthInput').value = g.endDate || '';
             
-            const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey()), planned = getGoalData(gid).projectedTotal;
+            const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey());
+            const planned = getGoalData(gid).projectedTotal;
             document.getElementById('modalCurrentInputDisplay').innerText = cur.toFixed(2) + ' €';
             document.getElementById('modalPlannedStandDisplay').innerText = planned.toFixed(2) + ' €';
             document.getElementById('modalCurrentInput').value = cur;
             
-            const sel = document.getElementById('transferTargetSelect'), stornoSel = document.getElementById('stornoTargetSelect');
-            sel.innerHTML = ''; stornoSel.innerHTML = '';
+            const sel = document.getElementById('transferTargetSelect'); sel.innerHTML = '';
+            const stornoSel = document.getElementById('stornoTargetSelect'); stornoSel.innerHTML = '';
             
-            goals.forEach(x => { if(x.id !== gid) { sel.add(new Option(x.name, x.id)); stornoSel.add(new Option(x.name, x.id)); } });
+            goals.forEach(x => { 
+                if(x.id !== gid) {
+                    sel.add(new Option(x.name, x.id)); 
+                    stornoSel.add(new Option(x.name, x.id));
+                }
+            });
 
             const hist = document.getElementById('modalHistoryList'); hist.innerHTML = '';
             getGoalData(gid).breakdown.forEach(b => {
@@ -1934,7 +2043,6 @@
             });
             document.getElementById('goalModal').classList.add('active');
         }
-
         function closeModal() { document.getElementById('goalModal').classList.remove('active'); }
         function saveModalChanges() {
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
@@ -1945,7 +2053,6 @@
             if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') g.manualOffset = cur; else g.manualCurrent = cur;
             saveLocally(); renderGoals(); renderHistory(); closeModal();
         }
-
         function deleteCurrentModalGoal() {
             if(['notfall','freizeit','kassette'].includes(currentModalGoalId)) return alert('Systemziel!');
             if(confirm('Löschen?')) { goals = goals.filter(x => x.id !== currentModalGoalId); saveLocally(); renderGoals(); renderHistory(); closeModal(); }
@@ -1959,7 +2066,6 @@
             document.getElementById('manualDepositAmount').value = '';
             saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert(`${amt.toFixed(2)} € erfolgreich eingezahlt! ➕`);
         }
-
         function withdrawManualFromGoal() {
             const amt = parseFloat(document.getElementById('manualWithdrawAmount').value); if(isNaN(amt)||amt<=0) return alert('Bitte gültigen Betrag eingeben!');
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
