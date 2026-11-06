@@ -18,8 +18,8 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Verwende exakt 'gemini-1.5-flash' ohne -latest
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Wir nutzen hier den stabilen Google AI Endpoint mit gemini-pro oder flash
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
     try {
       data = JSON.parse(rawText);
     } catch (e) {
-      return res.status(500).json({ error: 'Google API Antwort ungültig.' });
+      return res.status(500).json({ error: 'Google API Antwort ungültig: ' + rawText });
     }
 
     if (!apiResponse.ok) {
