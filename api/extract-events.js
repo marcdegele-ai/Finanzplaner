@@ -18,8 +18,8 @@ module.exports = async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Wir nutzen den aktuellen, von Google geforderten Endpunkt mit gemini-2.5-flash
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    // Wir nutzen hier das absolut gängigste und stabile gemini-1.5-flash über den v1-Pfad
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -29,10 +29,7 @@ module.exports = async function handler(req, res) {
           {
             parts: [
               {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: base64Data
-                }
+                inlineData: { mimeType: mimeType, data: base64Data }
               },
               {
                 text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und den Veranstaltungsort (z.B. Bierkönig, Megapark). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
@@ -44,11 +41,13 @@ module.exports = async function handler(req, res) {
     });
 
     const rawText = await apiResponse.text();
+
+    // Verhindert den JSON-Absturz, falls Google einen Fehlertext statt JSON sendet
     let data;
     try {
       data = JSON.parse(rawText);
     } catch (e) {
-      return res.status(500).json({ error: 'API-Fehler (Kein JSON): ' + rawText.substring(0, 100) });
+      return res.status(500).json({ error: 'Google API Fehler (Kein JSON): ' + rawText.substring(0, 150) });
     }
 
     if (!apiResponse.ok) {
