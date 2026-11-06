@@ -18,10 +18,10 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Korrigierter Endpunkt für gemini-1.5-flash
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`;
+    // Korrekter, stabiler API-Aufruf für Google Gemini
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
 
-    const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
                 inlineData: { mimeType: mimeType, data: base64Data }
               },
               {
-                text: 'Analysiere diesen Event-Screenshot. Extrahiere unbedingt den Namen des Künstlers (z.B. Carolina) sowie die Uhrzeit (z.B. 22:30). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit"}'
+                text: 'Analysiere diesen Event-Screenshot. Extrahiere unbedingt den Namen des Künstlers sowie die Uhrzeit. Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit"}'
               }
             ]
           }
