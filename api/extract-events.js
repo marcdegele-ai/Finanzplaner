@@ -18,13 +18,12 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Nutzen des global stabilen und dauerhaft verfügbaren Endpunkts
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     let apiResponse;
     let rawText;
-    let success = false;
 
-    // Automatischer Retry bei Serverauslastung (max 3 Versuche)
     for (let attempt = 1; attempt <= 3; attempt++) {
       apiResponse = await fetch(geminiUrl, {
         method: 'POST',
@@ -48,11 +47,9 @@ export default async function handler(req, res) {
       rawText = await apiResponse.text();
 
       if (apiResponse.ok) {
-        success = true;
         break;
       }
 
-      // Wenn 503 (Overloaded), kurz warten und nochmal versuchen
       if (apiResponse.status === 503) {
         await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         continue;
@@ -61,7 +58,7 @@ export default async function handler(req, res) {
       break;
     }
 
-    if (!success) {
+    if (!apiResponse.ok) {
       return res.status(500).json({ error: 'Google API Fehler: ' + rawText });
     }
 
