@@ -18,7 +18,8 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Wir nutzen hier den stabilen Endpunkt ohne veraltete Versionseinschränkungen
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -44,7 +45,7 @@ export default async function handler(req, res) {
     try {
       data = JSON.parse(rawText);
     } catch (e) {
-      return res.status(500).json({ error: 'Google API Antwort ungültig.' });
+      return res.status(500).json({ error: 'Google API Antwort ungültig: ' + rawText });
     }
 
     if (!apiResponse.ok) {
@@ -53,7 +54,7 @@ export default async function handler(req, res) {
 
     const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!candidateText) {
-      return res.status(500).json({ error: 'Kein Text in der Gemini-Antwort.' });
+      return res.status(500).json({ error: 'Kein Text in der Gemini-Antwort.' }); danach
     }
 
     const cleanedText = candidateText.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
