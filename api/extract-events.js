@@ -18,8 +18,8 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Korrekter, stabiler API-Aufruf für Google Gemini
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
+    // Verwende exakt 'gemini-1.5-flash' ohne -latest
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
