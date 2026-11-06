@@ -18,31 +18,50 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Nutzen des aktuellen Standardmodells gemäß Google-Vorgabe
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-    const apiResponse = await fetch(geminiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                inlineData: { mimeType: mimeType, data: base64Data }
-              },
-              {
-                text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und den Veranstaltungsort (z.B. Bierkönig, Megapark). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
-              }
-            ]
-          }
-        ]
-      })
-    });
+    let apiResponse;
+    let rawText;
+    let success = false;
 
-    const rawText = await apiResponse.text();
-    
-    if (!apiResponse.ok) {
+    // Automatischer Retry bei Serverauslastung (max 3 Versuche)
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      apiResponse = await fetch(geminiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  inlineData: { mimeType: mimeType, data: base64Data }
+                },
+                {
+                  text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und den Veranstaltungsort (z.B. Bierkönig, Megapark). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
+                }
+              ]
+            }
+          ]
+        })
+      });
+
+      rawText = await apiResponse.text();
+
+      if (apiResponse.ok) {
+        success = true;
+        break;
+      }
+
+      // Wenn 503 (Overloaded), kurz warten und nochmal versuchen
+      if (apiResponse.status === 503) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        continue;
+      }
+
+      break;
+    }
+
+    if (!success) {
       return res.status(500).json({ error: 'Google API Fehler: ' + rawText });
     }
 
