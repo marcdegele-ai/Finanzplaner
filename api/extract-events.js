@@ -18,7 +18,8 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Korrigierter, voll kompatibler Endpoint für Vercel
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -31,7 +32,7 @@ export default async function handler(req, res) {
                 inlineData: { mimeType: mimeType, data: base64Data }
               },
               {
-                text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und erkenne im Bild den Veranstaltungsort (z.B. Bierkönig, Megapark oder falls nichts dasteht standardmäßig "Bierkönig"). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
+                text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und erkenne den Veranstaltungsort (z.B. Bierkönig, Megapark oder standardmäßig "Bierkönig"). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
               }
             ]
           }
@@ -44,7 +45,7 @@ export default async function handler(req, res) {
     try {
       data = JSON.parse(rawText);
     } catch (e) {
-      return res.status(500).json({ error: 'Google API Antwort ungültig.' });
+      return res.status(500).json({ error: 'Google API Antwort ungültig: ' + rawText });
     }
 
     if (!apiResponse.ok) {
