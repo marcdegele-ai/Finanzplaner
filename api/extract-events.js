@@ -18,26 +18,12 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Nutzen des absolut stabilen v1beta-Endpunkts ohne externe SDK-Abhängigkeit
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.JSON.stringify ? JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                inlineData: { mimeType: mimeType, data: base64Data }
-              },
-              {
-                text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und erkenne den Veranstaltungsort (z.B. Bierkönig, Megapark oder standardmäßig "Bierkönig"). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
-              }
-            ]
-          }
-        ]
-      }) : JSON.stringify({
+      body: JSON.stringify({
         contents: [
           {
             parts: [
