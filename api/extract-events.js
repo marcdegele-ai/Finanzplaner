@@ -18,8 +18,8 @@ module.exports = async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Nutzen des aktuellen, stabilen Endpunkts für gemini-1.5-flash
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Wir nutzen den aktuellen, von Google geforderten Endpunkt mit gemini-2.5-flash
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const apiResponse = await fetch(geminiUrl, {
       method: 'POST',
@@ -44,8 +44,6 @@ module.exports = async function handler(req, res) {
     });
 
     const rawText = await apiResponse.text();
-    
-    // Prüfen, ob die Antwort echtes JSON ist
     let data;
     try {
       data = JSON.parse(rawText);
