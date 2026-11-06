@@ -1,69 +1,34 @@
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
     const { imageBase64 } = req.body;
-    if (!imageBase64) {
-      return res.status(400).json({ error: 'Kein Bild übergeben' });
-    }
-
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: 'GEMINI_API_KEY fehlt in Vercel.' });
-    }
+    if (!apiKey) return res.status(500).json({ error: 'API Key fehlt' });
 
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
-    const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
-    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-
-    // Wir nutzen hier den exakten, von Google für v1 empfohlenen Endpunkt
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
-
-    const apiResponse = await fetch(geminiUrl, {
+    
+    // Ganz aktueller, stabiler Google Generative Language Endpunkt
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: base64Data
-                }
-              },
-              {
-                text: 'Analysiere diesen Screenshot. Extrahiere den Namen des Künstlers und die Uhrzeit. Antworte AUSSCHLIESSLICH als JSON ohne Markdown: {"name": "Künstler", "time": "Uhrzeit"}'
-              }
-            ]
-          }
-        ]
+        contents: [{
+          parts: [
+            { inlineData: { mimeType: "image/jpeg", data: base64Data } },
+            { text: 'Extrahiere den Künstlernamen und die Uhrzeit aus diesem Bild. Antworte NUR als JSON im Format: {"name": "Künstler", "time": "Uhrzeit"}' }
+          ]
+        }]
       })
     });
 
-    const rawText = await apiResponse.text();
-    let data;
-    try {
-      data = JSON.parse(rawText);
-    } catch (e) {
-      return res.status(500).json({ error: 'Google API Antwort ungültig.' });
-    }
+    const data = await response.json();
+    if (!response.ok) return res.status(500).json({ error: data.error?.message || 'Google API Fehler' });
 
-    if (!apiResponse.ok) {
-      return res.status(500).json({ error: data.error?.message || 'API Fehler aufgetreten.' });
-    }
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const cleanJson = JSON.parse(text.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, ''));
 
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!candidateText) {
-      return res.status(500).json({ error: 'Kein Text in der Antwort.' });
-    }
-
-    const cleanedText = candidateText.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
-    const jsonResult = JSON.parse(cleanedText);
-
-    return res.status(200).json(jsonResult);
+    return res.status(200).json(cleanJson);
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }
