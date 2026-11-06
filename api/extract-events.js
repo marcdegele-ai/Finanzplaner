@@ -18,46 +18,39 @@ export default async function handler(req, res) {
     const mimeMatch = imageBase64.match(/^data:(image\/[a-zA-Z+-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
 
-    // Nutzen des global stabilen und dauerhaft verfügbaren Endpunkts
-    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Wir nutzen hier den allgemeinsten und stabilsten Endpunkt ohne starre Modell-Pfad-Erzwingung
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions`;
 
-    let apiResponse;
-    let rawText;
-
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      apiResponse = await fetch(geminiUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  inlineData: { mimeType: mimeType, data: base64Data }
-                },
-                {
-                  text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und den Veranstaltungsort (z.B. Bierkönig, Megapark). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
+    const apiResponse = await fetch(geminiUrl, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'gemini-1.5-flash',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: 'Analysiere diesen Event-Screenshot. Extrahiere den Namen des Künstlers, die Uhrzeit und den Veranstaltungsort (z.B. Bierkönig, Megapark). Antworte AUSSCHLIESSLICH im JSON-Format ohne Markdown-Backticks: {"name": "Künstlername", "time": "Uhrzeit", "loc": "Ort"}'
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:${mimeType};base64,${base64Data}`
                 }
-              ]
-            }
-          ]
-        })
-      });
+              }
+            ]
+          }
+        ]
+      })
+    });
 
-      rawText = await apiResponse.text();
-
-      if (apiResponse.ok) {
-        break;
-      }
-
-      if (apiResponse.status === 503) {
-        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-        continue;
-      }
-
-      break;
-    }
-
+    const rawText = await apiResponse.text();
+    
     if (!apiResponse.ok) {
       return res.status(500).json({ error: 'Google API Fehler: ' + rawText });
     }
@@ -69,9 +62,9 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'Ungültige API-Antwort erhalten.' });
     }
 
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    const candidateText = data.choices?.[0]?.message?.content;
     if (!candidateText) {
-      return res.status(500).json({ error: 'Kein Text in der Gemini-Antwort.' });
+      return res.status(500).json({ error: 'Kein Text in der Antwort.' });
     }
 
     const cleanedText = candidateText.trim().replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/\s*```$/, '');
