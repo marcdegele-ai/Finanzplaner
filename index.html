@@ -491,7 +491,7 @@
                 <div class="card-title">
                     <span>📈 Jahres-Auswertung</span>
                     <select id="selectYear" style="width: 90px; padding: 5px;" onchange="renderJahresView()">
-                        <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option>
+                        <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option>
                     </select>
                 </div>
                 <div class="stat-row"><span>Gesamteinnahmen (Ist / Geplant):</span><span><strong id="jahrEinnahmen" class="val-highlight">0,00 €</strong> / <span id="jahrGeplantEinnahmen" style="color:var(--text-sub);">0,00 €</span></span></div>
@@ -1094,9 +1094,20 @@
         function getMonthDataOrFallback(m) {
             const prev = Object.keys(entries).sort().reverse().find(k => k < m);
             let inherited = prev && entries[prev]?.items ? entries[prev].items.filter(i => i.type === 'dauer' && (!i.endDate || m <= i.endDate)) : [];
+            
+            // Ab Juli 2029 (2029-07) Schuldenbereinigung aus Dauerfixkosten ausschließen
+            if (m >= "2029-07") {
+                inherited = inherited.filter(i => !i.name.toLowerCase().includes("schulden"));
+            }
+
             if (entries[m]) {
                 let items = entries[m].items || [];
                 inherited.forEach(inh => { if (!items.some(i => i.name.trim().toLowerCase() === inh.name.trim().toLowerCase())) items.push(JSON.parse(JSON.stringify(inh))); });
+                
+                if (m >= "2029-07") {
+                    items = items.filter(i => !i.name.toLowerCase().includes("schulden"));
+                }
+
                 entries[m].items = items;
                 if (entries[m].gehalt === undefined) entries[m].gehalt = 2300;
                 if (entries[m].taschengeld === undefined) entries[m].taschengeld = 200;
@@ -1934,7 +1945,7 @@
                 activeUrlaubGoalId = id;
             }
 
-            saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = '';
+            saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetTag').value = '';
             renderGoals(); renderHistory(); checkUrlaubTabVisibility(); updateSubKontoDropdowns(); alert('Sparziel / Unterkonto angelegt! 🎯');
         }
     </script>
