@@ -631,9 +631,9 @@
     <div id="goalModal" class="modal">
         <div class="modal-content">
             <div class="card-title" id="modalTitle">Ziel-Details</div>
-            <div class="input-group" style="margin-bottom: 6px;"><label>Zielbetrag (€) (0 = Endlos):</label><input type="number" id="modalTargetInput"></div>
-            <div class="input-group" style="margin-bottom: 6px;"><label>Dauerauftrag (€/Mo):</label><input type="number" id="modalFixedMonthlyInput"></div>
-            <div class="input-group" style="margin-bottom: 6px;"><label>End-Monat:</label><input type="month" id="modalEndMonthInput"></div>
+            <div class="input-group" style="margin-bottom: 6px;"><label>Zielbetrag (€) (0 = Endlos):</label><input type="number" id="modalTargetInput" oninput="updateLiveModalProjection()"></div>
+            <div class="input-group" style="margin-bottom: 6px;"><label>Dauerauftrag (€/Mo):</label><input type="number" id="modalFixedMonthlyInput" oninput="updateLiveModalProjection()"></div>
+            <div class="input-group" style="margin-bottom: 6px;"><label>End-Monat:</label><input type="month" id="modalEndMonthInput" onchange="updateLiveModalProjection()"></div>
             <div class="input-group" style="margin-bottom: 6px;"><label>Stand (Aktuell / Geplant):</label><span><strong id="modalCurrentInputDisplay">0</strong> / <span id="modalPlannedStandDisplay">0</span></span></div>
             <div class="input-group" style="margin-bottom: 6px;"><input type="number" id="modalCurrentInput" style="display:none;"></div>
             
@@ -1418,10 +1418,10 @@
             return Math.max(0, total + diff);
         }
 
-        function getGoalData(goalId) {
+        function getGoalData(goalId, overrideFixedRate = null, overrideEndDate = null) {
             const goal = goals.find(g => g.id === goalId); if(!goal) return { total: 0, projectedTotal: 0, breakdown: [] };
             
-            let endLimitStr = goal.endDate ? goal.endDate : null;
+            let endLimitStr = overrideEndDate !== null ? (overrideEndDate || null) : (goal.endDate ? goal.endDate : null);
             const u = urlaubeList.find(item => item.goalId === goalId);
             if (u && u.endDate) endLimitStr = u.endDate.slice(0, 7);
 
@@ -1441,7 +1441,9 @@
             let proj = sum, breakdown = [];
 
             let fixedRate = 0;
-            if (goal.fixedMonthly !== undefined && goal.fixedMonthly !== null) {
+            if (overrideFixedRate !== null) {
+                fixedRate = parseFloat(overrideFixedRate) || 0;
+            } else if (goal.fixedMonthly !== undefined && goal.fixedMonthly !== null) {
                 let strVal = String(goal.fixedMonthly).replace(',', '.');
                 fixedRate = parseFloat(strVal) || 0;
             }
@@ -1873,6 +1875,27 @@
             updateSubKontoDropdowns();
         }
 
+        function updateLiveModalProjection() {
+            if (!currentModalGoalId) return;
+            const g = goals.find(x => x.id === currentModalGoalId);
+            if (!g) return;
+
+            const tempRate = parseFloat(document.getElementById('modalFixedMonthlyInput').value) || 0;
+            const tempEndMonth = document.getElementById('modalEndMonthInput').value || null;
+
+            const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey());
+            const data = getGoalData(currentModalGoalId, tempRate, tempEndMonth);
+
+            document.getElementById('modalCurrentInputDisplay').innerText = cur.toFixed(2) + ' €';
+            document.getElementById('modalPlannedStandDisplay').innerText = data.projectedTotal.toFixed(2) + ' €';
+
+            const hist = document.getElementById('modalHistoryList');
+            hist.innerHTML = '';
+            data.breakdown.forEach(b => {
+                hist.innerHTML += `<div class="history-item"><div>${b.month}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Geplant)</span><div class="history-sub" style="color:var(--accent); font-weight:bold;">Stand: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
+            });
+        }
+
         function openModal(gid) {
             currentModalGoalId = gid; const g = goals.find(x => x.id === gid); if(!g) return;
             document.getElementById('modalTitle').innerText = g.name;
@@ -1881,9 +1904,7 @@
             document.getElementById('modalEndMonthInput').value = g.endDate || '';
             
             const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey());
-            const planned = getGoalData(gid).projectedTotal;
             document.getElementById('modalCurrentInputDisplay').innerText = cur.toFixed(2) + ' €';
-            document.getElementById('modalPlannedStandDisplay').innerText = planned.toFixed(2) + ' €';
             document.getElementById('modalCurrentInput').value = cur;
             
             const sel = document.getElementById('transferTargetSelect'); sel.innerHTML = '';
@@ -1896,10 +1917,7 @@
                 }
             });
 
-            const hist = document.getElementById('modalHistoryList'); hist.innerHTML = '';
-            getGoalData(gid).breakdown.forEach(b => {
-                hist.innerHTML += `<div class="history-item"><div>${b.month}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Geplant)</span><div class="history-sub" style="color:var(--accent); font-weight:bold;">Stand: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
-            });
+            updateLiveModalProjection();
             document.getElementById('goalModal').classList.add('active');
         }
         function closeModal() { document.getElementById('goalModal').classList.remove('active'); }
