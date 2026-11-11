@@ -239,7 +239,7 @@
                         <input type="month" id="monthInput" value="2026-12" min="2026-12" onchange="syncMonthInput(this.value)">
                     </div>
 
-                    <!-- ERWEITERUNG 1: SCHNELLWAHL-MONATSLEISTE -->
+                    <!-- SCHNELLWAHL-MONATSLEISTE -->
                     <div class="input-group full">
                         <label>Schnellauswahl:</label>
                         <div class="quick-btn-row" id="quickMonthRow"></div>
@@ -272,7 +272,7 @@
                     <div class="input-group"><label>Giro-Puffer (€) 🏦</label><input type="number" id="giroPufferInput" placeholder="40" value="40" oninput="autoSaveLive()"></div>
                     <div class="input-group full"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
 
-                    <!-- ERWEITERUNG 2: SCHNELL-NOTIZ PRO MONAT -->
+                    <!-- MONATS-NOTIZ -->
                     <div class="input-group full">
                         <label>📝 Notiz für diesen Monat (opt.):</label>
                         <textarea id="monthNotesInput" rows="2" placeholder="Z. B. Auto-TÜV fällig, Sonderzahlung..." oninput="autoSaveLive()"></textarea>
@@ -380,7 +380,7 @@
 
             <div class="card">
                 <div class="card-title">📋 Buchungen</div>
-                <!-- ERWEITERUNG 3: SUCH- UND FILTERLEISTE -->
+                <!-- SUCH- UND FILTERLEISTE -->
                 <div class="grid" style="margin-bottom: 10px;">
                     <div class="input-group" style="margin-bottom:0;">
                         <input type="text" id="hhSearchInput" placeholder="🔍 Buchung suchen..." oninput="renderHaushaltView()">
@@ -534,7 +534,7 @@
                 </div>
             </div>
 
-            <!-- ERWEITERUNG 5: JAHRES-MONATSVERGLEICH TABELLE -->
+            <!-- JAHRES-MONATSVERGLEICH TABELLE -->
             <div class="card">
                 <div class="card-title">📊 Monatsvergleich (Detailansicht)</div>
                 <div class="table-wrapper">
@@ -653,7 +653,6 @@
 
             <div class="card">
                 <div class="card-title">📋 Meine Sparziele</div>
-                <!-- ERWEITERUNG 4: GRID-CONTAINER FÜR SPARZIELE -->
                 <div class="goals-grid" id="goalsList"></div>
             </div>
         </div>
@@ -1280,7 +1279,6 @@
                 const isInc = item.type === 'income', amt = parseFloat(item.amount || 0);
                 if (isInc) totalIncome += amt; else { totalSpent += amt; catTotals[item.category] = (catTotals[item.category] || 0) + amt; }
                 
-                // Filter Anwenden
                 if (searchVal && !item.name.toLowerCase().includes(searchVal)) return;
                 if (filterCat && item.category !== filterCat) return;
 
@@ -1463,6 +1461,7 @@
             }
         }
 
+        // KORRIGIERTE LOGIK: GEHALT GILT FÜR FOLGEMONAT (VERZÖGERTE BERECHNUNG BIS UPTO)
         function getSavedAmountForGoalUpTo(goal, upto) {
             if(!goal) return 0;
             if(goal.id === 'kassette') return parseFloat(goal.manualCurrent || 0);
@@ -1478,7 +1477,8 @@
             if(goal.id === 'notfall' || goal.type === 'notfall_sub' || goal.type === 'giro_puffer') {
                 let sum = parseFloat(goal.manualOffset || 0);
                 Object.keys(entries || {}).sort().forEach(k => { 
-                    if(k <= upto && entries[k]?.booked) {
+                    let nextK = getNextMonthKey(k); // Gehalt von k wird erst in nextK gebucht!
+                    if(nextK <= upto && entries[k]?.booked) {
                         let calc = calculateValuesFor(entries[k]);
                         if(goal.id === 'notfall') sum += calc.notfallSparen;
                         if(goal.type === 'giro_puffer') sum += calc.giroPuffer;
@@ -1491,7 +1491,8 @@
             
             let total = parseFloat(goal.manualOffset || goal.manualCurrent || 0);
             Object.keys(entries || {}).sort().forEach(k => {
-                if(k <= upto && (!goal.startMonth || k >= goal.startMonth) && entries[k]?.booked) {
+                let nextK = getNextMonthKey(k);
+                if(nextK <= upto && (!goal.startMonth || nextK >= goal.startMonth) && entries[k]?.booked) {
                     let scheduled = getActiveDeductionsForGoal(goal, k);
                     let extra = 0;
                     (entries[k]?.extraTransfers || []).forEach(tr => { if (tr.targetId === goal.id) extra += tr.amount; });
@@ -1766,7 +1767,6 @@
                     echtIst += calc.gesamtSparen - monthSpent;
                 }
 
-                // Befülle Detail-Tabelle für jeden Monat
                 if (detailsBody) {
                     let mSparquote = e > 0 ? ((calc.gesamtSparen - monthSpent) / e * 100).toFixed(1) : '0.0';
                     detailsBody.innerHTML += `
