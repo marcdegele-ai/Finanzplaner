@@ -1225,8 +1225,13 @@
             if (['notfall', 'freizeit', 'kassette'].includes(goal.id)) return 0;
             if (goal.startMonth && mKey < goal.startMonth) return 0;
             if (goal.endDate && mKey >= goal.endDate) return 0;
+            
+            // KORREKTUR: ZUSÄTZLICHER SCHUTZ FÜR URLAUBS-ZIELE IM ABREISE-MONAT (HIER: 2027-08)
             const u = urlaubeList.find(item => item.goalId === goal.id);
-            if (u && u.endDate && mKey > u.endDate.slice(0, 7)) return 0;
+            if (u && u.endDate) {
+                const endMonthKey = u.endDate.slice(0, 7);
+                if (mKey >= endMonthKey) return 0;
+            }
 
             if (goal.fixedMonthly && parseFloat(goal.fixedMonthly) > 0) {
                 const targetVal = parseFloat(goal.target) || 0;
@@ -1461,7 +1466,6 @@
             }
         }
 
-        // KORRIGIERTE LOGIK: GEHALT GILT FÜR FOLGEMONAT (VERZÖGERTE BERECHNUNG BIS UPTO)
         function getSavedAmountForGoalUpTo(goal, upto) {
             if(!goal) return 0;
             if(goal.id === 'kassette') return parseFloat(goal.manualCurrent || 0);
@@ -1477,7 +1481,7 @@
             if(goal.id === 'notfall' || goal.type === 'notfall_sub' || goal.type === 'giro_puffer') {
                 let sum = parseFloat(goal.manualOffset || 0);
                 Object.keys(entries || {}).sort().forEach(k => { 
-                    let nextK = getNextMonthKey(k); // Gehalt von k wird erst in nextK gebucht!
+                    let nextK = getNextMonthKey(k);
                     if(nextK <= upto && entries[k]?.booked) {
                         let calc = calculateValuesFor(entries[k]);
                         if(goal.id === 'notfall') sum += calc.notfallSparen;
@@ -1536,7 +1540,14 @@
                 const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
                 let add = 0;
                 let isTerminated = false;
+                
                 if (endLimitStr && k >= endLimitStr) isTerminated = true;
+
+                // KORREKTUR: FÜR URLAUBS-ZIELE WIRD AB DEM ABREISE-MONAT KEINE RATE MEHR BERECHNET
+                if (u && u.endDate) {
+                    const uMonthKey = u.endDate.slice(0, 7);
+                    if (k >= uMonthKey) isTerminated = true;
+                }
 
                 if (!isTerminated) {
                     if (goal.id === 'notfall' || goal.type === 'notfall_sub') {
@@ -1976,7 +1987,7 @@
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:0.68rem; color:var(--text-sub);">
                             <div style="font-weight:bold; color:var(--accent-green);">${reachText}</div>
-                            <div style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
+                            <div style="cursor:pointer; color:var(--accent; font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
                         </div>
                     </div>
                 `;
