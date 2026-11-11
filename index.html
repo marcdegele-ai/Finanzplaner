@@ -172,6 +172,7 @@
                 <span id="lastUpdateDisplay" style="color:var(--text-sub);">Stand: Nie</span>
                 <div style="display:flex; gap:4px;">
                     <button class="btn-secondary" style="padding: 3px 6px; font-size:0.68rem;" onclick="exportBackupJSON()">💾 Backup</button>
+                    <button class="btn-secondary" style="padding: 3px 6px; font-size:0.68rem;" onclick="exportCSV()">📊 CSV Export</button>
                     <button class="btn-secondary" style="padding: 3px 6px; font-size:0.68rem;" onclick="document.getElementById('importFile').click()">📂 Laden</button>
                     <input type="file" id="importFile" style="display:none" accept=".json" onchange="importBackupJSON(event)">
                 </div>
@@ -806,6 +807,24 @@
             renderSchuldenView();
         });
 
+        function exportCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,Typ;Name;Betrag;Kategorie/Ziel;Datum/Monat\n";
+            haushaltItems.forEach(i => {
+                csvContent += `Haushalt;${i.name};${i.amount.toFixed(2)};${i.category};${i.date}\n`;
+            });
+            goals.forEach(g => {
+                const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey());
+                csvContent += `Sparziel;${g.name};${cur.toFixed(2)};${g.target || 'Endlos'};-\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Finanzexport_${getSelectedMonthKey()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        }
+
         function renderQuickMonthButtons() {
             const row = document.getElementById('quickMonthRow');
             if (!row) return;
@@ -1226,7 +1245,6 @@
             if (goal.startMonth && mKey < goal.startMonth) return 0;
             if (goal.endDate && mKey >= goal.endDate) return 0;
             
-            // KORREKTUR: ZUSÄTZLICHER SCHUTZ FÜR URLAUBS-ZIELE IM ABREISE-MONAT (HIER: 2027-08)
             const u = urlaubeList.find(item => item.goalId === goal.id);
             if (u && u.endDate) {
                 const endMonthKey = u.endDate.slice(0, 7);
@@ -1543,7 +1561,6 @@
                 
                 if (endLimitStr && k >= endLimitStr) isTerminated = true;
 
-                // KORREKTUR: FÜR URLAUBS-ZIELE WIRD AB DEM ABREISE-MONAT KEINE RATE MEHR BERECHNET
                 if (u && u.endDate) {
                     const uMonthKey = u.endDate.slice(0, 7);
                     if (k >= uMonthKey) isTerminated = true;
@@ -1987,7 +2004,7 @@
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:0.68rem; color:var(--text-sub);">
                             <div style="font-weight:bold; color:var(--accent-green);">${reachText}</div>
-                            <div style="cursor:pointer; color:var(--accent; font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
+                            <div style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
                         </div>
                     </div>
                 `;
