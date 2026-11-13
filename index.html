@@ -180,6 +180,7 @@
             <div class="tab-bar">
                 <button class="tab-btn active" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
                 <button class="tab-btn" onclick="switchTab('haushalt-view', this)">🏠 Haushalt</button>
+                <button class="tab-btn" onclick="switchTab('dok-view', this)">📂 Dokumente</button>
                 <button class="tab-btn" onclick="switchTab('schulden-view', this)">🤝 Schulden</button>
                 <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
                 <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres</button>
@@ -322,6 +323,27 @@
                     <input type="month" id="hhMonthInput" min="2026-12" onchange="syncMonthInput(this.value)" style="background:#fff; font-weight:bold; color:var(--accent);">
                 </div>
 
+                <!-- TAGES- UND WOCHENBUDGET KALENDER-ANZEIGE -->
+                <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1.5px solid #86efac; margin-bottom: 12px;">
+                    <div class="card-title" style="color: #166534; margin-bottom: 8px;">
+                        <span>📅 Smartes Tages- & Wochenbudget</span>
+                        <span class="badge" style="background:#bbf7d0; color:#166534; font-size:0.7rem;">Live Aktiv ⚡</span>
+                    </div>
+                    <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
+                        Zeigt dir basierend auf deinem aktuellen Rest-Budget, was du heute und in dieser Woche noch ausgeben kannst.
+                    </div>
+                    <div class="kpi-grid" style="margin-bottom: 0;">
+                        <div class="kpi-card" style="background: #ffffff; border-color: #bbf7d0;">
+                            <div class="kpi-label" style="color: #15803d;">Verbleibend Heute</div>
+                            <div class="kpi-val" id="calendarBudgetToday" style="color: #166534; font-size: 1.1rem;">0,00 €</div>
+                        </div>
+                        <div class="kpi-card" style="background: #ffffff; border-color: #bbf7d0;">
+                            <div class="kpi-label" style="color: #15803d;">Verbleibend Diese Woche</div>
+                            <div class="kpi-val" id="calendarBudgetWeek" style="color: #166534; font-size: 1.1rem;">0,00 €</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Restgeld aufs Sparkonto überweisen -->
                 <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
                     <span style="font-size: 0.75rem; font-weight: bold; color: #15803d; display:block; margin-bottom: 4px;">🐖 Restgeld / Wochenpuffer aufs Sparkonto</span>
@@ -330,6 +352,16 @@
                         <div class="input-group full" style="margin-bottom:0;"><select id="hhSaveTargetSelect" style="background:#fff; font-size:0.78rem;"></select></div>
                         <div class="input-group" style="margin-bottom:0;"><input type="number" id="hhSaveAmountInput" placeholder="Betrag €" style="background:#fff; font-size:0.78rem;"></div>
                         <div><button class="btn-secondary" style="background:var(--accent-green); color:#fff; font-weight:bold; width:100%; height:100%; font-size:0.75rem;" onclick="executeHaushaltSavingsTransfer()">Überweisen 🚀</button></div>
+                    </div>
+                </div>
+
+                <!-- SCHNELL-RESTGELD VERTEILER (ONE-CLICK) -->
+                <div style="background: #e0f2fe; border: 1.5px solid #7dd3fc; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                    <span style="font-size: 0.75rem; font-weight: bold; color: #0369a1; display:block; margin-bottom: 4px;">⚡ Schnell-Restgeld Verteiler (One-Click)</span>
+                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Verteilt das aktuelle Rest-Budget direkt auf dein Standard-Sparziel (z.B. Notfallkonto).</div>
+                    <div style="display: flex; gap: 5px;">
+                        <select id="quickDistributeTargetSelect" style="flex: 2; background:#fff; font-size:0.78rem;"></select>
+                        <button class="btn-secondary" style="flex: 1; background: var(--accent); color:#fff; font-weight:bold; border:none; font-size:0.75rem;" onclick="executeQuickDistribute()">Restgeld buchen 🚀</button>
                     </div>
                 </div>
 
@@ -398,6 +430,37 @@
                     </div>
                 </div>
                 <div class="history-list" id="HHList"></div>
+            </div>
+        </div>
+
+        <!-- TAB: DOKUMENTE & ABRECHNUNGEN (dsstev / dsdssd) -->
+        <div id="dok-view" class="view-section">
+            <div class="card" style="background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%); border: 1.5px solid #7dd3fc;">
+                <div class="card-title" style="color: var(--accent);">
+                    <span>📂 dsstev Abrechnungs-Archiv</span>
+                    <span class="badge" style="background:#dcfce7; color:#15803d; font-size:0.75rem;">Aktiv ✅</span>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 10px;">
+                    Lade hier deine heruntergeladenen Abrechnungen (PDF oder Bild) aus dem dsstev-Portal hoch, um sie sicher zu speichern und jederzeit über <strong>dsdssd</strong> auszudrucken.
+                </div>
+                <div class="grid">
+                    <div class="input-group full">
+                        <label>Monat / Bezeichnung (z.B. Juli 2026 Abrechnung)</label>
+                        <input type="text" id="docNameInput" placeholder="Gehaltsabrechnung Monat...">
+                    </div>
+                    <div class="input-group full">
+                        <label>Datei auswählen (PDF oder Bild)</label>
+                        <input type="file" id="docFileInput" accept="application/pdf,image/*">
+                    </div>
+                </div>
+                <button class="btn-add" style="margin-top: 6px;" onclick="saveAbrechnungDoc()">Abrechnung speichern 💾</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📋 Gespeicherte Abrechnungen</div>
+                <div class="history-list" id="docsListContainer">
+                    <!-- Dynamisch befüllt -->
+                </div>
             </div>
         </div>
 
@@ -780,6 +843,9 @@
         let haushaltItems = [];
         try { haushaltItems = JSON.parse(localStorage.getItem('finanz_haushalt_local')) || []; } catch(e) { haushaltItems = []; }
 
+        let dsstevDocs = [];
+        try { dsstevDocs = JSON.parse(localStorage.getItem('finanz_dsstev_docs_local')) || []; } catch(e) { dsstevDocs = []; }
+
         let cloudConfig = { url: '', key: '' };
         try { const cc = JSON.parse(localStorage.getItem('finanz_cloud_config')); if(cc) cloudConfig = cc; } catch(e) {}
 
@@ -804,8 +870,166 @@
             updateCloudStatusLabel();
             updateSubKontoDropdowns();
             updateHaushaltSavingsDropdown();
+            updateQuickDistributeDropdown();
             renderSchuldenView();
+            renderAbrechnungenDocs();
+            updateCalendarBudgetDisplay();
         });
+
+        // DOKUMENTE / DSSTEV FUNKTIONEN
+        async function saveAbrechnungDoc() {
+            const name = document.getElementById('docNameInput').value.trim();
+            const fileInput = document.getElementById('docFileInput');
+            if(!name || !fileInput.files?.[0]) {
+                return alert('Bitte einen Namen und eine Datei (PDF oder Bild) auswählen!');
+            }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(e) {
+                dsstevDocs.push({
+                    id: Date.now(),
+                    name: name,
+                    fileData: e.target.result,
+                    fileType: file.type,
+                    date: new Date().toLocaleDateString('de-DE')
+                });
+                saveLocally();
+                document.getElementById('docNameInput').value = '';
+                fileInput.value = '';
+                renderAbrechnungenDocs();
+                alert('Abrechnung erfolgreich gespeichert! 📂');
+            };
+        }
+
+        function renderAbrechnungenDocs() {
+            const container = document.getElementById('docsListContainer');
+            if(!container) return;
+            container.innerHTML = '';
+            if(dsstevDocs.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:var(--text-sub); font-size:0.75rem; padding:10px;">Noch keine Abrechnungen gespeichert.</div>`;
+                return;
+            }
+            dsstevDocs.sort((a,b) => b.id - a.id).forEach(doc => {
+                container.innerHTML += `
+                    <div class="history-item">
+                        <div>
+                            <div class="history-date">📄 ${doc.name}</div>
+                            <div class="history-sub">Gespeichert am: ${doc.date}</div>
+                        </div>
+                        <div style="display:flex; gap:6px; align-items:center;">
+                            <button class="btn-secondary" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:0.7rem;" onclick="printDoc('${doc.id}')">🖨️ Drucken (dsdssd)</button>
+                            <span style="cursor:pointer; color:#ef4444; font-size:0.9rem;" onclick="deleteDoc(${doc.id})">🗑️</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function printDoc(id) {
+            const doc = dsstevDocs.find(d => d.id == id);
+            if(!doc) return;
+            const win = window.open('');
+            if(doc.fileType.includes('image')) {
+                win.document.write(`<html><head><title>Abrechnung Drucken</title></head><body style="text-align:center;"><img src="${doc.fileData}" style="max-width:100%;"/><script>window.print();window.close();<\/script></body></html>`);
+            } else {
+                win.document.write(`<html><head><title>Abrechnung Drucken</title></head><body style="margin:0;"><iframe src="${doc.fileData}" style="width:100%; height:100vh; border:none;"></iframe><script>setTimeout(() => window.print(), 500);<\/script></body></html>`);
+            }
+            win.document.close();
+        }
+
+        function deleteDoc(id) {
+            if(confirm('Abrechnung wirklich aus dem Archiv löschen?')) {
+                dsstevDocs = dsstevDocs.filter(d => d.id !== id);
+                saveLocally();
+                renderAbrechnungenDocs();
+            }
+        }
+
+        // TAGES- & WOCHENBUDGET KALENDER FUNKTION
+        function updateCalendarBudgetDisplay() {
+            const todayEl = document.getElementById('calendarBudgetToday');
+            const weekEl = document.getElementById('calendarBudgetWeek');
+            if (!todayEl || !weekEl) return;
+
+            const m = getSelectedMonthKey();
+            const itemData = getMonthDataOrFallback(m);
+            const totalPlannedHaushaltBudget = parseFloat(itemData.taschengeld) || 200;
+
+            let totalSpent = 0, totalIncome = 0;
+            (haushaltItems || []).forEach(i => {
+                if (i.date?.startsWith(m)) {
+                    if (i.type === 'income') totalIncome += parseFloat(i.amount || 0);
+                    else totalSpent += parseFloat(i.amount || 0);
+                }
+            });
+
+            const restBudget = Math.max(0, totalPlannedHaushaltBudget + totalIncome - totalSpent);
+
+            const [year, month] = m.split('-').map(Number);
+            const totalDaysInMonth = new Date(year, month, 0).getDate();
+            
+            const now = new Date();
+            let isCurrentMonth = (now.getFullYear() === year && (now.getMonth() + 1) === month);
+            let currentDay = now.getDate();
+            
+            const daysRemaining = isCurrentMonth ? Math.max(1, totalDaysInMonth - currentDay + 1) : totalDaysInMonth;
+            
+            const dailyBudget = restBudget / daysRemaining;
+            const weeklyBudget = dailyBudget * 7;
+
+            todayEl.innerText = dailyBudget.toFixed(2) + ' €';
+            weekEl.innerText = weeklyBudget.toFixed(2) + ' €';
+        }
+
+        function updateQuickDistributeDropdown() {
+            const sel = document.getElementById('quickDistributeTargetSelect');
+            if(!sel) return;
+            sel.innerHTML = '';
+            goals.forEach(g => {
+                sel.add(new Option(g.name, g.id));
+            });
+        }
+
+        function executeQuickDistribute() {
+            const targetId = document.getElementById('quickDistributeTargetSelect').value;
+            const m = getSelectedMonthKey();
+            let totalSpent = 0, totalIncome = 0;
+            const itemData = getMonthDataOrFallback(m);
+            const totalPlannedHaushaltBudget = parseFloat(itemData.taschengeld) || 200;
+
+            (haushaltItems || []).forEach(i => {
+                if(i.date?.startsWith(m)) {
+                    if(i.type === 'income') totalIncome += parseFloat(i.amount || 0);
+                    else totalSpent += parseFloat(i.amount || 0);
+                }
+            });
+
+            const restBudget = totalPlannedHaushaltBudget + totalIncome - totalSpent;
+            if(restBudget <= 0) {
+                return alert('Kein positives Restgeld zum Verteilen vorhanden!');
+            }
+
+            const targetGoal = goals.find(g => g.id === targetId);
+            if(!targetGoal) return;
+
+            if(!entries[m]) entries[m] = getMonthDataOrFallback(m);
+            if(!entries[m].extraTransfers) entries[m].extraTransfers = [];
+
+            entries[m].extraTransfers.push({
+                id: Date.now(),
+                targetId: targetId,
+                targetName: targetGoal.name + " (One-Click Restgeld)",
+                amount: restBudget
+            });
+
+            saveLocally();
+            renderHaushaltView();
+            renderGoals();
+            renderHistory();
+            liveCalc();
+            alert(`Erfolgreich ${restBudget.toFixed(2)} € Restgeld auf "${targetGoal.name}" gebucht! ⚡🎯`);
+        }
 
         function exportCSV() {
             let csvContent = "data:text/csv;charset=utf-8,Typ;Name;Betrag;Kategorie/Ziel;Datum/Monat\n";
@@ -983,6 +1207,7 @@
                 localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
                 localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
                 localStorage.setItem('finanz_debt_overrides_local', JSON.stringify(debtOverrides));
+                localStorage.setItem('finanz_dsstev_docs_local', JSON.stringify(dsstevDocs));
                 setTimestampNow();
             } catch(e) {}
             if (cloudConfig.url) {
@@ -1003,7 +1228,7 @@
 
         async function syncWithCloudNow(isBackground = false) {
             if (!cloudConfig.url) { if (!isBackground) openCloudModal(); return; }
-            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, lastUpdated: new Date().toISOString() };
+            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lastUpdated: new Date().toISOString() };
             try {
                 let headers = { "Content-Type": "application/json" };
                 if (cloudConfig.key) { headers["X-Master-Key"] = cloudConfig.key; headers["X-Access-Key"] = cloudConfig.key; }
@@ -1030,7 +1255,8 @@
                         if(remoteData.cashBreakdown) cashBreakdown = remoteData.cashBreakdown;
                         if(remoteData.haushaltItems) haushaltItems = remoteData.haushaltItems;
                         if(remoteData.debtOverrides) debtOverrides = remoteData.debtOverrides;
-                        saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView();
+                        if(remoteData.dsstevDocs) dsstevDocs = remoteData.dsstevDocs;
+                        saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView(); renderAbrechnungenDocs(); updateCalendarBudgetDisplay();
                         if (!isSilent) alert('Aus Cloud geladen! 📥');
                     }
                 }
@@ -1073,7 +1299,7 @@
         }
 
         function exportBackupJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides }, null, 2));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs }, null, 2));
             const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `Finanzplan_Backup.json`);
             document.body.appendChild(dl); dl.click(); dl.remove();
         }
@@ -1090,7 +1316,8 @@
                         if(p.urlaubeList) urlaubeList = p.urlaubeList; if(p.activeUrlaubGoalId) activeUrlaubGoalId = p.activeUrlaubGoalId;
                         if(p.cashBreakdown) cashBreakdown = p.cashBreakdown; if(p.haushaltItems) haushaltItems = p.haushaltItems;
                         if(p.debtOverrides) debtOverrides = p.debtOverrides;
-                        saveLocally(); alert('Backup geladen! ✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView();
+                        if(p.dsstevDocs) dsstevDocs = p.dsstevDocs;
+                        saveLocally(); alert('Backup geladen! ✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView(); renderAbrechnungenDocs(); updateCalendarBudgetDisplay();
                     } catch (err) { alert('Fehler: ' + err.message); }
                 };
             }
@@ -1120,7 +1347,7 @@
             haushaltItems.push({ id: Date.now(), name, amount: amt, category: "🛒 Lebensmittel", date: todayStr, type: 'expense', receipt: null });
             document.getElementById('quickAddName').value = '';
             document.getElementById('quickAddAmount').value = '';
-            saveLocally(); renderHaushaltView(); renderJahresView(); alert('Blitz-Ausgabe verbucht! ⚡');
+            saveLocally(); renderHaushaltView(); renderJahresView(); updateCalendarBudgetDisplay(); alert('Blitz-Ausgabe verbucht! ⚡');
         }
 
         function updateHHKategorien() {
@@ -1171,11 +1398,12 @@
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(viewId).classList.add('active'); btnEl.classList.add('active');
-            if(viewId === 'haushalt-view') renderHaushaltView();
+            if(viewId === 'haushalt-view') { renderHaushaltView(); updateCalendarBudgetDisplay(); }
             if(viewId === 'schulden-view') renderSchuldenView();
             if(viewId === 'jahres-view') renderJahresView();
             if(viewId === 'urlaub-view') renderUrlaubView();
             if(viewId === 'ziele-view') { renderGoals(); updateSubKontoDropdowns(); }
+            if(viewId === 'dok-view') { renderAbrechnungenDocs(); }
         }
 
         function getSelectedMonthKey() { return document.getElementById('monthInput').value || "2026-12"; }
@@ -1219,6 +1447,7 @@
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView(); populateManualDistributeDropdown();
+            updateCalendarBudgetDisplay();
         }
 
         function populateManualDistributeDropdown() {
@@ -1281,10 +1510,10 @@
                 haushaltItems.push({ id: Date.now()+1, name, amount, category, date: `${nextM}-${d}`, type, receipt });
             }
             saveLocally(); document.getElementById('HHName').value = ''; document.getElementById('HHAmount').value = ''; document.getElementById('HHRepeatCheckbox').checked = false; rInput.value = '';
-            renderHaushaltView(); renderJahresView();
+            renderHaushaltView(); renderJahresView(); updateCalendarBudgetDisplay();
         }
 
-        function deleteHaushaltItem(id) { if(confirm('Löschen?')) { haushaltItems = haushaltItems.filter(i => i.id !== id); saveLocally(); renderHaushaltView(); renderJahresView(); } }
+        function deleteHaushaltItem(id) { if(confirm('Löschen?')) { haushaltItems = haushaltItems.filter(i => i.id !== id); saveLocally(); renderHaushaltView(); renderJahresView(); updateCalendarBudgetDisplay(); } }
 
         function renderHaushaltView() {
             const m = getSelectedMonthKey(); document.getElementById('HHMonthDisplay').innerText = m; document.getElementById('hhMonthInput').value = m;
@@ -1333,6 +1562,8 @@
             
             const restBudget = totalPlannedHaushaltBudget + totalIncome - totalSpent;
             const restEl = document.getElementById('HHRestDisplay'); restEl.innerText = restBudget.toFixed(2) + ' €'; restEl.className = restBudget >= 0 ? 'val-highlight' : 'val-red';
+            
+            updateCalendarBudgetDisplay();
         }
 
         function getTotalFixForMonthData(item) { return item?.items ? item.items.reduce((s, i) => (item.pausedItems || []).includes(i.name) ? s : s + parseFloat(i.amount || 0), 0) : 0; }
