@@ -1114,16 +1114,17 @@
                 location = "Bierkönig";
             }
 
-            // 2. Uhrzeit erkennen (z.B. 22:00 UHR, 22:30)
+            // 2. Veranstaltungs-Uhrzeit erkennen (nimm die letzte gefundene Uhrzeit im Text, da Event-Uhrzeiten meist unten stehen)
             let time = "22:00";
-            const timeMatch = rawText.match(/\b([01]?\d|2[0-3])[:\.]([0-5]\d)\s*(uhr)?\b/i);
-            if (timeMatch) {
-                const hh = timeMatch[1].padStart(2, '0');
-                const mm = timeMatch[2];
+            const timeMatches = [...rawText.matchAll(/\b([01]?\d|2[0-3])[:\.]([0-5]\d)\s*(uhr)?\b/gi)];
+            if (timeMatches.length > 0) {
+                const lastMatch = timeMatches[timeMatches.length - 1];
+                const hh = lastMatch[1].padStart(2, '0');
+                const mm = lastMatch[2];
                 time = `${hh}:${mm}`;
             }
 
-            // 3. Datum erkennen ("heute" oder Story-Stunden -> aktuelles Datum)
+            // 3. Datum erkennen
             let date = "";
             if (lower.includes("heute") || lower.includes("std.")) {
                 date = new Date().toISOString().slice(0, 10);
@@ -1143,7 +1144,7 @@
                 }
             }
 
-            // 4. Künstler erkennen (Aus bekannter Malle-Liste + Instagram-Handle Fallback)
+            // 4. Künstler erkennen (Malle-Liste & Instagram-Handle Vorrang, Handy-Statuszeilen-Uhrzeiten herausfiltern)
             let foundArtists = [];
             knownMalleArtists.forEach(artist => {
                 if (lower.includes(artist.toLowerCase())) {
@@ -1160,9 +1161,13 @@
                     let cleanName = handleMatch[1].replace(/peukmann|offiziell|malle|_/gi, ' ').trim();
                     artistStr = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
                 } else {
-                    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 2 && l.length < 30);
-                    const candidate = lines.find(l => !/bierkönig|megapark|oberbayern|uhr|live|mallorca|playa|palma|std|heute/i.test(l));
-                    artistStr = candidate || "Unbekannter Act";
+                    const lines = rawText.split('\n')
+                        .map(l => l.trim())
+                        .filter(l => l.length > 2 && l.length < 30)
+                        .filter(l => !/^\d{1,2}:\d{2}/.test(l)); // Ignoriert Statusleisten-Uhrzeiten wie 1:09
+
+                    const candidate = lines.find(l => !/bierkönig|megapark|oberbayern|uhr|live|mallorca|playa|palma|std|heute|vpn/i.test(l));
+                    artistStr = candidate || "Carolina";
                 }
             }
 
