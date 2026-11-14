@@ -15,6 +15,23 @@
     <!-- Tesseract.js für Screenshot Texterkennung (OCR) -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
+    <!-- Kleine Browser-KI (Hugging Face Transformers.js) für treffsichere Künstlernamen-Erkennung -->
+    <script type="module">
+        import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0';
+        window.extractArtistAI = null;
+
+        async function loadAI() {
+            try {
+                console.log("Lade kleine Malle-KI...");
+                window.extractArtistAI = await pipeline('token-classification', 'Xenova/bert-base-NER');
+                console.log("KI bereit!");
+            } catch(e) {
+                console.log("KI-Laden übersprungen / Fallback aktiv");
+            }
+        }
+        loadAI();
+    </script>
+
     <style>
         :root {
             --bg-color: #f8fafc; 
@@ -573,7 +590,7 @@
             </div>
         </div>
 
-        <!-- TAB 6: MALLE LIVE LINEUP (OPTIMIERT MIT OCR) -->
+        <!-- TAB 6: MALLE LIVE LINEUP (OPTIMIERT MIT KI) -->
         <div id="lineup-view" class="view-section">
             <!-- HEUTE LIVE HIGHLIGHTS -->
             <div class="card" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #f59e0b;">
@@ -586,14 +603,14 @@
                 </div>
             </div>
 
-            <!-- SCREENSHOT UPLOAD & OCR SCANNER -->
+            <!-- SCREENSHOT UPLOAD & KI SCANNER -->
             <div class="card" style="border: 1.5px solid #7dd3fc;">
                 <div class="card-title" style="color: var(--accent);">
                     <span>📸 Screenshot-Ankündigung scannen</span>
-                    <span class="badge" style="background:#e0f2fe; color:#0369a1;">Auto-OCR ⚡</span>
+                    <span class="badge" style="background:#e0f2fe; color:#0369a1;">Smart-KI ⚡</span>
                 </div>
                 <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
-                    Lade Instagram- oder Facebook-Screenshots von <strong>Bierkönig</strong>, <strong>Megapark</strong> oder <strong>Oberbayern</strong> hoch. Datum, Uhrzeit, Location und Künstler werden automatisch ausgelesen!
+                    Lade Instagram- oder Facebook-Screenshots von <strong>Bierkönig</strong>, <strong>Megapark</strong> oder <strong>Oberbayern</strong> hoch. Datum, Uhrzeit, Location und Künstler werden durch die KI automatisch erkannt!
                 </div>
                 
                 <div class="ocr-dropzone" onclick="document.getElementById('lineupScreenshotInput').click()">
@@ -938,7 +955,7 @@
             { id: 12, name: "coeo Inkasso GmbH", bank: "Sparkasse Essen", iban: "DE39 3605 0105 0000 2071 59", ref: "9916782721-0", start: "2024-06", months: 60, rate: 3.68, total: 220.60 }
         ];
 
-        // Bekannte Malle Künstler für Auto-OCR
+        // Bekannte Malle Künstler als solider Fallback
         const knownMalleArtists = [
             "Mia Julia", "Lorenz Büffel", "Ikke Hüftgold", "Isi Glück", "Julian Sommer", 
             "Tobee", "Peter Wackel", "Mickie Krause", "Olaf der Flipper", "Markus Becker", 
@@ -1034,7 +1051,7 @@
         });
 
         // ==========================================
-        // MALLE LINEUP & OPTIMIERTE OCR SCANNER LOGIK
+        // MALLE LINEUP & KI-GESTMÜTZTE SCREENSHOT-ERKENNUNG
         // ==========================================
         async function processLineupScreenshots(event) {
             const files = event.target.files;
@@ -1049,7 +1066,7 @@
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                statusText.innerText = `Scanne Bild ${i + 1} von ${files.length}...`;
+                statusText.innerText = `Scanne Bild ${i + 1} von ${files.length} (OCR + KI)...`;
                 progressPct.innerText = '0%';
                 progressBar.style.width = '0%';
 
@@ -1065,7 +1082,7 @@
                     });
 
                     const text = result.data.text || '';
-                    const parsed = parseFlyerText(text);
+                    const parsed = await parseFlyerText(text);
 
                     if (files.length === 1) {
                         document.getElementById('lineupLocationInput').value = parsed.location;
@@ -1074,19 +1091,19 @@
                         document.getElementById('lineupArtistInput').value = parsed.artist;
                         document.getElementById('lineupNoteInput').value = parsed.note;
                         document.getElementById('lineupManualDetails').open = true;
-                        statusText.innerText = '✅ Erkannt! Bitte unten kurz prüfen & speichern.';
+                        statusText.innerText = '✅ KI-Erkennung erfolgreich! Bitte prüfen & speichern.';
                     } else {
                         lineupEvents.push({
                             id: Date.now() + Math.random(),
                             location: parsed.location,
                             date: parsed.date || new Date().toISOString().slice(0, 10),
                             time: parsed.time || '22:00',
-                            artist: parsed.artist || 'Unbekannter Act (Screenshot)',
+                            artist: parsed.artist || 'Unbekannter Act',
                             note: parsed.note
                         });
                     }
                 } catch (err) {
-                    statusText.innerText = '❌ Fehler beim Lesen: ' + err.message;
+                    statusText.innerText = '❌ Fehler: ' + err.message;
                 }
             }
 
@@ -1099,7 +1116,7 @@
             event.target.value = '';
         }
 
-        function parseFlyerText(rawText) {
+        async function parseFlyerText(rawText) {
             const lower = rawText.toLowerCase();
             
             // 1. Location erkennen
@@ -1114,14 +1131,12 @@
                 location = "Bierkönig";
             }
 
-            // 2. Veranstaltungs-Uhrzeit erkennen (nimm die letzte gefundene Uhrzeit im Text, da Event-Uhrzeiten meist unten stehen)
+            // 2. Uhrzeit erkennen
             let time = "22:00";
             const timeMatches = [...rawText.matchAll(/\b([01]?\d|2[0-3])[:\.]([0-5]\d)\s*(uhr)?\b/gi)];
             if (timeMatches.length > 0) {
                 const lastMatch = timeMatches[timeMatches.length - 1];
-                const hh = lastMatch[1].padStart(2, '0');
-                const mm = lastMatch[2];
-                time = `${hh}:${mm}`;
+                time = `${lastMatch[1].padStart(2, '0')}:${lastMatch[2]}`;
             }
 
             // 3. Datum erkennen
@@ -1144,30 +1159,43 @@
                 }
             }
 
-            // 4. Künstler erkennen (Malle-Liste & Instagram-Handle Vorrang, Handy-Statuszeilen-Uhrzeiten herausfiltern)
-            let foundArtists = [];
-            knownMalleArtists.forEach(artist => {
-                if (lower.includes(artist.toLowerCase())) {
-                    foundArtists.push(artist);
-                }
-            });
-
+            // 4. Künstler via kleine Browser-KI oder Malle-Liste erkennen
             let artistStr = "";
-            if (foundArtists.length > 0) {
-                artistStr = [...new Set(foundArtists)].join(" & ");
-            } else {
-                const handleMatch = rawText.match(/@([a-zA-Z0-9_\.]+)/);
-                if (handleMatch) {
-                    let cleanName = handleMatch[1].replace(/peukmann|offiziell|malle|_/gi, ' ').trim();
-                    artistStr = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
-                } else {
-                    const lines = rawText.split('\n')
-                        .map(l => l.trim())
-                        .filter(l => l.length > 2 && l.length < 30)
-                        .filter(l => !/^\d{1,2}:\d{2}/.test(l)); // Ignoriert Statusleisten-Uhrzeiten wie 1:09
+            if (window.extractArtistAI) {
+                try {
+                    const results = await window.extractArtistAI(rawText);
+                    const entities = results.filter(r => r.entity === 'B-PER' || r.entity === 'I-PER' || r.entity === 'B-ORG');
+                    if (entities.length > 0) {
+                        artistStr = entities.map(e => e.word.replace(/^##/, '')).join(' ').trim();
+                    }
+                } catch(e) {}
+            }
 
-                    const candidate = lines.find(l => !/bierkönig|megapark|oberbayern|uhr|live|mallorca|playa|palma|std|heute|vpn/i.test(l));
-                    artistStr = candidate || "Carolina";
+            if (!artistStr || artistStr.length < 3) {
+                let foundArtists = [];
+                knownMalleArtists.forEach(artist => {
+                    if (lower.includes(artist.toLowerCase())) {
+                        foundArtists.push(artist);
+                    }
+                });
+                if (foundArtists.length > 0) {
+                    artistStr = [...new Set(foundArtists)].join(" & ");
+                } else {
+                    const handleMatch = rawText.match(/@([a-zA-Z0-9_\.]+)/);
+                    if (handleMatch) {
+                        let cleanName = handleMatch[1].replace(/peukmann|offiziell|malle|_/gi, ' ').trim();
+                        artistStr = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+                    } else {
+                        const lines = rawText.split('\n')
+                            .map(l => l.trim())
+                            .filter(l => l.length >= 3 && l.length < 30)
+                            .filter(l => !/^\d{1,2}[:\.]\d{2}/.test(l))
+                            .filter(l => !/^\d+$/.test(l))
+                            .filter(l => !/wlan|vpn|lte|5g|pm|am|heute|live|std|playa|palma/i.test(l));
+
+                        const candidate = lines.find(l => !/bierkönig|megapark|oberbayern|mallorca|uhr/i.test(l));
+                        artistStr = candidate || "";
+                    }
                 }
             }
 
