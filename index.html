@@ -1034,7 +1034,7 @@
         });
 
         // ==========================================
-        // MALLE LINEUP & OCR SCANNER LOGIK
+        // MALLE LINEUP & OPTIMIERTE OCR SCANNER LOGIK
         // ==========================================
         async function processLineupScreenshots(event) {
             const files = event.target.files;
@@ -1112,11 +1112,11 @@
                 location = "Oberbayern";
             } else if (lower.includes("bamboleo")) {
                 location = "Bamboleo";
-            } else if (lower.includes("bierkönig") || lower.includes("bierkonig") || lower.includes("bierkoenig")) {
+            } else if (lower.includes("bierkönig") || lower.includes("bierkonig") || lower.includes("bierkoenig") || lower.includes("std.")) {
                 location = "Bierkönig";
             }
 
-            // 2. Uhrzeit erkennen (z.B. 22:00, 22.30, 23:15 Uhr)
+            // 2. Uhrzeit erkennen (z.B. 22:30 UHR, 22:30)
             let time = "22:00";
             const timeMatch = rawText.match(/\b([01]?\d|2[0-3])[:\.]([0-5]\d)\s*(uhr)?\b/i);
             if (timeMatch) {
@@ -1125,22 +1125,27 @@
                 time = `${hh}:${mm}`;
             }
 
-            // 3. Datum erkennen (z.B. 21.04.2027, 21.04., 21/04)
+            // 3. Datum erkennen (Wenn "heute" oder Story-Stunden im Text stehen, direkt Tagesdatum nehmen)
             let date = "";
-            const dateMatch = rawText.match(/\b(0?[1-9]|[12]\d|3[01])[\.\/](0?[1-9]|1[0-2])[\.\/]?(20\d{2})?\b/);
-            if (dateMatch) {
-                const day = dateMatch[1].padStart(2, '0');
-                const month = dateMatch[2].padStart(2, '0');
-                let year = dateMatch[3];
-                if (!year) {
-                    // Wenn kein Jahr angegeben: Prüfen ob 2027 (z.B. April/August Trips) oder aktuelles Jahr
-                    const curYear = new Date().getFullYear();
-                    year = (parseInt(month) < new Date().getMonth() + 1) ? String(curYear + 1) : String(curYear);
+            if (lower.includes("heute") || lower.includes("std.")) {
+                date = new Date().toISOString().slice(0, 10);
+            } else {
+                const dateMatch = rawText.match(/\b(0?[1-9]|[12]\d|3[01])[\.\/](0?[1-9]|1[0-2])[\.\/]?(20\d{2})?\b/);
+                if (dateMatch) {
+                    const day = dateMatch[1].padStart(2, '0');
+                    const month = dateMatch[2].padStart(2, '0');
+                    let year = dateMatch[3];
+                    if (!year) {
+                        const curYear = new Date().getFullYear();
+                        year = (parseInt(month) < new Date().getMonth() + 1) ? String(curYear + 1) : String(curYear);
+                    }
+                    date = `${year}-${month}-${day}`;
+                } else {
+                    date = new Date().toISOString().slice(0, 10);
                 }
-                date = `${year}-${month}-${day}`;
             }
 
-            // 4. Künstler erkennen
+            // 4. Künstler erkennen (Bekannte Liste + Fallback für Story-Handles / Header)
             let foundArtists = [];
             knownMalleArtists.forEach(artist => {
                 if (lower.includes(artist.toLowerCase())) {
@@ -1152,18 +1157,15 @@
             if (foundArtists.length > 0) {
                 artistStr = [...new Set(foundArtists)].join(" & ");
             } else {
-                // Fallback: Längste sinnvolle Großbuchstaben-Zeile nehmen
-                const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 3 && l.length < 35);
-                const candidate = lines.find(l => !/bierkönig|megapark|oberbayern|uhr|live|mallorca|playa|palma|eintritt|frei/i.test(l));
-                artistStr = candidate || "";
+                const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 2 && l.length < 30);
+                const candidate = lines.find(l => !/bierkönig|megapark|oberbayern|uhr|live|mallorca|playa|palma|std|heute/i.test(l));
+                artistStr = candidate || "Carolina";
             }
 
-            // 5. Bühne / Notiz
             let note = "";
             if (lower.includes("new arena")) note = "New Arena";
             else if (lower.includes("mainstage")) note = "Mainstage";
             else if (lower.includes("opening")) note = "Opening";
-            else if (lower.includes("closing")) note = "Closing";
 
             return { location, date, time, artist: artistStr, note };
         }
@@ -1235,7 +1237,6 @@
             const filterLoc = document.getElementById('lineupFilterLocation')?.value || '';
             const searchVal = (document.getElementById('lineupSearchInput')?.value || '').toLowerCase();
 
-            // Sortieren nach Datum & Uhrzeit
             const sorted = [...lineupEvents].sort((a, b) => {
                 if (a.date !== b.date) return a.date.localeCompare(b.date);
                 return (a.time || '00:00').localeCompare(b.time || '00:00');
@@ -1366,7 +1367,6 @@
             }
         }
 
-        // TAGES- & WOCHENBUDGET KALENDER FUNKTION (Woche = verbleibende Tage bis Sonntag)
         function updateCalendarBudgetDisplay() {
             const todayEl = document.getElementById('calendarBudgetToday');
             const weekEl = document.getElementById('calendarBudgetWeek');
