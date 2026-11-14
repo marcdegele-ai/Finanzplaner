@@ -1239,28 +1239,43 @@
         }
         function updateCloudStatusLabel() { document.querySelector('.cloud-status').style.color = cloudConfig.url ? 'var(--accent-green)' : 'var(--accent-orange)'; }
 
+        // REPARIERTE CLOUD-SYNC FUNKTIONEN (Push / Pull)
         async function syncWithCloudNow(isBackground = false) {
             if (!cloudConfig.url) { if (!isBackground) openCloudModal(); return; }
             const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lastUpdated: new Date().toISOString() };
             try {
                 let headers = { "Content-Type": "application/json" };
-                if (cloudConfig.key) { headers["X-Master-Key"] = cloudConfig.key; headers["X-Access-Key"] = cloudConfig.key; }
-                await fetch(cloudConfig.url, { method: 'PUT', headers: headers, body: JSON.stringify(payload) });
+                if (cloudConfig.key) { 
+                    headers["X-Master-Key"] = cloudConfig.key; 
+                    headers["X-Access-Key"] = cloudConfig.key;
+                    headers["Authorization"] = "Bearer " + cloudConfig.key;
+                }
+                const res = await fetch(cloudConfig.url, { method: 'PUT', headers: headers, body: JSON.stringify(payload) });
+                if (!res.ok) throw new Error('HTTP Status ' + res.status);
                 if (!isBackground) alert('Cloud Sync erfolgreich! 📤');
-            } catch (err) { if (!isBackground) alert('Fehler: ' + err.message); }
+            } catch (err) { 
+                if (!isBackground) alert('Cloud Sync Fehler: ' + err.message); 
+            }
         }
 
         async function pullFromCloudNow(isSilent = false) {
             if (!cloudConfig.url) { if(!isSilent) openCloudModal(); return; }
             try {
                 let headers = {};
-                if (cloudConfig.key) { headers["X-Master-Key"] = cloudConfig.key; headers["X-Access-Key"] = cloudConfig.key; }
+                if (cloudConfig.key) { 
+                    headers["X-Master-Key"] = cloudConfig.key; 
+                    headers["X-Access-Key"] = cloudConfig.key;
+                    headers["Authorization"] = "Bearer " + cloudConfig.key;
+                }
                 const response = await fetch(cloudConfig.url, { method: 'GET', headers: headers });
                 if (response.ok) {
                     const jsonRes = await response.json();
                     const remoteData = jsonRes.record ? jsonRes.record : jsonRes;
-                    if (remoteData.entries) {
-                        entries = {}; Object.keys(remoteData.entries).forEach(k => { if(k >= "2026-12") { entries[k] = remoteData.entries[k]; entries[k].extraTransfers = entries[k].extraTransfers || []; } });
+                    if (remoteData && (remoteData.entries || remoteData.goals)) {
+                        if (remoteData.entries) {
+                            entries = {}; 
+                            Object.keys(remoteData.entries).forEach(k => { if(k >= "2026-12") { entries[k] = remoteData.entries[k]; entries[k].extraTransfers = entries[k].extraTransfers || []; } });
+                        }
                         if(remoteData.goals) goals = remoteData.goals;
                         if(remoteData.transfersList) transfersList = remoteData.transfersList;
                         if(remoteData.urlaubeList) urlaubeList = remoteData.urlaubeList;
@@ -1269,11 +1284,28 @@
                         if(remoteData.haushaltItems) haushaltItems = remoteData.haushaltItems;
                         if(remoteData.debtOverrides) debtOverrides = remoteData.debtOverrides;
                         if(remoteData.dsstevDocs) dsstevDocs = remoteData.dsstevDocs;
-                        saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView(); renderAbrechnungenDocs(); updateCalendarBudgetDisplay();
-                        if (!isSilent) alert('Aus Cloud geladen! 📥');
+                        
+                        saveLocally(); 
+                        loadMonthData(); 
+                        renderHistory(); 
+                        renderGoals(); 
+                        renderHaushaltView(); 
+                        renderJahresView(); 
+                        checkUrlaubTabVisibility(); 
+                        loadCashBreakdownToUI(); 
+                        updateSubKontoDropdowns(); 
+                        renderSchuldenView(); 
+                        renderAbrechnungenDocs(); 
+                        updateCalendarBudgetDisplay();
+                        
+                        if (!isSilent) alert('Daten erfolgreich aus der Cloud geladen! 📥');
+                    } else {
+                        throw new Error('Ungültiges Datenformat in der Cloud.');
                     }
+                } else {
+                    throw new Error('HTTP Status ' + response.status);
                 }
-            } catch (err) { if (!isSilent) alert('Fehler: ' + err.message); }
+            } catch (err) { if (!isSilent) alert('Fehler beim Laden aus der Cloud: ' + err.message); }
         }
 
         let calcVal = "0";
@@ -1548,7 +1580,7 @@
                 if (filterCat && item.category !== filterCat) return;
 
                 const div = document.createElement('div'); div.className = 'history-item';
-                div.innerHTML = `<div><div class="history-date" style="${isInc?'color:var(--accent-green);':''}">${item.name} <span class="badge ${isInc?'badge-income':'badge-kategorie'}">${item.category}</span> ${item.receipt?`<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">Beleg</button>ኸ:''}</div><div class="history-sub">${item.date}</div></div><div style="text-align:right;"><span class="${isInc?'val-highlight':'val-red'}">${isInc?'+':'-'}${amt.toFixed(2)} €</span> <span style="cursor:pointer; color:#ef4444;" onclick="deleteHaushaltItem(${item.id})">🗑️</span></div>`;
+                div.innerHTML = `<div><div class="history-date" style="${isInc?'color:var(--accent-green);':''}">${item.name} <span class="badge ${isInc?'badge-income':'badge-kategorie'}">${item.category}</span> ${item.receipt?`<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">Beleg</button>`:''}</div><div class="history-sub">${item.date}</div></div><div style="text-align:right;"><span class="${isInc?'val-highlight':'val-red'}">${isInc?'+':'-'}${amt.toFixed(2)} €</span> <span style="cursor:pointer; color:#ef4444;" onclick="deleteHaushaltItem(${item.id})">🗑️</span></div>`;
                 list.appendChild(div);
             });
             const chartCard = document.getElementById('categoryChartCard'), chartContainer = document.getElementById('categoryChartContainer'); chartContainer.innerHTML = '';
