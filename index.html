@@ -1120,7 +1120,7 @@
             // 1. Handy-Statusleisten-Müll und System-Zeug direkt aus dem Text löschen
             const cleanRaw = rawText
                 .replace(/\b([01]?\d|2[0-3])[:\.]([0-5]\d)\b/g, '')
-                .replace(/wifi|lte|5g|vpn|vodafone|o2|telekom|33%|100%|20:06/gi, '');
+                .replace(/wifi|lte|5g|vpn|vodafone|o2|telekom|33%|100%|20:13/gi, '');
 
             const lower = cleanRaw.toLowerCase();
             
@@ -1134,7 +1134,7 @@
                 location = "Bamboleo";
             }
 
-            // 3. Echten Künstler aus der bekannten Malle-Liste suchen (Höchste Priorität!)
+            // 3. Echten Künstler aus der bekannten Malle-Liste suchen
             let artistStr = "";
             const foundArtists = [];
             knownMalleArtists.forEach(artist => {
@@ -1147,12 +1147,14 @@
             if (foundArtists.length > 0) {
                 artistStr = [...new Set(foundArtists)].join(" & ");
             } else {
+                // Strenger Fallback: Ignoriere alles, was nach Buchstabensalat aussieht
                 const lines = cleanRaw.split('\n')
                     .map(l => l.trim())
                     .filter(l => l.length >= 4 && l.length < 25)
-                    .filter(l => !/bierkönig|megapark|oberbayern|mallorca|uhr|screenshot|gespeichert/i.test(l));
+                    .filter(l => !/bierkönig|megapark|oberbayern|mallorca|uhr|screenshot|gespeichert/i.test(l))
+                    .filter(l => !/^[\W\d\s_\-\.\[\]\(\)]+$/.test(l));
 
-                artistStr = lines.length > 0 ? lines[0] : "";
+                artistStr = lines.length > 0 ? lines[0] : "Unbekannter Act";
             }
 
             // 4. Datum & Uhrzeit sauber extrahieren
