@@ -180,13 +180,14 @@
             <div class="tab-bar">
                 <button class="tab-btn active" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
                 <button class="tab-btn" onclick="switchTab('haushalt-view', this)">🏠 Haushalt</button>
-                <button class="tab-btn" onclick="switchTab('dok-view', this)">📂 Dokumente</button>
-                <button class="tab-btn" onclick="switchTab('schulden-view', this)">🤝 Schulden</button>
                 <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
-                <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres</button>
-                <button class="tab-btn" onclick="switchTab('urlaub-view', this)" id="urlaubTabBtn" style="display:none;">✈️ Urlaub</button>
                 <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
                 <button class="tab-btn" onclick="switchTab('rechner-view', this)">🧮 Rechner</button>
+                <button class="tab-btn" onclick="switchTab('urlaub-view', this)" id="urlaubTabBtn" style="display:none;">✈️ Urlaub</button>
+                <!-- NACH HINTEN VERSCHOBENE REITER -->
+                <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres</button>
+                <button class="tab-btn" onclick="switchTab('dok-view', this)">📂 Dokumente</button>
+                <button class="tab-btn" onclick="switchTab('schulden-view', this)">🤝 Schulden</button>
             </div>
         </header>
 
@@ -323,14 +324,14 @@
                     <input type="month" id="hhMonthInput" min="2026-12" onchange="syncMonthInput(this.value)" style="background:#fff; font-weight:bold; color:var(--accent);">
                 </div>
 
-                <!-- TAGES- UND WOCHENBUDGET KALENDER-ANZEIGE -->
+                <!-- TAGES- & WOCHENBUDGET KALENDER-ANZEIGE -->
                 <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1.5px solid #86efac; margin-bottom: 12px;">
                     <div class="card-title" style="color: #166534; margin-bottom: 8px;">
                         <span>📅 Smartes Tages- & Wochenbudget</span>
                         <span class="badge" style="background:#bbf7d0; color:#166534; font-size:0.7rem;">Live Aktiv ⚡</span>
                     </div>
                     <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
-                        Zeigt dir basierend auf deinem aktuellen Rest-Budget, was du heute und in dieser Woche noch ausgeben kannst.
+                        Tagesbudget (heute) & Wochenbudget (bis zum kommenden Sonntag).
                     </div>
                     <div class="kpi-grid" style="margin-bottom: 0;">
                         <div class="kpi-card" style="background: #ffffff; border-color: #bbf7d0;">
@@ -338,7 +339,7 @@
                             <div class="kpi-val" id="calendarBudgetToday" style="color: #166534; font-size: 1.1rem;">0,00 €</div>
                         </div>
                         <div class="kpi-card" style="background: #ffffff; border-color: #bbf7d0;">
-                            <div class="kpi-label" style="color: #15803d;">Verbleibend Diese Woche</div>
+                            <div class="kpi-label" style="color: #15803d;">Verbleibend Bis Sonntag</div>
                             <div class="kpi-val" id="calendarBudgetWeek" style="color: #166534; font-size: 1.1rem;">0,00 €</div>
                         </div>
                     </div>
@@ -433,7 +434,197 @@
             </div>
         </div>
 
-        <!-- TAB: DOKUMENTE & ABRECHNUNGEN (dsstev / dsdssd) -->
+        <!-- TAB 3: PROGNOSE & KASSETTE -->
+        <div id="uebersicht-view" class="view-section">
+            <div class="card" style="border: 1px solid #f59e0b;">
+                <div class="card-title"><span>🪙 Bargeld-Kassette</span><span id="cashTotalBadge" style="color:#b45309; font-size:1rem;">0,00 €</span></div>
+                <div class="cash-grid">
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c100')">100€</div><label onclick="incrementCash('c100')">100 €</label><input type="number" id="c100" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c50')">50€</div><label onclick="incrementCash('c50')">50 €</label><input type="number" id="c50" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c20')">20€</div><label onclick="incrementCash('c20')">20 €</label><input type="number" id="c20" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c10')">10€</div><label onclick="incrementCash('c10')">10 €</label><input type="number" id="c10" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c5')">5€</div><label onclick="incrementCash('c5')">5 €</label><input type="number" id="c5" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c2')">2€</div><label onclick="incrementCash('c2')">2 €</label><input type="number" id="c2" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c1')">1€</div><label onclick="incrementCash('c1')">1 €</label><input type="number" id="c1" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c050')">50c</div><label onclick="incrementCash('c050')">50c</label><input type="number" id="c050" min="0" value="0" oninput="calcCashBox()"></div>
+                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c020')">20c</div><label onclick="incrementCash('c020')">20c</label><input type="number" id="c020" min="0" value="0" oninput="calcCashBox()"></div>
+                </div>
+                <button class="btn-secondary" style="width:100%; margin-top:8px; background:#f59e0b; color:#fff; font-weight:bold; border:none; padding:8px; border-radius:8px;" onclick="saveCashBoxLocally()">💾 Stückelung speichern</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📈 Vermögensverlauf</div>
+                <div class="chart-container" id="netWorthChartContainer"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📈 Monatsübersicht (Ist vs. Geplant)</div>
+                <div class="table-wrapper">
+                    <table class="month-table">
+                        <thead><tr><th>Monat</th><th>Status</th><th>Sparrate (Geplant)</th><th>Notfall</th><th>Freizeit</th><th>Frei</th><th>Gesamt</th></tr></thead>
+                        <tbody id="monthSavingsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: SPARZIELE -->
+        <div id="ziele-view" class="view-section">
+            <div class="card">
+                <div class="card-title">🎯 Sparziel oder Unterkonto anlegen</div>
+                <div class="grid">
+                    <div class="input-group full"><label>Name</label><input type="text" id="zielName" placeholder="Z.B. Auto, Technik, Rücklagen..."></div>
+                    <div class="input-group"><label>Zielbetrag (€) (Opt. / 0 = Endlos)</label><input type="number" id="zielBetrag" placeholder="0 oder 1500" oninput="autoCalculateMonthlyRate()"></div>
+                    <div class="input-group"><label>Sparrate (€/Mo)</label><input type="number" id="zielFixedMonthly" placeholder="100"></div>
+                    <div class="input-group full"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
+                    <div class="input-group full">
+                        <label>Typ / Zuordnung</label>
+                        <select id="zielTypeSelect">
+                            <option value="notfall_sub">🛡️ Notfallkonto-Unterkonto</option>
+                            <option value="giro_puffer">🏦 Girokonto-Puffer (Verbleibt auf Giro)</option>
+                            <option value="custom">⚙️ Manuell (Freizeitkonto / Endlos)</option>
+                            <option value="notfall">🛡️ Haupt-Notfallkonto</option>
+                            <option value="freizeit">🎉 Freizeitkonto</option>
+                            <option value="kassette">🪙 Bargeld-Kassette</option>
+                        </select>
+                    </div>
+                    <div class="input-group full">
+                        <label class="checkbox-container"><input type="checkbox" id="zielCapAtTargetCheckbox" checked><div><strong>Auto-Stopp bei Erreichen</strong></div></label>
+                    </div>
+                    <div class="input-group full">
+                        <label class="checkbox-container"><input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()"><div><strong>Gleichmäßig bis Endmonat aufteilen</strong></div></label>
+                    </div>
+                    <div class="input-group full" id="zielEndMonthGroup" style="display:none;"><label>Endmonat</label><input type="month" id="zielEndMonthInput" value="2027-12"></div>
+                    <div class="input-group full">
+                        <label class="checkbox-container"><input type="checkbox" id="zielAutoUrlaubCheckbox" onchange="toggleAutoUrlaubFields()"><div><strong>✨ Urlaubs-Planer generieren</strong></div></label>
+                    </div>
+                    <div class="input-group" id="zielStartDateGroup" style="display:none;"><label>Start</label><input type="date" id="zielStartDateInput"></div>
+                    <div class="input-group" id="zielEndDateGroup" style="display:none;"><label>Ende</label><input type="date" id="zielEndDateInput"></div>
+                </div>
+                <button class="btn-add" onclick="saveGoal()">Unterkonto / Ziel Hinzufügen ➕</button>
+            </div>
+
+            <div class="card" style="background:#f0fdf4; border:1.5px solid var(--accent-green);">
+                <div class="card-title" style="color:#15803d;"><span>🔄 Geld zwischen Zielen verschieben</span></div>
+                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">Verschiebe hier variabel Guthaben zwischen all deinen Zielen.</div>
+                <div class="grid">
+                    <div class="input-group"><label>Von Ziel (Quelle)</label><select id="subKontosourceSelect" style="background:#fff;"></select></div>
+                    <div class="input-group"><label>Zu Ziel (Empfänger)</label><select id="subKontoTargetSelect" style="background:#fff;"></select></div>
+                    <div class="input-group"><label>Betrag (€)</label><input type="number" id="subKontoTransferAmount" placeholder="200.00" style="background:#fff;"></div>
+                    <div class="input-group"><label>Ab Monat</label><input type="month" id="subKontoTransferMonth" style="background:#fff;"></div>
+                </div>
+                <button class="btn-secondary" style="width:100%; margin-top:8px; background:var(--accent-green); color:#fff; font-weight:bold;" onclick="executeSubKontoTransferPlan()">Dauerhaft in Planung übertragen 🚀</button>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📋 Meine Sparziele</div>
+                <div class="goals-grid" id="goalsList"></div>
+            </div>
+        </div>
+
+        <!-- TAB 5: RECHNER -->
+        <div id="rechner-view" class="view-section">
+            <div class="card" style="border: 1px solid var(--accent);">
+                <div class="card-title" style="color:var(--accent);"><span>🧮 Rechner</span></div>
+                <div class="calc-display" id="calcDisplay">0</div>
+                <div class="calc-grid">
+                    <button class="calc-btn ac" onclick="calcClear()">AC</button><button class="calc-btn op" onclick="calcAppend('%')">%</button><button class="calc-btn op" onclick="calcAppend('/')">÷</button><button class="calc-btn op" onclick="calcBack()">⌫</button>
+                    <button class="calc-btn" onclick="calcAppend('7')">7</button><button class="calc-btn" onclick="calcAppend('8')">8</button><button class="calc-btn" onclick="calcAppend('9')">9</button><button class="calc-btn op" onclick="calcAppend('*')">×</button>
+                    <button class="calc-btn" onclick="calcAppend('4')">4</button><button class="calc-btn" onclick="calcAppend('5')">5</button><button class="calc-btn" onclick="calcAppend('6')">6</button><button class="calc-btn op" onclick="calcAppend('-')">-</button>
+                    <button class="calc-btn" onclick="calcAppend('1')">1</button><button class="calc-btn" onclick="calcAppend('2')">2</button><button class="calc-btn" onclick="calcAppend('3')">3</button><button class="calc-btn op" onclick="calcAppend('+')">+</button>
+                    <button class="calc-btn" onclick="calcAppend('0')" style="grid-column: span 2;">0</button><button class="calc-btn" onclick="calcAppend('.')">.</button><button class="calc-btn eq" onclick="calcResult()">=</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 6: URLAUBS-PLANER -->
+        <div id="urlaub-view" class="view-section">
+            <div class="card" style="border: 2px solid var(--accent); background: #f0f9ff;">
+                <div class="card-title" style="color: var(--accent);"><span>✈️ Urlaubs-Planer wählen</span></div>
+                <select id="urlaubSelectSwitch" onchange="switchActiveUrlaub(this.value)" style="font-weight: bold; color: var(--accent); background: #fff;"></select>
+            </div>
+            
+            <div class="card">
+                <div class="card-title"><span>📅 Urlaubszeitraum manuell anpassen</span></div>
+                <div class="grid">
+                    <div class="input-group">
+                        <label>Startdatum</label>
+                        <input type="date" id="urlaubManualStartDate" onchange="saveUrlaubDatesManual()">
+                    </div>
+                    <div class="input-group">
+                        <label>Enddatum</label>
+                        <input type="date" id="urlaubManualEndDate" onchange="saveUrlaubDatesManual()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title"><span id="uHeaderTitle">✈️ Urlaub</span></div>
+                <div class="stat-row"><span>Ziel:</span><strong id="uTargetGoalName" style="color:var(--accent);">-</strong></div>
+                <div class="stat-row"><span>Gesamtbudget (Aktuell / Geplant):</span><span><strong id="uTargetBudgetDisplay" class="val-highlight">0,00 €</strong> / <span id="uPlannedBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
+                <button class="btn-secondary" style="width:100%; margin-top:8px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-weight:bold;" onclick="deleteCurrentUrlaubPlan()">🗑️ Planer löschen</button>
+            </div>
+            <div class="card">
+                <div class="card-title">📌 Fixkosten & Verpflegung</div>
+                <div class="grid">
+                    <div class="input-group"><label>Hotel (€)</label><input type="number" id="uFixHotel" onchange="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Kurtaxe (€)</label><input type="number" id="uFixKurtaxe" onchange="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Supermarkt (€)</label><input type="number" id="uFixSupermarkt" onchange="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Anreise (€)</label><input type="number" id="uFixBusHin" onchange="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Puffer (€)</label><input type="number" id="uFixAbreisePuffer" onchange="saveUrlaubConfigDynamic()"></div>
+                    <div class="input-group"><label>Abreisetag Fix (€)</label><input type="number" id="uFixAbreiseTag" placeholder="z.B. 30" onchange="saveUrlaubConfigDynamic()"></div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Tages-Umschläge & Dynamische Anpassung</div>
+                <div class="table-wrapper">
+                    <table class="month-table">
+                        <thead><tr><th>Tag</th><th>Basis</th><th>Bonus (+/-)</th><th>Verf.</th><th>Ist-Ausgabe</th><th>Rest</th></tr></thead>
+                        <tbody id="urlaubTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 7: JAHRES-CHECK (RECHTS VERSCHOBEN) -->
+        <div id="jahres-view" class="view-section">
+            <div class="card">
+                <div class="card-title">
+                    <span>📈 Jahres-Auswertung</span>
+                    <select id="selectYear" style="width: 90px; padding: 5px;" onchange="renderJahresView()">
+                        <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option>
+                    </select>
+                </div>
+                <div class="stat-row"><span>Gesamteinnahmen (Ist / Geplant):</span><span><strong id="jahrEinnahmen" class="val-highlight">0,00 €</strong> / <span id="jahrGeplantEinnahmen" style="color:var(--text-sub);">0,00 €</span></span></div>
+                <div class="stat-row"><span>Fixkosten:</span><span id="jahrFix" class="val-red">0,00 €</span></div>
+                <div class="stat-row"><span>Haushalt-Ausgaben:</span><span id="jahrHaushaltAusgaben" class="val-red">0,00 €</span></div>
+                <div class="stat-row"><span>Echtes Sparen (Netto):</span><span id="jahrEchtesSparen" class="val-highlight">0,00 €</span></div>
+                <div class="stat-row" style="font-weight: bold; background: #f0fdf4; padding: 8px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 5px;">
+                    <span style="color:#15803d;">🎯 Echte Sparquote:</span><span id="jahrEchteSparquote" class="val-highlight">0.0%</span>
+                </div>
+            </div>
+
+            <!-- JAHRES-MONATSVERGLEICH TABELLE -->
+            <div class="card">
+                <div class="card-title">📊 Monatsvergleich (Detailansicht)</div>
+                <div class="table-wrapper">
+                    <table class="month-table">
+                        <thead>
+                            <tr>
+                                <th>Monat</th>
+                                <th>Einnahmen</th>
+                                <th>Fixkosten</th>
+                                <th>Ausgaben</th>
+                                <th>Sparquote</th>
+                            </tr>
+                        </thead>
+                        <tbody id="jahresDetailsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 8: DOKUMENTE & ABRECHNUNGEN (RECHTS VERSCHOBEN) -->
         <div id="dok-view" class="view-section">
             <div class="card" style="background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%); border: 1.5px solid #7dd3fc;">
                 <div class="card-title" style="color: var(--accent);">
@@ -464,7 +655,7 @@
             </div>
         </div>
 
-        <!-- TAB SCHULDENBEREINIGUNG -->
+        <!-- TAB 9: SCHULDENBEREINIGUNG (RECHTS VERSCHOBEN) -->
         <div id="schulden-view" class="view-section">
             <div class="card" style="background: linear-gradient(135deg, #f3e8ff 0%, #ffffff 100%); border: 1.5px solid #c084fc;">
                 <div class="card-title" style="color:#7e22ce;">
@@ -546,195 +737,6 @@
             </div>
         </div>
 
-        <!-- TAB 3: PROGNOSE & KASSETTE -->
-        <div id="uebersicht-view" class="view-section">
-            <div class="card" style="border: 1px solid #f59e0b;">
-                <div class="card-title"><span>🪙 Bargeld-Kassette</span><span id="cashTotalBadge" style="color:#b45309; font-size:1rem;">0,00 €</span></div>
-                <div class="cash-grid">
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c100')">100€</div><label onclick="incrementCash('c100')">100 €</label><input type="number" id="c100" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c50')">50€</div><label onclick="incrementCash('c50')">50 €</label><input type="number" id="c50" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c20')">20€</div><label onclick="incrementCash('c20')">20 €</label><input type="number" id="c20" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c10')">10€</div><label onclick="incrementCash('c10')">10 €</label><input type="number" id="c10" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c5')">5€</div><label onclick="incrementCash('c5')">5 €</label><input type="number" id="c5" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c2')">2€</div><label onclick="incrementCash('c2')">2 €</label><input type="number" id="c2" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c1')">1€</div><label onclick="incrementCash('c1')">1 €</label><input type="number" id="c1" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c050')">50c</div><label onclick="incrementCash('c050')">50c</label><input type="number" id="c050" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c020')">20c</div><label onclick="incrementCash('c020')">20c</label><input type="number" id="c020" min="0" value="0" oninput="calcCashBox()"></div>
-                </div>
-                <button class="btn-secondary" style="width:100%; margin-top:8px; background:#f59e0b; color:#fff; font-weight:bold; border:none; padding:8px; border-radius:8px;" onclick="saveCashBoxLocally()">💾 Stückelung speichern</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📈 Vermögensverlauf</div>
-                <div class="chart-container" id="netWorthChartContainer"></div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📈 Monatsübersicht (Ist vs. Geplant)</div>
-                <div class="table-wrapper">
-                    <table class="month-table">
-                        <thead><tr><th>Monat</th><th>Status</th><th>Sparrate (Geplant)</th><th>Notfall</th><th>Freizeit</th><th>Frei</th><th>Gesamt</th></tr></thead>
-                        <tbody id="monthSavingsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 4: JAHRES-CHECK -->
-        <div id="jahres-view" class="view-section">
-            <div class="card">
-                <div class="card-title">
-                    <span>📈 Jahres-Auswertung</span>
-                    <select id="selectYear" style="width: 90px; padding: 5px;" onchange="renderJahresView()">
-                        <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option>
-                    </select>
-                </div>
-                <div class="stat-row"><span>Gesamteinnahmen (Ist / Geplant):</span><span><strong id="jahrEinnahmen" class="val-highlight">0,00 €</strong> / <span id="jahrGeplantEinnahmen" style="color:var(--text-sub);">0,00 €</span></span></div>
-                <div class="stat-row"><span>Fixkosten:</span><span id="jahrFix" class="val-red">0,00 €</span></div>
-                <div class="stat-row"><span>Haushalt-Ausgaben:</span><span id="jahrHaushaltAusgaben" class="val-red">0,00 €</span></div>
-                <div class="stat-row"><span>Echtes Sparen (Netto):</span><span id="jahrEchtesSparen" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row" style="font-weight: bold; background: #f0fdf4; padding: 8px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 5px;">
-                    <span style="color:#15803d;">🎯 Echte Sparquote:</span><span id="jahrEchteSparquote" class="val-highlight">0.0%</span>
-                </div>
-            </div>
-
-            <!-- JAHRES-MONATSVERGLEICH TABELLE -->
-            <div class="card">
-                <div class="card-title">📊 Monatsvergleich (Detailansicht)</div>
-                <div class="table-wrapper">
-                    <table class="month-table">
-                        <thead>
-                            <tr>
-                                <th>Monat</th>
-                                <th>Einnahmen</th>
-                                <th>Fixkosten</th>
-                                <th>Ausgaben</th>
-                                <th>Sparquote</th>
-                            </tr>
-                        </thead>
-                        <tbody id="jahresDetailsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 5: URLAUBS-PLANER -->
-        <div id="urlaub-view" class="view-section">
-            <div class="card" style="border: 2px solid var(--accent); background: #f0f9ff;">
-                <div class="card-title" style="color: var(--accent);"><span>✈️ Urlaubs-Planer wählen</span></div>
-                <select id="urlaubSelectSwitch" onchange="switchActiveUrlaub(this.value)" style="font-weight: bold; color: var(--accent); background: #fff;"></select>
-            </div>
-            
-            <div class="card">
-                <div class="card-title"><span>📅 Urlaubszeitraum manuell anpassen</span></div>
-                <div class="grid">
-                    <div class="input-group">
-                        <label>Startdatum</label>
-                        <input type="date" id="urlaubManualStartDate" onchange="saveUrlaubDatesManual()">
-                    </div>
-                    <div class="input-group">
-                        <label>Enddatum</label>
-                        <input type="date" id="urlaubManualEndDate" onchange="saveUrlaubDatesManual()">
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title"><span id="uHeaderTitle">✈️ Urlaub</span></div>
-                <div class="stat-row"><span>Ziel:</span><strong id="uTargetGoalName" style="color:var(--accent);">-</strong></div>
-                <div class="stat-row"><span>Gesamtbudget (Aktuell / Geplant):</span><span><strong id="uTargetBudgetDisplay" class="val-highlight">0,00 €</strong> / <span id="uPlannedBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
-                <button class="btn-secondary" style="width:100%; margin-top:8px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-weight:bold;" onclick="deleteCurrentUrlaubPlan()">🗑️ Planer löschen</button>
-            </div>
-            <div class="card">
-                <div class="card-title">📌 Fixkosten & Verpflegung</div>
-                <div class="grid">
-                    <div class="input-group"><label>Hotel (€)</label><input type="number" id="uFixHotel" onchange="saveUrlaubConfigDynamic()"></div>
-                    <div class="input-group"><label>Kurtaxe (€)</label><input type="number" id="uFixKurtaxe" onchange="saveUrlaubConfigDynamic()"></div>
-                    <div class="input-group"><label>Supermarkt (€)</label><input type="number" id="uFixSupermarkt" onchange="saveUrlaubConfigDynamic()"></div>
-                    <div class="input-group"><label>Anreise (€)</label><input type="number" id="uFixBusHin" onchange="saveUrlaubConfigDynamic()"></div>
-                    <div class="input-group"><label>Puffer (€)</label><input type="number" id="uFixAbreisePuffer" onchange="saveUrlaubConfigDynamic()"></div>
-                    <div class="input-group"><label>Abreisetag Fix (€)</label><input type="number" id="uFixAbreiseTag" placeholder="z.B. 30" onchange="saveUrlaubConfigDynamic()"></div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">📊 Tages-Umschläge & Dynamische Anpassung</div>
-                <div class="table-wrapper">
-                    <table class="month-table">
-                        <thead><tr><th>Tag</th><th>Basis</th><th>Bonus (+/-)</th><th>Verf.</th><th>Ist-Ausgabe</th><th>Rest</th></tr></thead>
-                        <tbody id="urlaubTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 6: SPARZIELE -->
-        <div id="ziele-view" class="view-section">
-            <div class="card">
-                <div class="card-title">🎯 Sparziel oder Unterkonto anlegen</div>
-                <div class="grid">
-                    <div class="input-group full"><label>Name</label><input type="text" id="zielName" placeholder="Z.B. Auto, Technik, Rücklagen..."></div>
-                    <div class="input-group"><label>Zielbetrag (€) (Opt. / 0 = Endlos)</label><input type="number" id="zielBetrag" placeholder="0 oder 1500" oninput="autoCalculateMonthlyRate()"></div>
-                    <div class="input-group"><label>Sparrate (€/Mo)</label><input type="number" id="zielFixedMonthly" placeholder="100"></div>
-                    <div class="input-group full"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
-                    <div class="input-group full">
-                        <label>Typ / Zuordnung</label>
-                        <select id="zielTypeSelect">
-                            <option value="notfall_sub">🛡️ Notfallkonto-Unterkonto</option>
-                            <option value="giro_puffer">🏦 Girokonto-Puffer (Verbleibt auf Giro)</option>
-                            <option value="custom">⚙️ Manuell (Freizeitkonto / Endlos)</option>
-                            <option value="notfall">🛡️ Haupt-Notfallkonto</option>
-                            <option value="freizeit">🎉 Freizeitkonto</option>
-                            <option value="kassette">🪙 Bargeld-Kassette</option>
-                        </select>
-                    </div>
-                    <div class="input-group full">
-                        <label class="checkbox-container"><input type="checkbox" id="zielCapAtTargetCheckbox" checked><div><strong>Auto-Stopp bei Erreichen</strong></div></label>
-                    </div>
-                    <div class="input-group full">
-                        <label class="checkbox-container"><input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()"><div><strong>Gleichmäßig bis Endmonat aufteilen</strong></div></label>
-                    </div>
-                    <div class="input-group full" id="zielEndMonthGroup" style="display:none;"><label>Endmonat</label><input type="month" id="zielEndMonthInput" value="2027-12"></div>
-                    <div class="input-group full">
-                        <label class="checkbox-container"><input type="checkbox" id="zielAutoUrlaubCheckbox" onchange="toggleAutoUrlaubFields()"><div><strong>✨ Urlaubs-Planer generieren</strong></div></label>
-                    </div>
-                    <div class="input-group" id="zielStartDateGroup" style="display:none;"><label>Start</label><input type="date" id="zielStartDateInput"></div>
-                    <div class="input-group" id="zielEndDateGroup" style="display:none;"><label>Ende</label><input type="date" id="zielEndDateInput"></div>
-                </div>
-                <button class="btn-add" onclick="saveGoal()">Unterkonto / Ziel Hinzufügen ➕</button>
-            </div>
-
-            <div class="card" style="background:#f0fdf4; border:1.5px solid var(--accent-green);">
-                <div class="card-title" style="color:#15803d;"><span>🔄 Geld zwischen Zielen verschieben</span></div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">Verschiebe hier variabel Guthaben zwischen all deinen Zielen.</div>
-                <div class="grid">
-                    <div class="input-group"><label>Von Ziel (Quelle)</label><select id="subKontosourceSelect" style="background:#fff;"></select></div>
-                    <div class="input-group"><label>Zu Ziel (Empfänger)</label><select id="subKontoTargetSelect" style="background:#fff;"></select></div>
-                    <div class="input-group"><label>Betrag (€)</label><input type="number" id="subKontoTransferAmount" placeholder="200.00" style="background:#fff;"></div>
-                    <div class="input-group"><label>Ab Monat</label><input type="month" id="subKontoTransferMonth" style="background:#fff;"></div>
-                </div>
-                <button class="btn-secondary" style="width:100%; margin-top:8px; background:var(--accent-green); color:#fff; font-weight:bold;" onclick="executeSubKontoTransferPlan()">Dauerhaft in Planung übertragen 🚀</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📋 Meine Sparziele</div>
-                <div class="goals-grid" id="goalsList"></div>
-            </div>
-        </div>
-
-        <!-- TAB 7: RECHNER -->
-        <div id="rechner-view" class="view-section">
-            <div class="card" style="border: 1px solid var(--accent);">
-                <div class="card-title" style="color:var(--accent);"><span>🧮 Rechner</span></div>
-                <div class="calc-display" id="calcDisplay">0</div>
-                <div class="calc-grid">
-                    <button class="calc-btn ac" onclick="calcClear()">AC</button><button class="calc-btn op" onclick="calcAppend('%')">%</button><button class="calc-btn op" onclick="calcAppend('/')">÷</button><button class="calc-btn op" onclick="calcBack()">⌫</button>
-                    <button class="calc-btn" onclick="calcAppend('7')">7</button><button class="calc-btn" onclick="calcAppend('8')">8</button><button class="calc-btn" onclick="calcAppend('9')">9</button><button class="calc-btn op" onclick="calcAppend('*')">×</button>
-                    <button class="calc-btn" onclick="calcAppend('4')">4</button><button class="calc-btn" onclick="calcAppend('5')">5</button><button class="calc-btn" onclick="calcAppend('6')">6</button><button class="calc-btn op" onclick="calcAppend('-')">-</button>
-                    <button class="calc-btn" onclick="calcAppend('1')">1</button><button class="calc-btn" onclick="calcAppend('2')">2</button><button class="calc-btn" onclick="calcAppend('3')">3</button><button class="calc-btn op" onclick="calcAppend('+')">+</button>
-                    <button class="calc-btn" onclick="calcAppend('0')" style="grid-column: span 2;">0</button><button class="calc-btn" onclick="calcAppend('.')">.</button><button class="calc-btn eq" onclick="calcResult()">=</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- MODALE -->
@@ -946,7 +948,7 @@
             }
         }
 
-        // TAGES- & WOCHENBUDGET KALENDER FUNKTION
+        // TAGES- & WOCHENBUDGET KALENDER FUNKTION (Woche = verbleibende Tage bis Sonntag)
         function updateCalendarBudgetDisplay() {
             const todayEl = document.getElementById('calendarBudgetToday');
             const weekEl = document.getElementById('calendarBudgetWeek');
@@ -973,13 +975,24 @@
             let isCurrentMonth = (now.getFullYear() === year && (now.getMonth() + 1) === month);
             let currentDay = now.getDate();
             
-            const daysRemaining = isCurrentMonth ? Math.max(1, totalDaysInMonth - currentDay + 1) : totalDaysInMonth;
+            const daysRemainingInMonth = isCurrentMonth ? Math.max(1, totalDaysInMonth - currentDay + 1) : totalDaysInMonth;
             
-            const dailyBudget = restBudget / daysRemaining;
-            const weeklyBudget = dailyBudget * 7;
+            const dailyBudget = restBudget / daysRemainingInMonth;
+
+            // Berechnung: Verbleibende Tage bis zum kommenden Sonntag (inklusive heute), gedeckelt durch den Monat
+            let daysUntilSunday = 1;
+            if (isCurrentMonth) {
+                const dayOfWeek = now.getDay(); // 0 = Sonntag, 1 = Montag, ..., 6 = Samstag
+                const daysToNextSunday = dayOfWeek === 0 ? 1 : (7 - dayOfWeek + 1);
+                daysUntilSunday = Math.min(daysToNextSunday, daysRemainingInMonth);
+            } else {
+                daysUntilSunday = Math.min(7, daysRemainingInMonth);
+            }
+
+            const weekBudget = dailyBudget * daysUntilSunday;
 
             todayEl.innerText = dailyBudget.toFixed(2) + ' €';
-            weekEl.innerText = weeklyBudget.toFixed(2) + ' €';
+            weekEl.innerText = weekBudget.toFixed(2) + ' €';
         }
 
         function updateQuickDistributeDropdown() {
@@ -1535,7 +1548,7 @@
                 if (filterCat && item.category !== filterCat) return;
 
                 const div = document.createElement('div'); div.className = 'history-item';
-                div.innerHTML = `<div><div class="history-date" style="${isInc?'color:var(--accent-green);':''}">${item.name} <span class="badge ${isInc?'badge-income':'badge-kategorie'}">${item.category}</span> ${item.receipt?`<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">Beleg</button>`:''}</div><div class="history-sub">${item.date}</div></div><div style="text-align:right;"><span class="${isInc?'val-highlight':'val-red'}">${isInc?'+':'-'}${amt.toFixed(2)} €</span> <span style="cursor:pointer; color:#ef4444;" onclick="deleteHaushaltItem(${item.id})">🗑️</span></div>`;
+                div.innerHTML = `<div><div class="history-date" style="${isInc?'color:var(--accent-green);':''}">${item.name} <span class="badge ${isInc?'badge-income':'badge-kategorie'}">${item.category}</span> ${item.receipt?`<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">Beleg</button>ኸ:''}</div><div class="history-sub">${item.date}</div></div><div style="text-align:right;"><span class="${isInc?'val-highlight':'val-red'}">${isInc?'+':'-'}${amt.toFixed(2)} €</span> <span style="cursor:pointer; color:#ef4444;" onclick="deleteHaushaltItem(${item.id})">🗑️</span></div>`;
                 list.appendChild(div);
             });
             const chartCard = document.getElementById('categoryChartCard'), chartContainer = document.getElementById('categoryChartContainer'); chartContainer.innerHTML = '';
