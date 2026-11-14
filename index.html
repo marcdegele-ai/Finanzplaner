@@ -12,6 +12,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#f8fafc">
 
+    <!-- Tesseract.js für Screenshot Texterkennung (OCR) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
     <style>
         :root {
             --bg-color: #f8fafc; 
@@ -96,11 +99,17 @@
         .history-list { display: flex; flex-direction: column; gap: 8px; }
         .history-item { background: var(--card-sub); padding: 10px 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
         
-        .badge { font-size: 0.6rem; padding: 2px 6px; border-radius: 5px; font-weight: 800; display: inline-block; margin-left: 3px; }
+        .badge { font-size: 0.65rem; padding: 2px 7px; border-radius: 6px; font-weight: 800; display: inline-block; margin-left: 3px; }
         .badge-dauer { background: #e0f2fe; color: #0369a1; } .badge-paused { background: #fee2e2; color: #991b1b; }
         .badge-once { background: #f1f5f9; color: #475569; } .badge-booked { background: #dcfce7; color: #166534; }
         .badge-kategorie { background: #f3e8ff; color: #7e22ce; } .badge-income { background: #dcfce7; color: #15803d; }
         
+        /* LineUp Location Badges */
+        .badge-bierkoenig { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
+        .badge-megapark { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+        .badge-oberbayern { background: #dbeafe; color: #1e40af; border: 1px solid #60a5fa; }
+        .badge-sonstige { background: #f3e8ff; color: #6b21a8; border: 1px solid #c084fc; }
+
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         @media(max-width: 480px) { .goals-grid { grid-template-columns: 1fr; } }
 
@@ -158,6 +167,33 @@
             border-color: var(--accent-purple);
             box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
         }
+
+        /* OCR Scanner Box */
+        .ocr-dropzone {
+            border: 2px dashed #0284c7;
+            background: #f0f9ff;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-bottom: 10px;
+        }
+        .ocr-dropzone:hover { background: #e0f2fe; }
+        .live-pulse {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #ef4444;
+            border-radius: 50%;
+            margin-right: 5px;
+            animation: pulse 1.2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
     </style>
 </head>
 <body>
@@ -183,8 +219,8 @@
                 <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
                 <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
                 <button class="tab-btn" onclick="switchTab('rechner-view', this)">🧮 Rechner</button>
+                <button class="tab-btn" onclick="switchTab('lineup-view', this)">🎤 LineUp</button>
                 <button class="tab-btn" onclick="switchTab('urlaub-view', this)" id="urlaubTabBtn" style="display:none;">✈️ Urlaub</button>
-                <!-- NACH HINTEN VERSCHOBENE REITER -->
                 <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres</button>
                 <button class="tab-btn" onclick="switchTab('dok-view', this)">📂 Dokumente</button>
                 <button class="tab-btn" onclick="switchTab('schulden-view', this)">🤝 Schulden</button>
@@ -537,7 +573,109 @@
             </div>
         </div>
 
-        <!-- TAB 6: URLAUBS-PLANER -->
+        <!-- TAB 6: MALLE LIVE LINEUP (NEU MIT SCREENSHOT OCR) -->
+        <div id="lineup-view" class="view-section">
+            <!-- HEUTE LIVE HIGHLIGHTS -->
+            <div class="card" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #f59e0b;">
+                <div class="card-title" style="color: #b45309; margin-bottom: 6px;">
+                    <span><span class="live-pulse"></span>HEUTE LIVE AUF MALLE</span>
+                    <span id="lineupTodayDateLabel" style="font-size:0.75rem; background:#ffffff; padding:3px 8px; border-radius:8px; border:1px solid #fde68a;">-</span>
+                </div>
+                <div class="history-list" id="lineupTodayList">
+                    <!-- Dynamisch befüllt -->
+                </div>
+            </div>
+
+            <!-- SCREENSHOT UPLOAD & OCR SCANNER -->
+            <div class="card" style="border: 1.5px solid #7dd3fc;">
+                <div class="card-title" style="color: var(--accent);">
+                    <span>📸 Screenshot-Ankündigung scannen</span>
+                    <span class="badge" style="background:#e0f2fe; color:#0369a1;">Auto-OCR ⚡</span>
+                </div>
+                <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
+                    Lade Instagram- oder Facebook-Screenshots von <strong>Bierkönig</strong>, <strong>Megapark</strong> oder <strong>Oberbayern</strong> hoch. Datum, Uhrzeit, Location und Künstler werden automatisch ausgelesen!
+                </div>
+                
+                <div class="ocr-dropzone" onclick="document.getElementById('lineupScreenshotInput').click()">
+                    <div style="font-size: 1.5rem; margin-bottom: 4px;">📲🖼️</div>
+                    <strong style="color: var(--accent); font-size: 0.85rem;">Screenshot auswählen oder hochladen</strong>
+                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-top: 2px;">Unterstützt JPG, PNG, WebP (auch Mehrfachauswahl)</div>
+                    <input type="file" id="lineupScreenshotInput" accept="image/*" multiple style="display:none" onchange="processLineupScreenshots(event)">
+                </div>
+
+                <!-- OCR STATUS & FORTSCHRITT -->
+                <div id="ocrStatusBox" style="display:none; background:#f8fafc; border:1px solid var(--border); padding:10px; border-radius:10px; margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px;">
+                        <span id="ocrStatusText">Lese Screenshot aus...</span>
+                        <span id="ocrProgressPct">0%</span>
+                    </div>
+                    <div class="progress-bar-container" style="margin-top:0;">
+                        <div id="ocrProgressBar" class="progress-bar-fill" style="background:var(--accent); width:0%;"></div>
+                    </div>
+                </div>
+
+                <!-- MANUELLES FORMULAR / ERKENNUNGS-VORSCHAU -->
+                <details id="lineupManualDetails" open>
+                    <summary style="font-size: 0.8rem; color: var(--text-main);">✍️ Termin prüfen / manuell hinzufügen</summary>
+                    <div class="grid" style="margin-top: 8px;">
+                        <div class="input-group">
+                            <label>Location</label>
+                            <select id="lineupLocationInput">
+                                <option value="Bierkönig">🍺 Bierkönig</option>
+                                <option value="Megapark">🌴 Megapark</option>
+                                <option value="Oberbayern">🍻 Oberbayern</option>
+                                <option value="Bamboleo">🎶 Bamboleo</option>
+                                <option value="Sonstige">📍 Sonstige Location</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Datum</label>
+                            <input type="date" id="lineupDateInput">
+                        </div>
+                        <div class="input-group">
+                            <label>Uhrzeit (ca.)</label>
+                            <input type="time" id="lineupTimeInput" value="22:00">
+                        </div>
+                        <div class="input-group">
+                            <label>Künstler / Act</label>
+                            <input type="text" id="lineupArtistInput" placeholder="z.B. Mia Julia, Lorenz Büffel...">
+                        </div>
+                        <div class="input-group full">
+                            <label>Notiz / Bühne (optional)</label>
+                            <input type="text" id="lineupNoteInput" placeholder="z.B. New Arena, Mainstage, Opening...">
+                        </div>
+                    </div>
+                    <button class="btn-add" style="background: var(--accent-green);" onclick="saveLineupEntry()">Auftritt zur Liste hinzufügen 🎤➕</button>
+                </details>
+            </div>
+
+            <!-- KOMMENDE & ALLE AUFTRITTE -->
+            <div class="card">
+                <div class="card-title">
+                    <span>🗓️ Alle geplanten Auftritte</span>
+                    <button class="btn-secondary" style="font-size:0.65rem; padding:3px 6px; color:#dc2626;" onclick="clearPastLineupEntries()">Vergangene löschen 🧹</button>
+                </div>
+                <div class="grid" style="margin-bottom: 10px;">
+                    <div class="input-group" style="margin-bottom:0;">
+                        <select id="lineupFilterLocation" onchange="renderLineupView()">
+                            <option value="">Alle Locations</option>
+                            <option value="Bierkönig">🍺 Bierkönig</option>
+                            <option value="Megapark">🌴 Megapark</option>
+                            <option value="Oberbayern">🍻 Oberbayern</option>
+                            <option value="Bamboleo">🎶 Bamboleo</option>
+                        </select>
+                    </div>
+                    <div class="input-group" style="margin-bottom:0;">
+                        <input type="text" id="lineupSearchInput" placeholder="🔍 Künstler suchen..." oninput="renderLineupView()">
+                    </div>
+                </div>
+                <div class="history-list" id="lineupUpcomingList">
+                    <!-- Dynamisch befüllt -->
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 7: URLAUBS-PLANER -->
         <div id="urlaub-view" class="view-section">
             <div class="card" style="border: 2px solid var(--accent); background: #f0f9ff;">
                 <div class="card-title" style="color: var(--accent);"><span>✈️ Urlaubs-Planer wählen</span></div>
@@ -586,7 +724,7 @@
             </div>
         </div>
 
-        <!-- TAB 7: JAHRES-CHECK (RECHTS VERSCHOBEN) -->
+        <!-- TAB 8: JAHRES-CHECK -->
         <div id="jahres-view" class="view-section">
             <div class="card">
                 <div class="card-title">
@@ -624,15 +762,15 @@
             </div>
         </div>
 
-        <!-- TAB 8: DOKUMENTE & ABRECHNUNGEN (RECHTS VERSCHOBEN) -->
+        <!-- TAB 9: DOKUMENTE & ABRECHNUNGEN -->
         <div id="dok-view" class="view-section">
             <div class="card" style="background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%); border: 1.5px solid #7dd3fc;">
                 <div class="card-title" style="color: var(--accent);">
-                    <span>📂 dsstev Abrechnungs-Archiv</span>
+                    <span>📂 Abrechnungs-Archiv</span>
                     <span class="badge" style="background:#dcfce7; color:#15803d; font-size:0.75rem;">Aktiv ✅</span>
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 10px;">
-                    Lade hier deine heruntergeladenen Abrechnungen (PDF oder Bild) aus dem dsstev-Portal hoch, um sie sicher zu speichern und jederzeit über <strong>dsdssd</strong> auszudrucken.
+                    Lade hier deine heruntergeladenen Abrechnungen (PDF oder Bild) hoch, um sie sicher zu speichern und jederzeit auszudrucken.
                 </div>
                 <div class="grid">
                     <div class="input-group full">
@@ -649,13 +787,11 @@
 
             <div class="card">
                 <div class="card-title">📋 Gespeicherte Abrechnungen</div>
-                <div class="history-list" id="docsListContainer">
-                    <!-- Dynamisch befüllt -->
-                </div>
+                <div class="history-list" id="docsListContainer"></div>
             </div>
         </div>
 
-        <!-- TAB 9: SCHULDENBEREINIGUNG (RECHTS VERSCHOBEN) -->
+        <!-- TAB 10: SCHULDENBEREINIGUNG -->
         <div id="schulden-view" class="view-section">
             <div class="card" style="background: linear-gradient(135deg, #f3e8ff 0%, #ffffff 100%); border: 1.5px solid #c084fc;">
                 <div class="card-title" style="color:#7e22ce;">
@@ -729,9 +865,7 @@
                                 <th>Offen (€) [Edit]</th>
                             </tr>
                         </thead>
-                        <tbody id="debtCreditorsTableBody">
-                            <!-- Dynamisch befüllt -->
-                        </tbody>
+                        <tbody id="debtCreditorsTableBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -804,6 +938,23 @@
             { id: 12, name: "coeo Inkasso GmbH", bank: "Sparkasse Essen", iban: "DE39 3605 0105 0000 2071 59", ref: "9916782721-0", start: "2024-06", months: 60, rate: 3.68, total: 220.60 }
         ];
 
+        // Bekannte Malle Künstler für Auto-OCR
+        const knownMalleArtists = [
+            "Mia Julia", "Lorenz Büffel", "Ikke Hüftgold", "Isi Glück", "Julian Sommer", 
+            "Tobee", "Peter Wackel", "Mickie Krause", "Olaf der Flipper", "Markus Becker", 
+            "Tim Toupet", "Ina Colada", "Carolina", "Frenzy", "Rumbombe", "Schürze", 
+            "DJ Robin", "Kreisligalegende", "Honk!", "Almklausi", "specktakel", 
+            "Malibu Staci", "Calvin Kleinen", "Gina-Lisa", "Micaela Schäfer", "Die Atzen", 
+            "Culcha Candela", "HBz", "Gestört aber GeiL", "Tream", "Finch", "Alexander Marcus", 
+            "Jürgen Drews", "Costa Cordalis", "Lucas Cordalis", "Nino de Angelo", "Matthias Reim", 
+            "Anna-Maria Zimmermann", "Norman Langen", "Jörg Bausch", "Willie Herren", 
+            "Bierkapitän", "Killermichel", "Andy Luxx", "DJ Düse", "DJ Cashi", "DJ Biene", 
+            "Marry", "Sabbotage", "Rick Arena", "Nancy Franck", "Mütze Katze", "VIZE"
+        ];
+
+        let lineupEvents = [];
+        try { lineupEvents = JSON.parse(localStorage.getItem('finanz_lineup_local')) || []; } catch(e) {}
+
         let debtOverrides = {};
         try { debtOverrides = JSON.parse(localStorage.getItem('finanz_debt_overrides_local')) || {}; } catch(e) {}
 
@@ -859,10 +1010,13 @@
             const hhInput = document.getElementById('hhMonthInput');
             const hhDate = document.getElementById('HHDate');
             const subMonthInput = document.getElementById('subKontoTransferMonth');
+            const lineupDateInput = document.getElementById('lineupDateInput');
+
             if(mInput) mInput.value = "2026-12";
             if(hhInput) hhInput.value = "2026-12";
             if(hhDate) hhDate.valueAsDate = new Date();
             if(subMonthInput) subMonthInput.value = "2026-12";
+            if(lineupDateInput) lineupDateInput.value = new Date().toISOString().slice(0,10);
 
             renderQuickMonthButtons();
             updateHHKategorien();
@@ -876,9 +1030,273 @@
             renderSchuldenView();
             renderAbrechnungenDocs();
             updateCalendarBudgetDisplay();
+            renderLineupView();
         });
 
-        // DOKUMENTE / DSSTEV FUNKTIONEN
+        // ==========================================
+        // MALLE LINEUP & OCR SCANNER LOGIK
+        // ==========================================
+        async function processLineupScreenshots(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            const statusBox = document.getElementById('ocrStatusBox');
+            const statusText = document.getElementById('ocrStatusText');
+            const progressPct = document.getElementById('ocrProgressPct');
+            const progressBar = document.getElementById('ocrProgressBar');
+
+            statusBox.style.display = 'block';
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                statusText.innerText = `Scanne Bild ${i + 1} von ${files.length}...`;
+                progressPct.innerText = '0%';
+                progressBar.style.width = '0%';
+
+                try {
+                    const result = await Tesseract.recognize(file, 'deu+eng', {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                const pct = Math.round(m.progress * 100);
+                                progressPct.innerText = pct + '%';
+                                progressBar.style.width = pct + '%';
+                            }
+                        }
+                    });
+
+                    const text = result.data.text || '';
+                    const parsed = parseFlyerText(text);
+
+                    if (files.length === 1) {
+                        // Bei einem Bild: Formular vorausfüllen zur Prüfung
+                        document.getElementById('lineupLocationInput').value = parsed.location;
+                        if (parsed.date) document.getElementById('lineupDateInput').value = parsed.date;
+                        if (parsed.time) document.getElementById('lineupTimeInput').value = parsed.time;
+                        document.getElementById('lineupArtistInput').value = parsed.artist;
+                        document.getElementById('lineupNoteInput').value = parsed.note;
+                        document.getElementById('lineupManualDetails').open = true;
+                        statusText.innerText = '✅ Erkannt! Bitte unten kurz prüfen & speichern.';
+                    } else {
+                        // Bei mehreren Bildern: Direkt hinzufügen
+                        lineupEvents.push({
+                            id: Date.now() + Math.random(),
+                            location: parsed.location,
+                            date: parsed.date || new Date().toISOString().slice(0, 10),
+                            time: parsed.time || '22:00',
+                            artist: parsed.artist || 'Unbekannter Act (Screenshot)',
+                            note: parsed.note
+                        });
+                    }
+                } catch (err) {
+                    statusText.innerText = '❌ Fehler beim Lesen: ' + err.message;
+                }
+            }
+
+            if (files.length > 1) {
+                saveLocally();
+                renderLineupView();
+                statusText.innerText = `✅ ${files.length} Screenshots verarbeitet & gespeichert!`;
+            }
+
+            event.target.value = '';
+        }
+
+        function parseFlyerText(rawText) {
+            const lower = rawText.toLowerCase();
+            
+            // 1. Location erkennen
+            let location = "Bierkönig";
+            if (lower.includes("megapark") || lower.includes("mega park") || lower.includes("prince")) {
+                location = "Megapark";
+            } else if (lower.includes("oberbayern")) {
+                location = "Oberbayern";
+            } else if (lower.includes("bamboleo")) {
+                location = "Bamboleo";
+            } else if (lower.includes("bierkönig") || lower.includes("bierkonig") || lower.includes("bierkoenig")) {
+                location = "Bierkönig";
+            }
+
+            // 2. Uhrzeit erkennen (z.B. 22:00, 22.30, 23:15 Uhr)
+            let time = "22:00";
+            const timeMatch = rawText.match(/\b([01]?\d|2[0-3])[:\.]([0-5]\d)\s*(uhr)?\b/i);
+            if (timeMatch) {
+                const hh = timeMatch[1].padStart(2, '0');
+                const mm = timeMatch[2];
+                time = `${hh}:${mm}`;
+            }
+
+            // 3. Datum erkennen (z.B. 21.04.2027, 21.04., 21/04)
+            let date = "";
+            const dateMatch = rawText.match(/\b(0?[1-9]|[12]\d|3[01])[\.\/](0?[1-9]|1[0-2])[\.\/]?(20\d{2})?\b/);
+            if (dateMatch) {
+                const day = dateMatch[1].padStart(2, '0');
+                const month = dateMatch[2].padStart(2, '0');
+                let year = dateMatch[3];
+                if (!year) {
+                    // Wenn kein Jahr angegeben: Prüfen ob 2027 (z.B. April/August Trips) oder aktuelles Jahr
+                    const curYear = new Date().getFullYear();
+                    year = (parseInt(month) < new Date().getMonth() + 1) ? String(curYear + 1) : String(curYear);
+                }
+                date = `${year}-${month}-${day}`;
+            }
+
+            // 4. Künstler erkennen
+            let foundArtists = [];
+            knownMalleArtists.forEach(artist => {
+                if (lower.includes(artist.toLowerCase())) {
+                    foundArtists.push(artist);
+                }
+            });
+
+            let artistStr = "";
+            if (foundArtists.length > 0) {
+                artistStr = [...new Set(foundArtists)].join(" & ");
+            } else {
+                // Fallback: Längste sinnvolle Großbuchstaben-Zeile nehmen
+                const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 3 && l.length < 35);
+                const candidate = lines.find(l => !/bierkönig|megapark|oberbayern|uhr|live|mallorca|playa|palma|eintritt|frei/i.test(l));
+                artistStr = candidate || "";
+            }
+
+            // 5. Bühne / Notiz
+            let note = "";
+            if (lower.includes("new arena")) note = "New Arena";
+            else if (lower.includes("mainstage")) note = "Mainstage";
+            else if (lower.includes("opening")) note = "Opening";
+            else if (lower.includes("closing")) note = "Closing";
+
+            return { location, date, time, artist: artistStr, note };
+        }
+
+        function saveLineupEntry() {
+            const location = document.getElementById('lineupLocationInput').value;
+            const date = document.getElementById('lineupDateInput').value;
+            const time = document.getElementById('lineupTimeInput').value || '22:00';
+            const artist = document.getElementById('lineupArtistInput').value.trim();
+            const note = document.getElementById('lineupNoteInput').value.trim();
+
+            if (!date || !artist) {
+                return alert('Bitte mindestens Datum und Künstler angeben!');
+            }
+
+            lineupEvents.push({
+                id: Date.now(),
+                location,
+                date,
+                time,
+                artist,
+                note
+            });
+
+            document.getElementById('lineupArtistInput').value = '';
+            document.getElementById('lineupNoteInput').value = '';
+            document.getElementById('ocrStatusBox').style.display = 'none';
+
+            saveLocally();
+            renderLineupView();
+        }
+
+        function deleteLineupEntry(id) {
+            if (confirm('Auftritt wirklich löschen?')) {
+                lineupEvents = lineupEvents.filter(e => e.id !== id);
+                saveLocally();
+                renderLineupView();
+            }
+        }
+
+        function clearPastLineupEntries() {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            if (confirm('Alle Auftritte vor heute (' + todayStr + ') löschen?')) {
+                lineupEvents = lineupEvents.filter(e => e.date >= todayStr);
+                saveLocally();
+                renderLineupView();
+            }
+        }
+
+        function getLocationBadgeClass(loc) {
+            if (loc === 'Bierkönig') return 'badge-bierkoenig';
+            if (loc === 'Megapark') return 'badge-megapark';
+            if (loc === 'Oberbayern') return 'badge-oberbayern';
+            return 'badge-sonstige';
+        }
+
+        function renderLineupView() {
+            const todayList = document.getElementById('lineupTodayList');
+            const upcomingList = document.getElementById('lineupUpcomingList');
+            const dateLabel = document.getElementById('lineupTodayDateLabel');
+            if (!todayList || !upcomingList) return;
+
+            const now = new Date();
+            const todayStr = now.toISOString().slice(0, 10);
+            if (dateLabel) {
+                dateLabel.innerText = now.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+            }
+
+            const filterLoc = document.getElementById('lineupFilterLocation')?.value || '';
+            const searchVal = (document.getElementById('lineupSearchInput')?.value || '').toLowerCase();
+
+            // Sortieren nach Datum & Uhrzeit
+            const sorted = [...lineupEvents].sort((a, b) => {
+                if (a.date !== b.date) return a.date.localeCompare(b.date);
+                return (a.time || '00:00').localeCompare(b.time || '00:00');
+            });
+
+            // 1. HEUTE LIVE
+            const todayEvents = sorted.filter(e => e.date === todayStr);
+            todayList.innerHTML = '';
+            if (todayEvents.length === 0) {
+                todayList.innerHTML = `<div style="text-align:center; color:#92400e; font-size:0.75rem; padding:8px;">Heute noch keine Auftritte eingetragen. Lade oben einen Screenshot hoch! 🍺</div>`;
+            } else {
+                todayEvents.forEach(ev => {
+                    todayList.innerHTML += `
+                        <div class="history-item" style="background:#ffffff; border-color:#fcd34d;">
+                            <div>
+                                <div class="history-date">⏰ ${ev.time} Uhr – ${ev.artist}</div>
+                                <div class="history-sub">
+                                    <span class="badge ${getLocationBadgeClass(ev.location)}">${ev.location}</span>
+                                    ${ev.note ? `<span style="margin-left:4px; font-weight:600;">(${ev.note})</span>` : ''}
+                                </div>
+                            </div>
+                            <span style="cursor:pointer; color:#ef4444; font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})">🗑️</span>
+                        </div>
+                    `;
+                });
+            }
+
+            // 2. ALLE GEPLANTEN AUFTRITTE
+            upcomingList.innerHTML = '';
+            const filtered = sorted.filter(ev => {
+                if (filterLoc && ev.location !== filterLoc) return false;
+                if (searchVal && !ev.artist.toLowerCase().includes(searchVal) && !(ev.note || '').toLowerCase().includes(searchVal)) return false;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                upcomingList.innerHTML = `<div style="text-align:center; color:var(--text-sub); font-size:0.75rem; padding:10px;">Keine Auftritte gefunden.</div>`;
+            } else {
+                filtered.forEach(ev => {
+                    const isToday = ev.date === todayStr;
+                    const formattedDate = new Date(ev.date + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+                    upcomingList.innerHTML += `
+                        <div class="history-item" style="${isToday ? 'border-left: 4px solid #f59e0b; background:#fffbeb;' : ''}">
+                            <div>
+                                <div class="history-date">🎤 ${ev.artist}</div>
+                                <div class="history-sub">
+                                    <strong>📅 ${formattedDate}</strong> • ⏰ ${ev.time} Uhr 
+                                    <span class="badge ${getLocationBadgeClass(ev.location)}">${ev.location}</span>
+                                    ${ev.note ? `<span style="margin-left:4px;">• ${ev.note}</span>` : ''}
+                                </div>
+                            </div>
+                            <span style="cursor:pointer; color:#ef4444; font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})">🗑️</span>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        // ==========================================
+        // DOKUMENTE / ABRECHNUNGEN FUNKTIONEN
+        // ==========================================
         async function saveAbrechnungDoc() {
             const name = document.getElementById('docNameInput').value.trim();
             const fileInput = document.getElementById('docFileInput');
@@ -920,7 +1338,7 @@
                             <div class="history-sub">Gespeichert am: ${doc.date}</div>
                         </div>
                         <div style="display:flex; gap:6px; align-items:center;">
-                            <button class="btn-secondary" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:0.7rem;" onclick="printDoc('${doc.id}')">🖨️ Drucken (dsdssd)</button>
+                            <button class="btn-secondary" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:0.7rem;" onclick="printDoc('${doc.id}')">🖨️ Drucken</button>
                             <span style="cursor:pointer; color:#ef4444; font-size:0.9rem;" onclick="deleteDoc(${doc.id})">🗑️</span>
                         </div>
                     </div>
@@ -979,10 +1397,9 @@
             
             const dailyBudget = restBudget / daysRemainingInMonth;
 
-            // Berechnung: Verbleibende Tage bis zum kommenden Sonntag (inklusive heute), gedeckelt durch den Monat
             let daysUntilSunday = 1;
             if (isCurrentMonth) {
-                const dayOfWeek = now.getDay(); // 0 = Sonntag, 1 = Montag, ..., 6 = Samstag
+                const dayOfWeek = now.getDay();
                 const daysToNextSunday = dayOfWeek === 0 ? 1 : (7 - dayOfWeek + 1);
                 daysUntilSunday = Math.min(daysToNextSunday, daysRemainingInMonth);
             } else {
@@ -1221,6 +1638,7 @@
                 localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
                 localStorage.setItem('finanz_debt_overrides_local', JSON.stringify(debtOverrides));
                 localStorage.setItem('finanz_dsstev_docs_local', JSON.stringify(dsstevDocs));
+                localStorage.setItem('finanz_lineup_local', JSON.stringify(lineupEvents));
                 setTimestampNow();
             } catch(e) {}
             if (cloudConfig.url) {
@@ -1239,10 +1657,9 @@
         }
         function updateCloudStatusLabel() { document.querySelector('.cloud-status').style.color = cloudConfig.url ? 'var(--accent-green)' : 'var(--accent-orange)'; }
 
-        // REPARIERTE CLOUD-SYNC FUNKTIONEN (Push / Pull)
         async function syncWithCloudNow(isBackground = false) {
             if (!cloudConfig.url) { if (!isBackground) openCloudModal(); return; }
-            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lastUpdated: new Date().toISOString() };
+            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lineupEvents, lastUpdated: new Date().toISOString() };
             try {
                 let headers = { "Content-Type": "application/json" };
                 if (cloudConfig.key) { 
@@ -1271,7 +1688,7 @@
                 if (response.ok) {
                     const jsonRes = await response.json();
                     const remoteData = jsonRes.record ? jsonRes.record : jsonRes;
-                    if (remoteData && (remoteData.entries || remoteData.goals)) {
+                    if (remoteData && (remoteData.entries || remoteData.goals || remoteData.lineupEvents)) {
                         if (remoteData.entries) {
                             entries = {}; 
                             Object.keys(remoteData.entries).forEach(k => { if(k >= "2026-12") { entries[k] = remoteData.entries[k]; entries[k].extraTransfers = entries[k].extraTransfers || []; } });
@@ -1284,6 +1701,7 @@
                         if(remoteData.haushaltItems) haushaltItems = remoteData.haushaltItems;
                         if(remoteData.debtOverrides) debtOverrides = remoteData.debtOverrides;
                         if(remoteData.dsstevDocs) dsstevDocs = remoteData.dsstevDocs;
+                        if(remoteData.lineupEvents) lineupEvents = remoteData.lineupEvents;
                         
                         saveLocally(); 
                         loadMonthData(); 
@@ -1297,6 +1715,7 @@
                         renderSchuldenView(); 
                         renderAbrechnungenDocs(); 
                         updateCalendarBudgetDisplay();
+                        renderLineupView();
                         
                         if (!isSilent) alert('Daten erfolgreich aus der Cloud geladen! 📥');
                     } else {
@@ -1344,7 +1763,7 @@
         }
 
         function exportBackupJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs }, null, 2));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lineupEvents }, null, 2));
             const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `Finanzplan_Backup.json`);
             document.body.appendChild(dl); dl.click(); dl.remove();
         }
@@ -1362,7 +1781,8 @@
                         if(p.cashBreakdown) cashBreakdown = p.cashBreakdown; if(p.haushaltItems) haushaltItems = p.haushaltItems;
                         if(p.debtOverrides) debtOverrides = p.debtOverrides;
                         if(p.dsstevDocs) dsstevDocs = p.dsstevDocs;
-                        saveLocally(); alert('Backup geladen! ✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView(); renderAbrechnungenDocs(); updateCalendarBudgetDisplay();
+                        if(p.lineupEvents) lineupEvents = p.lineupEvents;
+                        saveLocally(); alert('Backup geladen! ✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView(); renderAbrechnungenDocs(); updateCalendarBudgetDisplay(); renderLineupView();
                     } catch (err) { alert('Fehler: ' + err.message); }
                 };
             }
@@ -1449,6 +1869,7 @@
             if(viewId === 'urlaub-view') renderUrlaubView();
             if(viewId === 'ziele-view') { renderGoals(); updateSubKontoDropdowns(); }
             if(viewId === 'dok-view') { renderAbrechnungenDocs(); }
+            if(viewId === 'lineup-view') { renderLineupView(); }
         }
 
         function getSelectedMonthKey() { return document.getElementById('monthInput').value || "2026-12"; }
