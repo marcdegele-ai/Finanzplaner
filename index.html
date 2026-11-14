@@ -573,7 +573,7 @@
             </div>
         </div>
 
-        <!-- TAB 6: MALLE LIVE LINEUP (NEU MIT SCREENSHOT OCR) -->
+        <!-- TAB 6: MALLE LIVE LINEUP (OPTIMIERT MIT OCR) -->
         <div id="lineup-view" class="view-section">
             <!-- HEUTE LIVE HIGHLIGHTS -->
             <div class="card" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #f59e0b;">
@@ -1068,7 +1068,6 @@
                     const parsed = parseFlyerText(text);
 
                     if (files.length === 1) {
-                        // Bei einem Bild: Formular vorausfüllen zur Prüfung
                         document.getElementById('lineupLocationInput').value = parsed.location;
                         if (parsed.date) document.getElementById('lineupDateInput').value = parsed.date;
                         if (parsed.time) document.getElementById('lineupTimeInput').value = parsed.time;
@@ -1077,7 +1076,6 @@
                         document.getElementById('lineupManualDetails').open = true;
                         statusText.innerText = '✅ Erkannt! Bitte unten kurz prüfen & speichern.';
                     } else {
-                        // Bei mehreren Bildern: Direkt hinzufügen
                         lineupEvents.push({
                             id: Date.now() + Math.random(),
                             location: parsed.location,
@@ -1116,7 +1114,7 @@
                 location = "Bierkönig";
             }
 
-            // 2. Uhrzeit erkennen (z.B. 22:30 UHR, 22:30)
+            // 2. Uhrzeit erkennen (z.B. 22:00 UHR, 22:30)
             let time = "22:00";
             const timeMatch = rawText.match(/\b([01]?\d|2[0-3])[:\.]([0-5]\d)\s*(uhr)?\b/i);
             if (timeMatch) {
@@ -1125,7 +1123,7 @@
                 time = `${hh}:${mm}`;
             }
 
-            // 3. Datum erkennen (Wenn "heute" oder Story-Stunden im Text stehen, direkt Tagesdatum nehmen)
+            // 3. Datum erkennen ("heute" oder Story-Stunden -> aktuelles Datum)
             let date = "";
             if (lower.includes("heute") || lower.includes("std.")) {
                 date = new Date().toISOString().slice(0, 10);
@@ -1145,7 +1143,7 @@
                 }
             }
 
-            // 4. Künstler erkennen (Bekannte Liste + Fallback für Story-Handles / Header)
+            // 4. Künstler erkennen (Aus bekannter Malle-Liste + Instagram-Handle Fallback)
             let foundArtists = [];
             knownMalleArtists.forEach(artist => {
                 if (lower.includes(artist.toLowerCase())) {
@@ -1157,9 +1155,15 @@
             if (foundArtists.length > 0) {
                 artistStr = [...new Set(foundArtists)].join(" & ");
             } else {
-                const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 2 && l.length < 30);
-                const candidate = lines.find(l => !/bierkönig|megapark|oberbayern|uhr|live|mallorca|playa|palma|std|heute/i.test(l));
-                artistStr = candidate || "Carolina";
+                const handleMatch = rawText.match(/@([a-zA-Z0-9_\.]+)/);
+                if (handleMatch) {
+                    let cleanName = handleMatch[1].replace(/peukmann|offiziell|malle|_/gi, ' ').trim();
+                    artistStr = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
+                } else {
+                    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 2 && l.length < 30);
+                    const candidate = lines.find(l => !/bierkönig|megapark|oberbayern|uhr|live|mallorca|playa|palma|std|heute/i.test(l));
+                    artistStr = candidate || "Unbekannter Act";
+                }
             }
 
             let note = "";
