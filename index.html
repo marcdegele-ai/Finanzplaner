@@ -606,16 +606,16 @@
             <!-- SCREENSHOT UPLOAD & KI SCANNER -->
             <div class="card" style="border: 1.5px solid #7dd3fc;">
                 <div class="card-title" style="color: var(--accent);">
-                    <span>📸 Screenshot-Ankündigung scannen</span>
-                    <span class="badge" style="background:#e0f2fe; color:#0369a1;">Smart-KI ⚡</span>
+                    <span>📸 Multispalten-Flyer scannen</span>
+                    <span class="badge" style="background:#e0f2fe; color:#0369a1;">Smart-Multi-KI ⚡</span>
                 </div>
                 <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
-                    Lade Instagram- oder Facebook-Screenshots von <strong>Bierkönig</strong>, <strong>Megapark</strong> oder <strong>Oberbayern</strong> hoch. Datum, Uhrzeit, Location und Künstler werden durch die KI automatisch erkannt!
+                    Lade große Programm-Übersichten (mit Bierkönig, Megapark, Oberbayern, MK Arena etc.) hoch. Die App liest alle Spalten, Uhrzeiten und Künstler in einem Rutsch aus!
                 </div>
                 
                 <div class="ocr-dropzone" onclick="document.getElementById('lineupScreenshotInput').click()">
                     <div style="font-size: 1.5rem; margin-bottom: 4px;">📲🖼️</div>
-                    <strong style="color: var(--accent); font-size: 0.85rem;">Screenshot auswählen oder hochladen</strong>
+                    <strong style="color: var(--accent); font-size: 0.85rem;">Flyer auswählen oder hochladen</strong>
                     <div style="font-size: 0.68rem; color: var(--text-sub); margin-top: 2px;">Unterstützt JPG, PNG, WebP (auch Mehrfachauswahl)</div>
                     <input type="file" id="lineupScreenshotInput" accept="image/*" multiple style="display:none" onchange="processLineupScreenshots(event)">
                 </div>
@@ -623,7 +623,7 @@
                 <!-- OCR STATUS & FORTSCHRITT -->
                 <div id="ocrStatusBox" style="display:none; background:#f8fafc; border:1px solid var(--border); padding:10px; border-radius:10px; margin-bottom:10px;">
                     <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px;">
-                        <span id="ocrStatusText">Lese Screenshot aus...</span>
+                        <span id="ocrStatusText">Lese Flyer aus...</span>
                         <span id="ocrProgressPct">0%</span>
                     </div>
                     <div class="progress-bar-container" style="margin-top:0;">
@@ -632,8 +632,8 @@
                 </div>
 
                 <!-- MANUELLES FORMULAR / ERKENNUNGS-VORSCHAU -->
-                <details id="lineupManualDetails" open>
-                    <summary style="font-size: 0.8rem; color: var(--text-main);">✍️ Termin prüfen / manuell hinzufügen</summary>
+                <details id="lineupManualDetails">
+                    <summary style="font-size: 0.8rem; color: var(--text-main);">✍️ Einzelnen Termin manuell hinzufügen</summary>
                     <div class="grid" style="margin-top: 8px;">
                         <div class="input-group">
                             <label>Location</label>
@@ -641,6 +641,7 @@
                                 <option value="Bierkönig">🍺 Bierkönig</option>
                                 <option value="Megapark">🌴 Megapark</option>
                                 <option value="Oberbayern">🍻 Oberbayern</option>
+                                <option value="MK Arena">🏰 MK Arena</option>
                                 <option value="Bamboleo">🎶 Bamboleo</option>
                                 <option value="Sonstige">📍 Sonstige Location</option>
                             </select>
@@ -659,7 +660,7 @@
                         </div>
                         <div class="input-group full">
                             <label>Notiz / Bühne (optional)</label>
-                            <input type="text" id="lineupNoteInput" placeholder="z.B. New Arena, Mainstage, Opening...">
+                            <input type="text" id="lineupNoteInput" placeholder="z.B. New Arena, Mainstage, Closing...">
                         </div>
                     </div>
                     <button class="btn-add" style="background: var(--accent-green);" onclick="saveLineupEntry()">Auftritt zur Liste hinzufügen 🎤➕</button>
@@ -679,6 +680,7 @@
                             <option value="Bierkönig">🍺 Bierkönig</option>
                             <option value="Megapark">🌴 Megapark</option>
                             <option value="Oberbayern">🍻 Oberbayern</option>
+                            <option value="MK Arena">🏰 MK Arena</option>
                             <option value="Bamboleo">🎶 Bamboleo</option>
                         </select>
                     </div>
@@ -955,20 +957,6 @@
             { id: 12, name: "coeo Inkasso GmbH", bank: "Sparkasse Essen", iban: "DE39 3605 0105 0000 2071 59", ref: "9916782721-0", start: "2024-06", months: 60, rate: 3.68, total: 220.60 }
         ];
 
-        // Bekannte Malle Künstler als solider Fallback
-        const knownMalleArtists = [
-            "Mia Julia", "Lorenz Büffel", "Ikke Hüftgold", "Isi Glück", "Julian Sommer", 
-            "Tobee", "Peter Wackel", "Mickie Krause", "Olaf der Flipper", "Markus Becker", 
-            "Tim Toupet", "Ina Colada", "Carolina", "Frenzy", "Rumbombe", "Schürze", 
-            "DJ Robin", "Kreisligalegende", "Honk!", "Almklausi", "specktakel", 
-            "Malibu Staci", "Calvin Kleinen", "Gina-Lisa", "Micaela Schäfer", "Die Atzen", 
-            "Culcha Candela", "HBz", "Gestört aber GeiL", "Tream", "Finch", "Alexander Marcus", 
-            "Jürgen Drews", "Costa Cordalis", "Lucas Cordalis", "Nino de Angelo", "Matthias Reim", 
-            "Anna-Maria Zimmermann", "Norman Langen", "Jörg Bausch", "Willie Herren", 
-            "Bierkapitän", "Killermichel", "Andy Luxx", "DJ Düse", "DJ Cashi", "DJ Biene", 
-            "Marry", "Sabbotage", "Rick Arena", "Nancy Franck", "Mütze Katze", "VIZE"
-        ];
-
         let lineupEvents = [];
         try { lineupEvents = JSON.parse(localStorage.getItem('finanz_lineup_local')) || []; } catch(e) {}
 
@@ -1051,7 +1039,7 @@
         });
 
         // ==========================================
-        // MALLE LIVE LINEUP & KI-GESTMÜTZTE SCREENSHOT-ERKENNUNG
+        // MALLE LIVE LINEUP & MULTI-SPALTEN FLYER PARSER
         // ==========================================
         async function processLineupScreenshots(event) {
             const files = event.target.files;
@@ -1063,10 +1051,11 @@
             const progressBar = document.getElementById('ocrProgressBar');
 
             statusBox.style.display = 'block';
+            let totalAdded = 0;
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                statusText.innerText = `Scanne Bild ${i + 1} von ${files.length} (OCR + KI)...`;
+                statusText.innerText = `Scanne Multispalten-Flyer ${i + 1} von ${files.length}...`;
                 progressPct.innerText = '0%';
                 progressBar.style.width = '0%';
 
@@ -1082,102 +1071,78 @@
                     });
 
                     const text = result.data.text || '';
-                    const parsed = await parseFlyerText(text);
+                    const parsedEvents = parseMultiColumnFlyer(text);
 
-                    if (files.length === 1) {
-                        document.getElementById('lineupLocationInput').value = parsed.location;
-                        if (parsed.date) document.getElementById('lineupDateInput').value = parsed.date;
-                        if (parsed.time) document.getElementById('lineupTimeInput').value = parsed.time;
-                        document.getElementById('lineupArtistInput').value = parsed.artist;
-                        document.getElementById('lineupNoteInput').value = parsed.note;
-                        document.getElementById('lineupManualDetails').open = true;
-                        statusText.innerText = '✅ KI-Erkennung erfolgreich! Bitte prüfen & speichern.';
-                    } else {
-                        lineupEvents.push({
-                            id: Date.now() + Math.random(),
-                            location: parsed.location,
-                            date: parsed.date || new Date().toISOString().slice(0, 10),
-                            time: parsed.time || '22:00',
-                            artist: parsed.artist || 'Unbekannter Act',
-                            note: parsed.note
-                        });
-                    }
+                    parsedEvents.forEach(ev => {
+                        lineupEvents.push(ev);
+                        totalAdded++;
+                    });
+
                 } catch (err) {
-                    statusText.innerText = '❌ Fehler: ' + err.message;
+                    statusText.innerText = '❌ Fehler beim OCR: ' + err.message;
                 }
             }
 
-            if (files.length > 1) {
-                saveLocally();
-                renderLineupView();
-                statusText.innerText = `✅ ${files.length} Screenshots verarbeitet & gespeichert!`;
-            }
-
+            saveLocally();
+            renderLineupView();
+            statusText.innerText = `✅ Erfolgreich ${totalAdded} Auftritte aus dem Plakat ausgelesen & gespeichert! 🚀`;
             event.target.value = '';
         }
 
-        async function parseFlyerText(rawText) {
-            // 1. Handy-Statusleisten-Müll und System-Zeug direkt löschen
-            const cleanRaw = rawText
-                .replace(/\b([01]?\d|2[0-3])[:\.]([0-5]\d)\b/g, '')
-                .replace(/wifi|lte|5g|vpn|vodafone|o2|telekom|33%|100%|20:20|20:13/gi, '');
-
-            const lower = cleanRaw.toLowerCase();
+        function parseMultiColumnFlyer(rawText) {
+            const cleanRaw = rawText.replace(/wifi|lte|5g|vpn|vodafone|o2|telekom|33%|100%|20:47|20:30|20:20/gi, '');
+            const lines = cleanRaw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
             
-            // 2. Location erkennen
-            let location = "Bierkönig";
-            if (lower.includes("megapark") || lower.includes("mega park") || lower.includes("prince")) {
-                location = "Megapark";
-            } else if (lower.includes("oberbayern")) {
-                location = "Oberbayern";
-            } else if (lower.includes("bamboleo")) {
-                location = "Bamboleo";
-            }
+            let currentLoc = "Bierkönig";
+            let events = [];
+            let currentDate = "2026-10-25"; // Standard-Datum aus dem Flyer als Fallback[span_1](start_span)[span_1](end_span)
 
-            // 3. Echten Künstler aus der bekannten Malle-Liste suchen
-            let artistStr = "";
-            const foundArtists = [];
-            knownMalleArtists.forEach(artist => {
-                const regex = new RegExp(`\\b${artist}\\b`, 'i');
-                if (regex.test(cleanRaw)) {
-                    foundArtists.push(artist);
-                }
-            });
-
-            if (foundArtists.length > 0) {
-                artistStr = [...new Set(foundArtists)].join(" & ");
-            } else {
-                // Extrem strenger Fallback für OCR-Müll
-                const lines = cleanRaw.split('\n')
-                    .map(l => l.trim())
-                    .filter(l => l.length >= 3 && l.length < 25)
-                    .filter(l => !/bierkönig|megapark|oberbayern|mallorca|uhr|screenshot|gespeichert/i.test(l))
-                    .filter(l => !/[=\[\]\(\)\.\_\-\+\#]{2,}/.test(l))
-                    .filter(l => /[a-zA-ZäöüÄÖÜß]{3,}/.test(l));
-
-                artistStr = lines.length > 0 ? lines[0] : "Unbekannter Act";
-            }
-
-            // 4. Datum & Uhrzeit sauber extrahieren
-            let date = new Date().toISOString().slice(0, 10);
             const dateMatch = cleanRaw.match(/\b(0?[1-9]|[12]\d|3[01])[\.\/](0?[1-9]|1[0-2])[\.\/]?(20\d{2})?\b/);
             if (dateMatch) {
                 const day = dateMatch[1].padStart(2, '0');
                 const month = dateMatch[2].padStart(2, '0');
-                const year = dateMatch[3] || new Date().getFullYear();
-                date = `${year}-${month}-${day}`;
+                const year = dateMatch[3] || "2026";
+                currentDate = `${year}-${month}-${day}`;
             }
 
-            let time = "22:00";
-            const timeMatches = [...cleanRaw.matchAll(/\b([01]?\d|2[0-3])[:\.]([0-5]\d)\b/g)];
-            if (timeMatches.length > 0) {
-                const m = timeMatches[timeMatches.length - 1];
-                time = `${m[1].padStart(2, '0')}:${m[2]}`;
-            }
+            lines.forEach(line => {
+                const lower = line.toLowerCase();
+                
+                if (lower.includes("bierkönig") || lower.includes("schinkenstraße")) {
+                    currentLoc = "Bierkönig";
+                } else if (lower.includes("megapark")) {
+                    currentLoc = "Megapark";
+                } else if (lower.includes("oberbayern")) {
+                    currentLoc = "Oberbayern";
+                } else if (lower.includes("mk arena") || lower.includes("arena")) {
+                    currentLoc = "MK Arena";
+                } else if (lower.includes("bamboleo")) {
+                    currentLoc = "Bamboleo";
+                }
 
-            let note = lower.includes("opening") ? "Opening" : "";
+                const timeMatch = line.match(/\b([01]?\d|2[0-3])[:\.]([0-5]\d)\b/);
+                if (timeMatch) {
+                    const time = `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`;
+                    
+                    let artist = line.replace(timeMatch[0], '').trim();
+                    artist = artist.replace(/^[\-\–\:\s]+/, '').trim();
 
-            return { location, date, time, artist: artistStr, note };
+                    if (artist.length > 1 && !artist.toLowerCase().includes("closing") && !artist.toLowerCase().includes("auftritte")) {
+                        let note = lower.includes("closing") ? "Closing" : (lower.includes("opening") ? "Opening" : "");
+                        
+                        events.push({
+                            id: Date.now() + Math.random(),
+                            location: currentLoc,
+                            date: currentDate,
+                            time: time,
+                            artist: artist,
+                            note: note
+                        });
+                    }
+                }
+            });
+
+            return events;
         }
 
         function saveLineupEntry() {
@@ -1252,11 +1217,10 @@
                 return (a.time || '00:00').localeCompare(b.time || '00:00');
             });
 
-            // 1. HEUTE LIVE
             const todayEvents = sorted.filter(e => e.date === todayStr);
             todayList.innerHTML = '';
             if (todayEvents.length === 0) {
-                todayList.innerHTML = `<div style="text-align:center; color:#92400e; font-size:0.75rem; padding:8px;">Heute noch keine Auftritte eingetragen. Lade oben einen Screenshot hoch! 🍺</div>`;
+                todayList.innerHTML = `<div style="text-align:center; color:#92400e; font-size:0.75rem; padding:8px;">Heute noch keine Auftritte eingetragen. Lade oben einen Flyer hoch! 🍺</div>`;
             } else {
                 todayEvents.forEach(ev => {
                     todayList.innerHTML += `
@@ -1274,7 +1238,6 @@
                 });
             }
 
-            // 2. ALLE GEPLANTEN AUFTRITTE
             upcomingList.innerHTML = '';
             const filtered = sorted.filter(ev => {
                 if (filterLoc && ev.location !== filterLoc) return false;
@@ -2711,7 +2674,7 @@
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:0.68rem; color:var(--text-sub);">
                             <div style="font-weight:bold; color:var(--accent-green);">${reachText}</div>
-                            <div style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
+                            <div style="cursor:pointer; color:var(--accent; font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
                         </div>
                     </div>
                 `;
