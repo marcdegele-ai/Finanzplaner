@@ -738,6 +738,10 @@
                 <div class="card-title"><span id="uHeaderTitle">✈️ Urlaub</span></div>
                 <div class="stat-row"><span>Ziel:</span><strong id="uTargetGoalName" style="color:var(--accent);">-</strong></div>
                 <div class="stat-row"><span>Gesamtbudget (Aktuell / Geplant):</span><span><strong id="uTargetBudgetDisplay" class="val-highlight">0,00 €</strong> / <span id="uPlannedBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
+                <div class="input-group full" style="margin-top: 10px; background: #f0fdf4; padding: 10px; border-radius: 10px; border: 1.5px solid #86efac;">
+                    <label style="color: #15803d; font-weight: bold;">💡 Gesamtbudget Vorschau (€) (Überschreibt Ziel rein für die Berechnung):</label>
+                    <input type="number" id="urlaubPreviewBudgetInput" placeholder="z.B. 1000 oder leer lassen für echtes Ziel" style="background:#fff;" onchange="saveUrlaubPreviewBudget()">
+                </div>
                 <button class="btn-secondary" style="width:100%; margin-top:8px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-weight:bold;" onclick="deleteCurrentUrlaubPlan()">🗑️ Planer löschen</button>
             </div>
             <div class="card">
@@ -2455,6 +2459,8 @@
             
             document.getElementById('urlaubManualStartDate').value = u.startDate || '';
             document.getElementById('urlaubManualEndDate').value = u.endDate || '';
+            document.getElementById('urlaubPreviewBudgetInput').value = u.previewBudget !== undefined ? u.previewBudget : '';
+            
             document.getElementById('uFixHotel').value = u.fixHotel || 0; 
             document.getElementById('uFixKurtaxe').value = u.fixKurtaxe || 0;
             document.getElementById('uFixSupermarkt').value = u.fixSupermarkt || 0; 
@@ -2462,11 +2468,13 @@
             document.getElementById('uFixAbreisePuffer').value = u.fixAbreisePuffer || 0;
             document.getElementById('uFixAbreiseTag').value = u.fixAbreiseTag || '';
 
+            let effectiveBudget = (u.previewBudget !== undefined && u.previewBudget !== '' && !isNaN(parseFloat(u.previewBudget))) ? parseFloat(u.previewBudget) : target;
+
             let days = 4; if (u.startDate && u.endDate) days = Math.max(1, Math.floor((new Date(u.endDate) - new Date(u.startDate))/(1000*60*60*24))+1);
             if (!u.dailyBonuses || u.dailyBonuses.length !== days) { u.dailyBonuses = new Array(days).fill(0); u.dailyActuals = new Array(days).fill(''); }
 
             const fixSum = (u.fixHotel||0) + (u.fixKurtaxe||0) + (u.fixSupermarkt||0) + (u.fixBusHin||0) + (u.fixAbreisePuffer||0);
-            const net = Math.max(0, target - fixSum);
+            const net = Math.max(0, effectiveBudget - fixSum);
             const abreiseTagBudget = (u.fixAbreiseTag !== undefined && u.fixAbreiseTag !== '') ? parseFloat(u.fixAbreiseTag) : null;
             
             let regularDaysCount = abreiseTagBudget !== null && days > 1 ? days - 1 : days;
@@ -2510,6 +2518,14 @@
             u.endDate = document.getElementById('urlaubManualEndDate').value;
             saveLocally(); renderUrlaubView();
         }
+
+        function saveUrlaubPreviewBudget() {
+            const u = getActiveUrlaub(); if(!u) return;
+            const val = document.getElementById('urlaubPreviewBudgetInput').value;
+            u.previewBudget = val !== '' ? parseFloat(val) : '';
+            saveLocally(); renderUrlaubView();
+        }
+
         function updateUrlaubBonus(dayIndex, val) { const u = getActiveUrlaub(); if(u) { u.dailyBonuses[dayIndex] = parseFloat(val) || 0; saveLocally(); renderUrlaubView(); } }
         function updateUrlaubActual(dayIndex, val) { const u = getActiveUrlaub(); if(u) { u.dailyActuals[dayIndex] = val; saveLocally(); renderUrlaubView(); } }
         function saveUrlaubConfigDynamic() {
