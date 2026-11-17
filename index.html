@@ -342,7 +342,7 @@
                                 </select>
                             </div>
                             <div class="input-group" style="margin-bottom:0;">
-                                <label id="restSplitValLabel">Wert (% oder €)</label>
+                                <label id="restSplitValLabel">Wert (% or €)</label>
                                 <input type="number" id="restSplitValInput" placeholder="0" value="0" style="background:#fff;" oninput="autoSaveLive()">
                             </div>
                             <div class="input-group full" style="margin-bottom:0;">
@@ -691,7 +691,7 @@
 
             <div class="card">
                 <div class="card-title">
-                    <span>🗓️ Alle geplanten Auftritte</span>
+                    <span>🗓️ Alle geplanten Auftritte (nach Uhrzeit sortiert)</span>
                     <button class="btn-secondary" style="font-size:0.65rem; padding:3px 6px; color:#dc2626;" onclick="clearPastLineupEntries()">Vergangene löschen 🧹</button>
                 </div>
                 <div class="grid" style="margin-bottom: 10px;">
@@ -1034,7 +1034,7 @@
         let lastUpdateTime = localStorage.getItem('finanz_last_update_time') || '-';
         let currentModalGoalId = null, currentMonthItems = [], currentMonthPausedItems = [], syncTimeout = null;
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             const mInput = document.getElementById('monthInput');
             const hhInput = document.getElementById('hhMonthInput');
             const hhDate = document.getElementById('HHDate');
@@ -1046,6 +1046,11 @@
             if(hhDate) hhDate.valueAsDate = new Date();
             if(subMonthInput) subMonthInput.value = "2026-12";
             if(lineupDateInput) lineupDateInput.value = new Date().toISOString().slice(0,10);
+
+            // Automatischer Pull beim Start, falls Cloud-URL hinterlegt ist
+            if (cloudConfig.url) {
+                await pullFromCloudNow(true);
+            }
 
             populateRestSplitDropdown();
             renderQuickMonthButtons();
@@ -1243,11 +1248,13 @@
             const filterLoc = document.getElementById('lineupFilterLocation')?.value || '';
             const searchVal = (document.getElementById('lineupSearchInput')?.value || '').toLowerCase();
 
+            // GRÜNDLICHE SORTIERUNG: Erst nach Datum, bei gleichem Datum strikt nach Uhrzeit (ortsübergreifend)
             const sorted = [...lineupEvents].sort((a, b) => {
                 if (a.date !== b.date) return a.date.localeCompare(b.date);
                 return (a.time || '00:00').localeCompare(b.time || '00:00');
             });
 
+            // Für "Heute Live" ebenfalls nach Uhrzeit sortieren
             const todayEvents = sorted.filter(e => e.date === todayStr);
             todayList.innerHTML = '';
             if (todayEvents.length === 0) {
@@ -2594,7 +2601,7 @@
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:0.68rem; color:var(--text-sub);">
                             <div style="font-weight:bold; color:var(--accent-green);">${reachText}</div>
-                            <div style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
+                            <div style="cursor:pointer; color:var(--accent; font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
                         </div>
                     </div>
                 `;
