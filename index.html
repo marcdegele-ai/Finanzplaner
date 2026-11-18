@@ -132,7 +132,10 @@
         
         .quick-btn-row { display: flex; gap: 5px; margin-bottom: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
         .quick-btn-row::-webkit-scrollbar { display: none; }
-        .quick-btn { flex: 1; min-width: 60px; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--border); border-radius: 8px; padding: 6px; font-size: 0.73rem; font-weight: bold; cursor: pointer; text-align: center; white-space: nowrap; }
+        .quick-btn { flex: 1; min-width: 65px; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; font-size: 0.73rem; font-weight: bold; cursor: pointer; text-align: center; white-space: nowrap; transition: transform 0.1s ease; }
+        .quick-btn:active { transform: scale(0.96); }
+        .quick-btn.current-anchor { background: var(--accent-green-soft); color: var(--accent-green); border-color: var(--accent-green); font-weight: 800; }
+        .quick-btn.selected-month { background: var(--accent); color: #ffffff; border-color: var(--accent); }
         
         .history-list { display: flex; flex-direction: column; gap: 8px; }
         .history-item { background: var(--card-sub); padding: 10px 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
@@ -327,7 +330,7 @@
                         <input type="month" id="monthInput" value="2026-12" min="2026-12" onchange="syncMonthInput(this.value)">
                     </div>
 
-                    <!-- SCHNELLWAHL-MONATSLEISTE -->
+                    <!-- SCHNELLWAHL-MONATSLEISTE MIT FIXEM AKTUELL-BUTTON -->
                     <div class="input-group full">
                         <label>Schnellauswahl:</label>
                         <div class="quick-btn-row" id="quickMonthRow"></div>
@@ -692,7 +695,6 @@
                 <details id="lineupManualDetails" open>
                     <summary style="font-size: 0.8rem; color: var(--text-main);">✍️ Einzelnen Termin manuell hinzufügen</summary>
                     
-                    <!-- SCHNELLWAHL-CHIPS FÜR BELIEBTE KÜNSTLER -->
                     <div style="margin-top:8px;">
                         <label style="display:block; margin-bottom:3px;">Schnellwahl Künstler:</label>
                         <div class="quick-btn-row">
@@ -1090,6 +1092,15 @@
         let currentModalGoalId = null, currentMonthItems = [], currentMonthPausedItems = [], syncTimeout = null;
 
         // ==========================================
+        // AKTUELLER ANKER-MONAT (FÜR SCHNELL-RÜCKSPRUNG)
+        // ==========================================
+        function getAnchorCurrentMonthKey() {
+            const realNowMonth = new Date().toISOString().slice(0, 7);
+            // Da der Finanzplan ab 2026-12 startet, nehmen wir entweder den echten Monat oder mindestens 2026-12
+            return realNowMonth >= "2026-12" ? realNowMonth : "2026-12";
+        }
+
+        // ==========================================
         // DARK MODE, PRIVACY MODE & SWIPE GESTEN
         // ==========================================
         function initUiModes() {
@@ -1157,16 +1168,17 @@
 
         window.addEventListener('DOMContentLoaded', async () => {
             initUiModes();
+            const startAnchor = getAnchorCurrentMonthKey();
             const mInput = document.getElementById('monthInput');
             const hhInput = document.getElementById('hhMonthInput');
             const hhDate = document.getElementById('HHDate');
             const subMonthInput = document.getElementById('subKontoTransferMonth');
             const lineupDateInput = document.getElementById('lineupDateInput');
 
-            if(mInput) mInput.value = "2026-12";
-            if(hhInput) hhInput.value = "2026-12";
+            if(mInput) mInput.value = startAnchor;
+            if(hhInput) hhInput.value = startAnchor;
             if(hhDate) hhDate.valueAsDate = new Date();
-            if(subMonthInput) subMonthInput.value = "2026-12";
+            if(subMonthInput) subMonthInput.value = startAnchor;
             if(lineupDateInput) lineupDateInput.value = new Date().toISOString().slice(0,10);
 
             if (cloudConfig.url) {
@@ -1306,7 +1318,6 @@
             let h = parseInt(parts[0], 10);
             let m = parseInt(parts[1], 10) || 0;
             if (isNaN(h)) h = 22;
-            // Alles zwischen 00:00 und 05:59 wird als "spät abends nach Mitternacht" gewertet (+24h)
             if (h < 6) h += 24;
             return h * 60 + m;
         }
@@ -1490,7 +1501,6 @@
             const searchVal = (document.getElementById('lineupSearchInput')?.value || '').toLowerCase();
             const favOnly = document.getElementById('lineupFavOnlyCheckbox')?.checked || false;
 
-            // CHRONOLOGISCHE SORTIERUNG MIT INTELLIGENTER NACHT-LOGIK (00:00 - 05:59 nach 23:59)
             const sorted = [...lineupEvents].sort((a, b) => {
                 if (a.date !== b.date) return a.date.localeCompare(b.date);
                 return getNightSortMinutes(a.time) - getNightSortMinutes(b.time);
@@ -1731,19 +1741,36 @@
             link.remove();
         }
 
+        // ==========================================
+        // SCHNELLAUSWAHL MIT DAUERHAFTEM "AKTUELL"-BUTTON
+        // ==========================================
         function renderQuickMonthButtons() {
             const row = document.getElementById('quickMonthRow');
             if (!row) return;
             row.innerHTML = '';
-            let k = getSelectedMonthKey();
-            for(let i=0; i<4; i++) {
+
+            const anchorMonth = getAnchorCurrentMonthKey();
+            const selectedMonth = getSelectedMonthKey();
+
+            // 1. Fester Button für den aktuellen Monat (damit man immer direkt zurückkommt!)
+            const homeBtn = document.createElement('button');
+            homeBtn.type = 'button';
+            homeBtn.className = 'quick-btn current-anchor' + (selectedMonth === anchorMonth ? ' selected-month' : '');
+            homeBtn.innerText = `📍 Aktuell (${anchorMonth})`;
+            homeBtn.onclick = () => syncMonthInput(anchorMonth);
+            row.appendChild(homeBtn);
+
+            // 2. Die nächsten 3 Folgemonate ab dem aktuellen Monat
+            let nextM = anchorMonth;
+            for (let i = 0; i < 3; i++) {
+                nextM = getNextMonthKey(nextM);
+                const mKey = nextM;
                 const btn = document.createElement('button');
-                btn.className = 'quick-btn';
-                btn.innerText = k;
-                const monthKey = k;
-                btn.onclick = () => syncMonthInput(monthKey);
+                btn.type = 'button';
+                btn.className = 'quick-btn' + (selectedMonth === mKey ? ' selected-month' : '');
+                btn.innerText = mKey;
+                btn.onclick = () => syncMonthInput(mKey);
                 row.appendChild(btn);
-                k = getNextMonthKey(k);
             }
         }
 
@@ -2046,7 +2073,7 @@
             });
         }
         function syncMonthInput(val) { 
-            if(!val) val = "2026-12"; 
+            if(!val) val = getAnchorCurrentMonthKey(); 
             document.getElementById('monthInput').value = val; 
             document.getElementById('hhMonthInput').value = val; 
             renderQuickMonthButtons();
@@ -2096,7 +2123,7 @@
             if(viewId === 'lineup-view') { renderLineupView(); }
         }
 
-        function getSelectedMonthKey() { return document.getElementById('monthInput').value || "2026-12"; }
+        function getSelectedMonthKey() { return document.getElementById('monthInput').value || getAnchorCurrentMonthKey(); }
         function getNextMonthKey(k) { const [y, m] = k.split('-').map(Number); return m === 12 ? `${y+1}-01` : `${y}-${String(m+1).padStart(2, '0')}`; }
 
         function getMonthDataOrFallback(m) {
