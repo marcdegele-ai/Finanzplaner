@@ -273,14 +273,6 @@
 
         <!-- TAB 1: AKTUELL (DASHBOARD) -->
         <div id="aktuel-view" class="view-section active">
-
-            <!-- VERTRAGS- & FIXKOSTEN-WECKER BANNER -->
-            <div id="contractWarningCard" class="card" style="display:none; background: var(--accent-orange-soft); border: 1.5px solid var(--accent-orange);">
-                <div class="card-title" style="color: var(--accent-orange); margin-bottom:4px;">
-                    <span>⚠️ Vertrags- & Fixkosten-Wecker</span>
-                </div>
-                <div id="contractWarningList" style="font-size:0.75rem; color:var(--text-main);"></div>
-            </div>
             
             <!-- KPI HIGHLIGHTS -->
             <div class="kpi-grid">
@@ -972,7 +964,7 @@
     <!-- MODALE -->
     <div id="expenseModal" class="modal"><div class="modal-content"><div class="card-title">Fixkosten (<span id="modalExpMonth">-</span>)</div><div class="grid" style="gap: 6px; margin-bottom: 10px;"><div class="input-group full"><label>Name</label><input type="text" id="expName"></div><div class="input-group"><label>€</label><input type="number" id="expAmount"></div><div class="input-group"><label>Art</label><select id="expType" onchange="toggleEndDateInput()"><option value="dauer">Dauer</option><option value="einmalig">Einmalig</option></select></div><div class="input-group full" id="endDateGroup"><label>Bis Monat (Vertragsende)</label><input type="month" id="expEndDate"></div><div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Hinzufügen</button></div></div><div class="history-list" id="expenseItemsList" style="margin-bottom: 10px;"></div><div class="stat-row" style="font-weight: bold; margin-bottom: 10px;"><span>Summe:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div><button class="btn-add" onclick="closeExpenseModal()">Fertig</button></div></div>
     <div id="monthCloseModal" class="modal"><div class="modal-content"><div class="card-title">🏁 Monatsabschluss</div><p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:10px;">Restbudget übertragen?</p><div class="stat-row" style="margin-bottom:10px;"><span>Rest:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div><div class="input-group" style="margin-bottom: 10px;"><label>Ziel:</label><select id="closeTargetSelect"><option value="kassette">🪙 Kassette</option><option value="notfall">🛡️ Notfallkonto</option><option value="freizeit">🎉 Freizeitkonto</option></select></div><button class="btn-add" onclick="executeMonthClose()" style="background:var(--accent-green); margin-bottom: 6px;">Buchen 🚀</button><button class="btn-secondary" onclick="closeMonthCloseModal()" style="width:100%;">Überspringen</button></div></div>
-    <div id="cloudModal" class="modal"><div class="modal-content"><div class="card-title">☁️ Cloud-Sync</div><div class="input-group" style="margin-bottom: 6px;"><label>URL:</label><input type="text" id="cloudSyncUrlInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>API Key:</label><input type="password" id="cloudSyncKeyInput"></div><button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 6px;">Speichern</button><button class="btn-secondary" onclick="pullFromCloudNow()" style="width:100%; margin-bottom: 5px;">Laden (Pull)</button><button class="btn-secondary" onclick="syncWithCloudNow(false)" style="width:100%; margin-bottom: 6px;">Speichern (Push)</button><button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button></div></div>
+    <div id="cloudModal" class="modal"><div class="modal-content"><div class="card-title">☁️ Cloud-Sync</div><div class="input-group" style="margin-bottom: 6px;"><label>URL:</label><input type="text" id="cloudSyncUrlInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>API Key:</label><input type="password" id="cloudSyncKeyInput"></div><button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 6px;">Speichern</button><button class="btn-secondary" style="width:100%; margin-bottom: 5px;">Laden (Pull)</button><button class="btn-secondary" onclick="syncWithCloudNow(false)" style="width:100%; margin-bottom: 6px;">Speichern (Push)</button><button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button></div></div>
     
     <div id="goalModal" class="modal">
         <div class="modal-content">
@@ -1096,7 +1088,6 @@
         // ==========================================
         function getAnchorCurrentMonthKey() {
             const realNowMonth = new Date().toISOString().slice(0, 7);
-            // Da der Finanzplan ab 2026-12 startet, nehmen wir entweder den echten Monat oder mindestens 2026-12
             return realNowMonth >= "2026-12" ? realNowMonth : "2026-12";
         }
 
@@ -1215,23 +1206,6 @@
             badge.innerText = `Speicher: ${mb} / 5.0 MB`;
             badge.style.background = parseFloat(mb) > 4.0 ? 'var(--accent-red-soft)' : 'var(--accent-green-soft)';
             badge.style.color = parseFloat(mb) > 4.0 ? 'var(--accent-red)' : 'var(--accent-green)';
-        }
-
-        function checkContractWarnings() {
-            const card = document.getElementById('contractWarningCard');
-            const list = document.getElementById('contractWarningList');
-            if (!card || !list) return;
-            const currentM = getSelectedMonthKey();
-            const nextM = getNextMonthKey(currentM);
-            const next2M = getNextMonthKey(nextM);
-
-            const expiring = (currentMonthItems || []).filter(i => i.type === 'dauer' && i.endDate && (i.endDate === currentM || i.endDate === nextM || i.endDate === next2M));
-            if (expiring.length === 0) {
-                card.style.display = 'none';
-                return;
-            }
-            card.style.display = 'block';
-            list.innerHTML = expiring.map(i => `<div>• <strong>${i.name}</strong> (${parseFloat(i.amount).toFixed(2)} €) läuft am <strong>${i.endDate}</strong> aus!</div>`).join('');
         }
 
         function populateRestSplitDropdown() {
@@ -1752,7 +1726,7 @@
             const anchorMonth = getAnchorCurrentMonthKey();
             const selectedMonth = getSelectedMonthKey();
 
-            // 1. Fester Button für den aktuellen Monat (damit man immer direkt zurückkommt!)
+            // 1. Fester Button für den aktuellen Monat
             const homeBtn = document.createElement('button');
             homeBtn.type = 'button';
             homeBtn.className = 'quick-btn current-anchor' + (selectedMonth === anchorMonth ? ' selected-month' : '');
@@ -2010,7 +1984,7 @@
                 extraTransfers: entries[m]?.extraTransfers || [],
                 notes: document.getElementById('monthNotesInput')?.value || ''
             };
-            saveLocally(); liveCalc(); renderHistory(); checkContractWarnings();
+            saveLocally(); liveCalc(); renderHistory();
         }
 
         function exportBackupJSON() {
@@ -2171,7 +2145,7 @@
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView(); populateManualDistributeDropdown();
-            updateCalendarBudgetDisplay(); checkContractWarnings();
+            updateCalendarBudgetDisplay();
         }
 
         function populateManualDistributeDropdown() {
