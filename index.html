@@ -12,25 +12,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#f8fafc">
 
-    <!-- Tesseract.js für Screenshot Texterkennung (OCR) -->
+    <!-- Tesseract.js für Screenshot- & Kassenbon-Texterkennung (OCR) -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
-    <!-- Kleine Browser-KI (Hugging Face Transformers.js) für treffsichere Künstlernamen-Erkennung -->
-    <script type="module">
-        import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.0';
-        window.extractArtistAI = null;
-
-        async function loadAI() {
-            try {
-                console.log("Lade kleine Malle-KI...");
-                window.extractArtistAI = await pipeline('token-classification', 'Xenova/bert-base-NER');
-                console.log("KI bereit!");
-            } catch(e) {
-                console.log("KI-Laden übersprungen / Fallback aktiv");
-            }
-        }
-        loadAI();
-    </script>
 
     <style>
         :root {
@@ -50,30 +33,67 @@
             --text-main: #0f172a; 
             --text-sub: #64748b;
             --border: #e2e8f0; 
+            --tab-bg: #e2e8f0;
             --radius: 14px;
             --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
             --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
         }
+
+        body.dark-mode {
+            --bg-color: #090d16;
+            --card-bg: #111827;
+            --card-sub: #1e293b;
+            --accent: #38bdf8;
+            --accent-soft: #0c4a6e;
+            --accent-green: #34d399;
+            --accent-green-soft: #064e3b;
+            --accent-orange: #fbbf24;
+            --accent-orange-soft: #451a03;
+            --accent-red: #f87171;
+            --accent-red-soft: #450a0a;
+            --accent-purple: #a78bfa;
+            --accent-purple-soft: #2e1065;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --border: #334155;
+            --tab-bg: #1e293b;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding: 10px; max-width: 600px; margin: 0 auto; padding-bottom: 90px; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 10px; max-width: 600px; margin: 0 auto; padding-bottom: 90px; transition: background-color 0.25s ease, color 0.25s ease; overflow-x: hidden; }
         
+        /* Sichtschutz-Modus */
+        body.privacy-mode .kpi-val,
+        body.privacy-mode .val-highlight,
+        body.privacy-mode .val-red,
+        body.privacy-mode .val-orange,
+        body.privacy-mode .val-purple,
+        body.privacy-mode .sensitive-val {
+            filter: blur(6px);
+            user-select: none;
+            transition: filter 0.2s ease;
+        }
+
         header { text-align: center; padding: 12px 0 10px 0; }
         header h1 { font-size: 1.25rem; color: var(--accent); font-weight: 800; letter-spacing: -0.02em; }
         .app-creator-sub { font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px; font-weight: 500; }
         
-        .user-bar { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--text-sub); margin-bottom: 12px; background: #ffffff; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); gap: 6px; flex-wrap: wrap; }
+        .user-bar { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: var(--text-sub); margin-bottom: 12px; background: var(--card-bg); padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow-sm); gap: 6px; flex-wrap: wrap; }
         .cloud-status { color: var(--accent-green); font-weight: 700; cursor: pointer; }
         
-        .tab-bar { display: flex; background: #e2e8f0; border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 3px; overflow-x: auto; margin-top: 4px; scrollbar-width: none; }
+        .tab-bar { display: flex; background: var(--tab-bg); border: 1px solid var(--border); border-radius: 12px; padding: 3px; gap: 3px; overflow-x: auto; margin-top: 4px; scrollbar-width: none; }
         .tab-bar::-webkit-scrollbar { display: none; }
         .tab-btn { flex: 1; padding: 8px 10px; border: none; border-radius: 99px; background: transparent; color: var(--text-sub); font-weight: 600; font-size: 0.74rem; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
-        .tab-btn.active { background: #ffffff; color: var(--accent); font-weight: 800; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .tab-btn.active { background: var(--card-bg); color: var(--accent); font-weight: 800; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
         
-        .view-section { display: none; }
+        .view-section { display: none; animation: fadeIn 0.18s ease; }
         .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0.4; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
         
         .card { background: var(--card-bg); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-        .card-title { font-size: 0.95rem; font-weight: 800; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); }
+        .card-title { font-size: 0.95rem; font-weight: 800; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; color: var(--text-main); gap: 6px; }
         
         .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
         .kpi-card { background: var(--card-sub); border-radius: 10px; padding: 10px 12px; border: 1px solid var(--border); text-align: center; }
@@ -93,14 +113,14 @@
         .input-group.full { grid-column: span 2; }
         label { font-size: 0.73rem; color: var(--text-sub); font-weight: 700; }
         input, select, textarea { background: var(--card-sub); border: 1px solid var(--border); color: var(--text-main); padding: 8px 10px; border-radius: 8px; font-size: 0.83rem; outline: none; width: 100%; transition: all 0.2s ease; }
-        input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12); background: #ffffff; }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); background: var(--card-bg); }
         
         .checkbox-container { display: flex; align-items: center; gap: 8px; background: var(--card-sub); padding: 10px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; text-align: left; }
         .checkbox-container input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--accent-green); cursor: pointer; }
         
         .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.83rem; }
         .stat-row:last-child { border-bottom: none; }
-        .stat-row.sub-row { font-size: 0.74rem; padding: 5px 0 5px 10px; border-bottom: 1px dashed #e2e8f0; color: var(--text-sub); }
+        .stat-row.sub-row { font-size: 0.74rem; padding: 5px 0 5px 10px; border-bottom: 1px dashed var(--border); color: var(--text-sub); }
         
         .val-highlight { font-weight: bold; color: var(--accent-green); }
         .val-orange { font-weight: bold; color: var(--accent-orange); }
@@ -108,18 +128,19 @@
         .val-purple { font-weight: bold; color: var(--accent-purple); }
         
         .btn-add { background: var(--accent); color: #fff; font-weight: 700; border: none; padding: 10px; border-radius: 10px; width: 100%; font-size: 0.88rem; cursor: pointer; margin-top: 4px; box-shadow: 0 2px 8px rgba(2,132,199,0.2); }
-        .btn-secondary { background: #e2e8f0; color: var(--text-main); font-weight: 700; border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-size: 0.73rem; cursor: pointer; }
+        .btn-secondary { background: var(--tab-bg); color: var(--text-main); font-weight: 700; border: 1px solid var(--border); padding: 6px 10px; border-radius: 8px; font-size: 0.73rem; cursor: pointer; }
         
-        .quick-btn-row { display: flex; gap: 5px; margin-bottom: 6px; overflow-x: auto; padding-bottom: 2px; }
-        .quick-btn { flex: 1; min-width: 60px; background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; border-radius: 8px; padding: 6px; font-size: 0.73rem; font-weight: bold; cursor: pointer; text-align: center; }
+        .quick-btn-row { display: flex; gap: 5px; margin-bottom: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+        .quick-btn-row::-webkit-scrollbar { display: none; }
+        .quick-btn { flex: 1; min-width: 60px; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--border); border-radius: 8px; padding: 6px; font-size: 0.73rem; font-weight: bold; cursor: pointer; text-align: center; white-space: nowrap; }
         
         .history-list { display: flex; flex-direction: column; gap: 8px; }
         .history-item { background: var(--card-sub); padding: 10px 12px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); }
         
         .badge { font-size: 0.65rem; padding: 2px 7px; border-radius: 6px; font-weight: 800; display: inline-block; margin-left: 3px; }
-        .badge-dauer { background: #e0f2fe; color: #0369a1; } .badge-paused { background: #fee2e2; color: #991b1b; }
-        .badge-once { background: #f1f5f9; color: #475569; } .badge-booked { background: #dcfce7; color: #166534; }
-        .badge-kategorie { background: #f3e8ff; color: #7e22ce; } .badge-income { background: #dcfce7; color: #15803d; }
+        .badge-dauer { background: var(--accent-soft); color: var(--accent); } .badge-paused { background: var(--accent-red-soft); color: var(--accent-red); }
+        .badge-once { background: var(--tab-bg); color: var(--text-sub); } .badge-booked { background: var(--accent-green-soft); color: var(--accent-green); }
+        .badge-kategorie { background: var(--accent-purple-soft); color: var(--accent-purple); } .badge-income { background: var(--accent-green-soft); color: var(--accent-green); }
         
         /* LineUp Location Badges */
         .badge-bierkoenig { background: #fef08a; color: #854d0e; border: 1px solid #facc15; }
@@ -127,25 +148,28 @@
         .badge-oberbayern { background: #dbeafe; color: #1e40af; border: 1px solid #60a5fa; }
         .badge-sonstige { background: #f3e8ff; color: #6b21a8; border: 1px solid #c084fc; }
 
+        .star-btn { cursor: pointer; font-size: 1.05rem; margin-right: 6px; user-select: none; transition: transform 0.15s; display: inline-block; }
+        .star-btn:active { transform: scale(1.3); }
+
         .goals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         @media(max-width: 480px) { .goals-grid { grid-template-columns: 1fr; } }
 
-        .goal-card-box { background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 12px; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: transform 0.15s ease; display: flex; flex-direction: column; justify-content: space-between; }
+        .goal-card-box { background: var(--card-bg); padding: 12px; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: transform 0.15s ease; display: flex; flex-direction: column; justify-content: space-between; }
         .goal-card-box:active { transform: scale(0.99); }
         .history-date { font-weight: 800; font-size: 0.88rem; color: var(--text-main); }
         .history-sub { font-size: 0.74rem; color: var(--text-sub); margin-top: 2px; }
         
-        .progress-bar-container { background: #e2e8f0; border-radius: 8px; height: 8px; width: 100%; margin-top: 8px; overflow: hidden; }
+        .progress-bar-container { background: var(--tab-bg); border-radius: 8px; height: 8px; width: 100%; margin-top: 8px; overflow: hidden; }
         .progress-bar-fill { background: var(--accent-green); height: 100%; width: 0%; transition: width 0.3s ease; }
         
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 100; padding: 10px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); justify-content: center; align-items: center; z-index: 100; padding: 10px; }
         .modal.active { display: flex; }
-        .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 18px; border-radius: 16px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.2); }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border); padding: 18px; border-radius: 16px; width: 100%; max-width: 440px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.4); }
         
-        .action-link { font-size: 0.68rem; cursor: pointer; padding: 3px 6px; border-radius: 5px; background: #e2e8f0; color: var(--text-main); font-weight: 700; }
+        .action-link { font-size: 0.68rem; cursor: pointer; padding: 3px 6px; border-radius: 5px; background: var(--tab-bg); color: var(--text-main); font-weight: 700; }
         .table-wrapper { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); }
         .month-table { width: 100%; border-collapse: collapse; font-size: 0.74rem; min-width: 500px; }
-        .month-table th { text-align: left; padding: 9px; background: #e2e8f0; color: var(--accent); border-bottom: 1px solid var(--border); font-weight: 800; }
+        .month-table th { text-align: left; padding: 9px; background: var(--tab-bg); color: var(--accent); border-bottom: 1px solid var(--border); font-weight: 800; }
         .month-table td { padding: 9px; border-bottom: 1px solid var(--border); color: var(--text-main); }
         
         .cash-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
@@ -159,15 +183,15 @@
         .chart-bar-row { background: var(--card-sub); padding: 10px; border-radius: 10px; border: 1px solid var(--border); }
         .chart-label-line { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; }
         
-        .receipt-btn { font-size: 0.68rem; background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; padding: 3px 6px; border-radius: 5px; font-weight: 700; }
-        .storno-btn { font-size: 0.65rem; background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 2px 5px; border-radius: 5px; font-weight: 700; margin-left: 5px; }
+        .receipt-btn { font-size: 0.68rem; background: var(--accent-purple-soft); color: var(--accent-purple); border: 1px solid var(--border); padding: 3px 6px; border-radius: 5px; font-weight: 700; cursor: pointer; }
+        .storno-btn { font-size: 0.65rem; background: var(--accent-red-soft); color: var(--accent-red); border: 1px solid var(--border); padding: 2px 5px; border-radius: 5px; font-weight: 700; margin-left: 5px; cursor: pointer; }
         
         .calc-display { background: #0f172a; color: #38bdf8; font-size: 1.4rem; font-family: monospace; text-align: right; padding: 12px; border-radius: 10px; margin-bottom: 10px; min-height: 50px; box-shadow: inset 0 2px 6px rgba(0,0,0,0.4); }
         .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
-        .calc-btn { background: #e2e8f0; border: 1px solid var(--border); padding: 12px; font-size: 1rem; font-weight: 800; border-radius: 10px; cursor: pointer; text-align: center; }
-        .calc-btn.op { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+        .calc-btn { background: var(--tab-bg); color: var(--text-main); border: 1px solid var(--border); padding: 12px; font-size: 1rem; font-weight: 800; border-radius: 10px; cursor: pointer; text-align: center; }
+        .calc-btn.op { background: var(--accent-soft); color: var(--accent); border-color: var(--border); }
         .calc-btn.eq { background: var(--accent); color: #fff; }
-        .calc-btn.ac { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+        .calc-btn.ac { background: var(--accent-red-soft); color: var(--accent-red); border-color: var(--border); }
 
         .debt-input {
             width: 80px;
@@ -176,27 +200,23 @@
             text-align: right;
             border: 1px solid var(--border);
             border-radius: 6px;
-            background: #ffffff;
+            background: var(--card-bg);
             font-weight: bold;
             color: var(--accent-purple);
-        }
-        .debt-input:focus {
-            border-color: var(--accent-purple);
-            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
         }
 
         /* OCR Scanner Box */
         .ocr-dropzone {
-            border: 2px dashed #0284c7;
-            background: #f0f9ff;
+            border: 2px dashed var(--accent);
+            background: var(--accent-soft);
             border-radius: 12px;
             padding: 16px;
             text-align: center;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: opacity 0.2s;
             margin-bottom: 10px;
         }
-        .ocr-dropzone:hover { background: #e0f2fe; }
+        .ocr-dropzone:hover { opacity: 0.9; }
         .live-pulse {
             display: inline-block;
             width: 8px;
@@ -217,70 +237,82 @@
 
     <div id="mainAppContainer">
         <header>
-            <h1>📊 Mein Finanzplaner</h1>
-            <div class="app-creator-sub">Ersteller: Marc Degele</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
+                <button class="btn-secondary" id="privacyToggleBtn" style="padding:4px 8px; font-size:0.75rem;" onclick="togglePrivacyMode()" title="Beträge ausblenden / Sichtschutz">👁️</button>
+                <h1>📊 Mein Finanzplaner</h1>
+                <button class="btn-secondary" id="darkModeToggleBtn" style="padding:4px 8px; font-size:0.75rem;" onclick="toggleDarkMode()" title="Dark Mode umschalten">🌙</button>
+            </div>
+            <div class="app-creator-sub">Ersteller: Marc Degele • Swipe-Navigation aktiv 👈👉</div>
             <div class="user-bar">
-                <span>👤 Status: <strong style="color:var(--accent-green);">Lokal & Bereit ✅</strong></span>
+                <span>👤 Status: <strong style="color:var(--accent-green);">Bereit ✅</strong></span>
                 <span class="cloud-status" onclick="openCloudModal()">⚡ Cloud-Sync</span>
                 <span id="lastUpdateDisplay" style="color:var(--text-sub);">Stand: Nie</span>
                 <div style="display:flex; gap:4px;">
                     <button class="btn-secondary" style="padding: 3px 6px; font-size:0.68rem;" onclick="exportBackupJSON()">💾 Backup</button>
-                    <button class="btn-secondary" style="padding: 3px 6px; font-size:0.68rem;" onclick="exportCSV()">📊 CSV Export</button>
+                    <button class="btn-secondary" style="padding: 3px 6px; font-size:0.68rem;" onclick="exportCSV()">📊 CSV</button>
                     <button class="btn-secondary" style="padding: 3px 6px; font-size:0.68rem;" onclick="document.getElementById('importFile').click()">📂 Laden</button>
                     <input type="file" id="importFile" style="display:none" accept=".json" onchange="importBackupJSON(event)">
                 </div>
             </div>
-            <div class="tab-bar">
-                <button class="tab-btn active" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
-                <button class="tab-btn" onclick="switchTab('haushalt-view', this)">🏠 Haushalt</button>
-                <button class="tab-btn" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
-                <button class="tab-btn" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
-                <button class="tab-btn" onclick="switchTab('rechner-view', this)">🧮 Rechner</button>
-                <button class="tab-btn" onclick="switchTab('lineup-view', this)">🎤 LineUp</button>
-                <button class="tab-btn" onclick="switchTab('urlaub-view', this)" id="urlaubTabBtn" style="display:none;">✈️ Urlaub</button>
-                <button class="tab-btn" onclick="switchTab('jahres-view', this)">📈 Jahres</button>
-                <button class="tab-btn" onclick="switchTab('dok-view', this)">📂 Dokumente</button>
-                <button class="tab-btn" onclick="switchTab('schulden-view', this)">🤝 Schulden</button>
+            <div class="tab-bar" id="mainTabBar">
+                <button class="tab-btn active" data-view="aktuel-view" onclick="switchTab('aktuel-view', this)">📅 Aktuell</button>
+                <button class="tab-btn" data-view="haushalt-view" onclick="switchTab('haushalt-view', this)">🏠 Haushalt</button>
+                <button class="tab-btn" data-view="uebersicht-view" onclick="switchTab('uebersicht-view', this)">📊 Prognose</button>
+                <button class="tab-btn" data-view="ziele-view" onclick="switchTab('ziele-view', this)">🎯 Ziele</button>
+                <button class="tab-btn" data-view="rechner-view" onclick="switchTab('rechner-view', this)">🧮 Rechner</button>
+                <button class="tab-btn" data-view="lineup-view" onclick="switchTab('lineup-view', this)">🎤 LineUp</button>
+                <button class="tab-btn" data-view="urlaub-view" onclick="switchTab('urlaub-view', this)" id="urlaubTabBtn" style="display:none;">✈️ Urlaub</button>
+                <button class="tab-btn" data-view="jahres-view" onclick="switchTab('jahres-view', this)">📈 Jahres</button>
+                <button class="tab-btn" data-view="dok-view" onclick="switchTab('dok-view', this)">📂 Dokumente</button>
+                <button class="tab-btn" data-view="schulden-view" onclick="switchTab('schulden-view', this)">🤝 Schulden</button>
             </div>
         </header>
 
         <!-- TAB 1: AKTUELL (DASHBOARD) -->
         <div id="aktuel-view" class="view-section active">
+
+            <!-- VERTRAGS- & FIXKOSTEN-WECKER BANNER -->
+            <div id="contractWarningCard" class="card" style="display:none; background: var(--accent-orange-soft); border: 1.5px solid var(--accent-orange);">
+                <div class="card-title" style="color: var(--accent-orange); margin-bottom:4px;">
+                    <span>⚠️ Vertrags- & Fixkosten-Wecker</span>
+                </div>
+                <div id="contractWarningList" style="font-size:0.75rem; color:var(--text-main);"></div>
+            </div>
             
             <!-- KPI HIGHLIGHTS -->
             <div class="kpi-grid">
-                <div class="kpi-card" style="background: var(--accent-soft); border-color: #bae6fd;">
-                    <div class="kpi-label" style="color: #0369a1;">Netto-Einnahmen</div>
-                    <div class="kpi-val" id="resNetto" style="color: #0284c7;">0,00 €</div>
+                <div class="kpi-card" style="background: var(--accent-soft);">
+                    <div class="kpi-label" style="color: var(--accent);">Netto-Einnahmen</div>
+                    <div class="kpi-val" id="resNetto" style="color: var(--accent);">0,00 €</div>
                 </div>
-                <div class="kpi-card" style="background: var(--accent-red-soft); border-color: #fca5a5;">
-                    <div class="kpi-label" style="color: #991b1b;">Fixkosten Total</div>
+                <div class="kpi-card" style="background: var(--accent-red-soft);">
+                    <div class="kpi-label" style="color: var(--accent-red);">Fixkosten Total</div>
                     <div class="kpi-val" id="sumFixKpiDisplay" style="color: var(--accent-red);">0,00 €</div>
                 </div>
-                <div class="kpi-card" style="background: var(--accent-orange-soft); border-color: #fde68a;">
-                    <div class="kpi-label" style="color: #b45309;">🛒 Einkaufs-Geld</div>
-                    <div class="kpi-val" id="resEinkaufspufferKpi" style="color: #d97706;">0,00 €</div>
+                <div class="kpi-card" style="background: var(--accent-orange-soft);">
+                    <div class="kpi-label" style="color: var(--accent-orange);">🛒 Einkaufs-Geld</div>
+                    <div class="kpi-val" id="resEinkaufspufferKpi" style="color: var(--accent-orange);">0,00 €</div>
                 </div>
-                <div class="kpi-card" style="background: var(--accent-green-soft); border-color: #bbf7d0;">
-                    <div class="kpi-label" style="color: #166534;">Gesamt Sparen</div>
+                <div class="kpi-card" style="background: var(--accent-green-soft);">
+                    <div class="kpi-label" style="color: var(--accent-green);">Gesamt Sparen</div>
                     <div class="kpi-val" id="resGesamtSparenKpi" style="color: var(--accent-green);">0,00 €</div>
                 </div>
             </div>
 
             <!-- ATM & AUSZAHLUNGS-RECHNER -->
-            <div class="card" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1.5px solid #7dd3fc;">
-                <div class="card-title" style="color:#0369a1; margin-bottom: 6px;">
-                    <span>Atm Auszahlungs-Rechner</span>
+            <div class="card" style="background: var(--accent-soft); border: 1.5px solid var(--accent);">
+                <div class="card-title" style="color:var(--accent); margin-bottom: 6px;">
+                    <span>ATM Auszahlungs-Rechner</span>
                 </div>
                 <div class="grid">
-                    <div style="background:#ffffff; padding:8px 10px; border-radius:10px; border:1px solid #bae6fd;">
+                    <div style="background:var(--card-bg); padding:8px 10px; border-radius:10px; border:1px solid var(--border);">
                         <span style="font-size:0.68rem; color:var(--text-sub); font-weight:bold; display:block;">💵 BAR AM AUTOMATEN ABHEBEN</span>
-                        <strong id="atmCashToWithdrawDisplay" style="font-size:1.05rem; color:#d97706;">0,00 €</strong>
+                        <strong id="atmCashToWithdrawDisplay" class="sensitive-val" style="font-size:1.05rem; color:var(--accent-orange);">0,00 €</strong>
                         <div style="font-size:0.6rem; color:var(--text-sub); margin-top:2px;">(Einkaufs-Geld + Kassette + Spar-Umschläge)</div>
                     </div>
-                    <div style="background:#ffffff; padding:8px 10px; border-radius:10px; border:1px solid #bae6fd;">
+                    <div style="background:var(--card-bg); padding:8px 10px; border-radius:10px; border:1px solid var(--border);">
                         <span style="font-size:0.68rem; color:var(--text-sub); font-weight:bold; display:block;">🏦 AUF DEM GIROKONTO BELASSEN</span>
-                        <strong id="giroKeepOnAccountDisplay" style="font-size:1.05rem; color:#0284c7;">0,00 €</strong>
+                        <strong id="giroKeepOnAccountDisplay" class="sensitive-val" style="font-size:1.05rem; color:var(--accent);">0,00 €</strong>
                         <div style="font-size:0.6rem; color:var(--text-sub); margin-top:2px;">(Fixkosten + Giro-Puffer)</div>
                     </div>
                 </div>
@@ -329,25 +361,25 @@
                     <div class="input-group full"><label>Bargeld Kasse (€) 🪙</label><input type="number" id="bargeldInput" placeholder="0" oninput="autoSaveLive()"></div>
 
                     <!-- RESTGELD-AUFTEILUNG (NOTFALLKONTO VS. SPARKONTO / ZIEL) -->
-                    <div class="input-group full" style="background: #f0fdf4; border: 1.5px solid #86efac; padding: 10px; border-radius: 10px; margin-top: 4px;">
-                        <label style="color: #15803d; font-weight: 800; font-size: 0.78rem; margin-bottom: 4px;">🛡️ Restgeld-Aufteilung (Notfallkonto vs. Sparkonto)</label>
+                    <div class="input-group full" style="background: var(--accent-green-soft); border: 1.5px solid var(--accent-green); padding: 10px; border-radius: 10px; margin-top: 4px;">
+                        <label style="color: var(--accent-green); font-weight: 800; font-size: 0.78rem; margin-bottom: 4px;">🛡️ Restgeld-Aufteilung (Notfallkonto vs. Sparkonto)</label>
                         <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Lege fest, wie viel vom Restgeld direkt auf ein anderes Sparkonto/Ziel fließt (Rest geht aufs Notfallkonto):</div>
                         <div class="grid" style="gap: 6px;">
                             <div class="input-group" style="margin-bottom:0;">
                                 <label>Aufteilungs-Art</label>
-                                <select id="restSplitModeInput" style="background:#fff;" onchange="autoSaveLive()">
+                                <select id="restSplitModeInput" onchange="autoSaveLive()">
                                     <option value="none">100% ins Notfallkonto</option>
                                     <option value="percent">Prozentsatz (%) abzweigen</option>
                                     <option value="fixed">Feste Summe (€) abzweigen</option>
                                 </select>
                             </div>
                             <div class="input-group" style="margin-bottom:0;">
-                                <label id="restSplitValLabel">Wert (% or €)</label>
-                                <input type="number" id="restSplitValInput" placeholder="0" value="0" style="background:#fff;" oninput="autoSaveLive()">
+                                <label id="restSplitValLabel">Wert (% oder €)</label>
+                                <input type="number" id="restSplitValInput" placeholder="0" value="0" oninput="autoSaveLive()">
                             </div>
                             <div class="input-group full" style="margin-bottom:0;">
                                 <label>Ziel-Sparkonto für diesen Anteil:</label>
-                                <select id="restSplitTargetSelect" style="background:#fff; font-weight:bold;" onchange="autoSaveLive()"></select>
+                                <select id="restSplitTargetSelect" style="font-weight:bold;" onchange="autoSaveLive()"></select>
                             </div>
                         </div>
                     </div>
@@ -365,27 +397,27 @@
             <!-- AUFSCHLÜSSELUNG -->
             <div class="card">
                 <div class="card-title"><span>📋 Aufschlüsselung & Sparraten</span></div>
-                <div class="stat-row" style="background:#e0f2fe; padding:7px 8px; border-radius:6px; border:1px solid #bae6fd; margin-bottom:6px;">
-                    <span style="font-weight:700; color:#0369a1;">🏦 Girokonto-Puffer (Verbleibt auf Konto):</span>
-                    <span id="resGiroPufferDisplay" style="font-weight:bold; color:#0284c7;">-40,00 €</span>
+                <div class="stat-row" style="background:var(--accent-soft); padding:7px 8px; border-radius:6px; margin-bottom:6px;">
+                    <span style="font-weight:700; color:var(--accent);">🏦 Girokonto-Puffer (Verbleibt auf Konto):</span>
+                    <span id="resGiroPufferDisplay" class="sensitive-val" style="font-weight:bold; color:var(--accent);">-40,00 €</span>
                 </div>
-                <div class="stat-row" style="background:#f0fdf4; padding:7px 8px; border-radius:6px;"><span>🛡️ Notfallkonto (Restgeld automatisch):</span><span id="resNotfallAbzug" class="val-highlight">-0,00 €</span></div>
-                <div class="stat-row" id="resSparkontoSplitRow" style="display:none; background:#eff6ff; padding:7px 8px; border-radius:6px; border:1px solid #bfdbfe; margin-top:4px;">
-                    <span id="resSparkontoSplitLabel" style="font-weight:700; color:#1d4ed8;">💰 Sparkonto-Anteil:</span>
-                    <span id="resSparkontoSplitAbzug" style="font-weight:bold; color:#1d4ed8;">-0,00 €</span>
+                <div class="stat-row" style="background:var(--accent-green-soft); padding:7px 8px; border-radius:6px;"><span>🛡️ Notfallkonto (Restgeld automatisch):</span><span id="resNotfallAbzug" class="val-highlight">-0,00 €</span></div>
+                <div class="stat-row" id="resSparkontoSplitRow" style="display:none; background:var(--accent-soft); padding:7px 8px; border-radius:6px; margin-top:4px;">
+                    <span id="resSparkontoSplitLabel" style="font-weight:700; color:var(--accent);">💰 Sparkonto-Anteil:</span>
+                    <span id="resSparkontoSplitAbzug" class="sensitive-val" style="font-weight:bold; color:var(--accent);">-0,00 €</span>
                 </div>
                 <div id="sparzieleBreakdownContainer"></div>
                 <div class="stat-row" style="background: var(--card-sub); padding: 7px 8px; border-radius: 6px; border: 1px solid var(--border); margin-top: 6px;">
                     <span>🏦 Sparpakete Abzug (Ziele):</span><span id="resSparzieleAbzug" class="val-red">-0,00 €</span>
                 </div>
-                <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" style="color:#b45309; font-weight:bold;">0,00 €</span></div>
+                <div class="stat-row"><span>Bargeld-Kassette 🪙:</span><span id="resBargeld" class="val-orange">0,00 €</span></div>
             </div>
 
             <details class="card">
                 <summary style="font-size: 0.9rem;">🎯 Restgeld manuell buchen</summary>
                 <div class="grid" style="margin-top: 8px;">
-                    <div class="input-group full"><label>Ziel</label><select id="manualDistributeGoalSelect" style="background:#fff; font-weight:bold;"></select></div>
-                    <div class="input-group full"><label>Betrag (€)</label><input type="number" id="manualDistributeAmountInput" placeholder="200" style="background:#fff;"></div>
+                    <div class="input-group full"><label>Ziel</label><select id="manualDistributeGoalSelect" style="font-weight:bold;"></select></div>
+                    <div class="input-group full"><label>Betrag (€)</label><input type="number" id="manualDistributeAmountInput" placeholder="200" onkeydown="if(event.key==='Enter') executeManualDistribution()"></div>
                 </div>
                 <button class="btn-secondary" style="width:100%; margin-top:6px; font-weight:bold;" onclick="executeManualDistribution()">Manuell buchen ➕</button>
             </details>
@@ -400,60 +432,60 @@
         <div id="haushalt-view" class="view-section">
             <div class="card">
                 <div class="card-title">🏠 Haushaltsbuch</div>
-                <div class="input-group full" style="margin-bottom: 8px; background: #e0f2fe; padding: 8px; border-radius: 8px;">
+                <div class="input-group full" style="margin-bottom: 8px; background: var(--accent-soft); padding: 8px; border-radius: 8px;">
                     <label style="color: var(--accent); font-weight: bold;">Monat wählen:</label>
-                    <input type="month" id="hhMonthInput" min="2026-12" onchange="syncMonthInput(this.value)" style="background:#fff; font-weight:bold; color:var(--accent);">
+                    <input type="month" id="hhMonthInput" min="2026-12" onchange="syncMonthInput(this.value)" style="font-weight:bold; color:var(--accent);">
                 </div>
 
                 <!-- TAGES- & WOCHENBUDGET KALENDER-ANZEIGE -->
-                <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1.5px solid #86efac; margin-bottom: 12px;">
-                    <div class="card-title" style="color: #166534; margin-bottom: 8px;">
+                <div class="card" style="background: var(--accent-green-soft); border: 1.5px solid var(--accent-green); margin-bottom: 12px;">
+                    <div class="card-title" style="color: var(--accent-green); margin-bottom: 8px;">
                         <span>📅 Smartes Tages- & Wochenbudget</span>
-                        <span class="badge" style="background:#bbf7d0; color:#166534; font-size:0.7rem;">Live Aktiv ⚡</span>
+                        <span class="badge badge-booked" style="font-size:0.7rem;">Live Aktiv ⚡</span>
                     </div>
                     <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
                         Tagesbudget (heute) & Wochenbudget (bis zum kommenden Sonntag).
                     </div>
                     <div class="kpi-grid" style="margin-bottom: 0;">
-                        <div class="kpi-card" style="background: #ffffff; border-color: #bbf7d0;">
-                            <div class="kpi-label" style="color: #15803d;">Verbleibend Heute</div>
-                            <div class="kpi-val" id="calendarBudgetToday" style="color: #166534; font-size: 1.1rem;">0,00 €</div>
+                        <div class="kpi-card" style="background: var(--card-bg);">
+                            <div class="kpi-label" style="color: var(--accent-green);">Verbleibend Heute</div>
+                            <div class="kpi-val" id="calendarBudgetToday" style="color: var(--accent-green); font-size: 1.1rem;">0,00 €</div>
                         </div>
-                        <div class="kpi-card" style="background: #ffffff; border-color: #bbf7d0;">
-                            <div class="kpi-label" style="color: #15803d;">Verbleibend Bis Sonntag</div>
-                            <div class="kpi-val" id="calendarBudgetWeek" style="color: #166534; font-size: 1.1rem;">0,00 €</div>
+                        <div class="kpi-card" style="background: var(--card-bg);">
+                            <div class="kpi-label" style="color: var(--accent-green);">Verbleibend Bis Sonntag</div>
+                            <div class="kpi-val" id="calendarBudgetWeek" style="color: var(--accent-green); font-size: 1.1rem;">0,00 €</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Restgeld aufs Sparkonto überweisen -->
-                <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
-                    <span style="font-size: 0.75rem; font-weight: bold; color: #15803d; display:block; margin-bottom: 4px;">🐖 Restgeld / Wochenpuffer aufs Sparkonto</span>
+                <div style="background: var(--accent-green-soft); border: 1.5px solid var(--accent-green); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                    <span style="font-size: 0.75rem; font-weight: bold; color: var(--accent-green); display:block; margin-bottom: 4px;">🐖 Restgeld / Wochenpuffer aufs Sparkonto</span>
                     <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Nicht benötigtes Budget direkt auf ein Sparziel buchen.</div>
                     <div class="grid" style="gap: 5px;">
-                        <div class="input-group full" style="margin-bottom:0;"><select id="hhSaveTargetSelect" style="background:#fff; font-size:0.78rem;"></select></div>
-                        <div class="input-group" style="margin-bottom:0;"><input type="number" id="hhSaveAmountInput" placeholder="Betrag €" style="background:#fff; font-size:0.78rem;"></div>
+                        <div class="input-group full" style="margin-bottom:0;"><select id="hhSaveTargetSelect" style="font-size:0.78rem;"></select></div>
+                        <div class="input-group" style="margin-bottom:0;"><input type="number" id="hhSaveAmountInput" placeholder="Betrag €" style="font-size:0.78rem;" onkeydown="if(event.key==='Enter') executeHaushaltSavingsTransfer()"></div>
                         <div><button class="btn-secondary" style="background:var(--accent-green); color:#fff; font-weight:bold; width:100%; height:100%; font-size:0.75rem;" onclick="executeHaushaltSavingsTransfer()">Überweisen 🚀</button></div>
                     </div>
                 </div>
 
                 <!-- SCHNELL-RESTGELD VERTEILER (ONE-CLICK) -->
-                <div style="background: #e0f2fe; border: 1.5px solid #7dd3fc; padding: 10px; border-radius: 10px; margin-bottom: 10px;">
-                    <span style="font-size: 0.75rem; font-weight: bold; color: #0369a1; display:block; margin-bottom: 4px;">⚡ Schnell-Restgeld Verteiler (One-Click)</span>
-                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Verteilt das aktuelle Rest-Budget direkt auf dein Standard-Sparziel (z.B. Notfallkonto).</div>
+                <div style="background: var(--accent-soft); border: 1.5px solid var(--accent); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                    <span style="font-size: 0.75rem; font-weight: bold; color: var(--accent); display:block; margin-bottom: 4px;">⚡ Schnell-Restgeld Verteiler (One-Click)</span>
+                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Verteilt das aktuelle Rest-Budget direkt auf dein Standard-Sparziel.</div>
                     <div style="display: flex; gap: 5px;">
-                        <select id="quickDistributeTargetSelect" style="flex: 2; background:#fff; font-size:0.78rem;"></select>
+                        <select id="quickDistributeTargetSelect" style="flex: 2; font-size:0.78rem;"></select>
                         <button class="btn-secondary" style="flex: 1; background: var(--accent); color:#fff; font-weight:bold; border:none; font-size:0.75rem;" onclick="executeQuickDistribute()">Restgeld buchen 🚀</button>
                     </div>
                 </div>
 
                 <!-- BLITZ-BUCHUNG QUICK ADD -->
-                <div style="background: #fdf4ff; border: 1px solid #f5d0fe; padding: 8px; border-radius: 10px; margin-bottom: 10px;">
-                    <span style="font-size: 0.73rem; font-weight: bold; color: #a21caf; display:block; margin-bottom: 4px;">⚡ Blitz-Ausgabe (Unterwegs)</span>
+                <div style="background: var(--accent-purple-soft); border: 1px solid var(--accent-purple); padding: 8px; border-radius: 10px; margin-bottom: 10px;">
+                    <span style="font-size: 0.73rem; font-weight: bold; color: var(--accent-purple); display:block; margin-bottom: 4px;">⚡ Blitz-Ausgabe (Unterwegs • Enter zum Buchen)</span>
                     <div style="display: flex; gap: 5px;">
-                        <input type="text" id="quickAddName" placeholder="Z.B. Bäcker" style="flex:2; background:#fff;">
-                        <input type="number" id="quickAddAmount" placeholder="€" style="flex:1; background:#fff;">
-                        <button class="btn-secondary" style="background:#c084fc; color:#fff; font-weight:bold; border:none;" onclick="quickAddExpense()">Buchen</button>
+                        <input type="text" id="quickAddName" placeholder="Z.B. Bäcker / EDEKA" style="flex:2;" onkeydown="if(event.key==='Enter') document.getElementById('quickAddAmount').focus()">
+                        <input type="number" id="quickAddAmount" placeholder="€" style="flex:1;" onkeydown="if(event.key==='Enter') quickAddExpense()">
+                        <button class="btn-secondary" style="background:var(--accent-purple); color:#fff; font-weight:bold; border:none;" onclick="quickAddExpense()">Buchen</button>
                     </div>
                 </div>
 
@@ -462,14 +494,18 @@
                 </div>
                 <div class="grid">
                     <div class="input-group full"><label>Typ</label><select id="HHType" onchange="updateHHKategorien()"><option value="expense">🔴 Ausgabe</option><option value="income">🟢 Einnahme</option></select></div>
-                    <div class="input-group full"><label>Bezeichnung</label><input type="text" id="HHName" placeholder="Tanken..."></div>
-                    <div class="input-group"><label>Betrag (€)</label><input type="number" id="HHAmount" placeholder="0.00"></div>
+                    <div class="input-group full"><label>Bezeichnung</label><input type="text" id="HHName" placeholder="Tanken, EDEKA..."></div>
+                    <div class="input-group"><label>Betrag (€)</label><input type="number" id="HHAmount" placeholder="0.00" onkeydown="if(event.key==='Enter') addHaushaltItem()"></div>
                     <div class="input-group"><label>Kategorie</label><select id="HHKategorie"></select></div>
                     <div class="input-group full"><label>Datum</label><input type="date" id="HHDate"></div>
                     <div class="input-group full">
                         <label class="checkbox-container"><input type="checkbox" id="HHRepeatCheckbox"><div><strong>Jeden Monat wiederholen 🔄</strong></div></label>
                     </div>
-                    <div class="input-group full"><label>📸 Beleg (Opt.)</label><input type="file" id="HHReceiptInput" accept="image/*" capture="environment"></div>
+                    <div class="input-group full">
+                        <label>📸 Beleg / Kassenbon (OCR erkennt Summe automatisch! 🧾)</label>
+                        <input type="file" id="HHReceiptInput" accept="image/*" capture="environment" onchange="scanReceiptForAmount(event)">
+                        <div id="receiptOcrStatus" style="font-size:0.68rem; color:var(--accent); font-weight:bold; margin-top:2px; display:none;"></div>
+                    </div>
                 </div>
                 <button class="btn-add" onclick="addHaushaltItem()">Buchung hinzufügen ➕</button>
             </div>
@@ -477,8 +513,8 @@
             <div class="card">
                 <div class="card-title">📊 Monats-Bilanz (<span id="HHMonthDisplay">-</span>)</div>
                 <div class="stat-row"><span>Fixkosten-Quote:</span><span id="fixQuoteDisplay" class="val-red">0.0%</span></div>
-                <div class="stat-row"><span>Ausgaben (Ist / Geplant):</span><span><strong id="HHTotalDisplay" class="val-red">0,00 €</strong> / <span id="HHPlannedExpenseDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
-                <div class="stat-row"><span>Einnahmen (Ist / Geplant):</span><span><strong id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</strong> / <span id="HHPlannedIncomeDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
+                <div class="stat-row"><span>Ausgaben (Ist / Geplant):</span><span><strong id="HHTotalDisplay" class="val-red">0,00 €</strong> / <span id="HHPlannedExpenseDisplay" class="sensitive-val" style="color:var(--text-sub);">0,00 €</span></span></div>
+                <div class="stat-row"><span>Einnahmen (Ist / Geplant):</span><span><strong id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</strong> / <span id="HHPlannedIncomeDisplay" class="sensitive-val" style="color:var(--text-sub);">0,00 €</span></span></div>
                 <div class="stat-row" style="font-weight:bold;"><span>Rest-Budget (Einkaufs-Geld):</span><span id="HHRestDisplay">0,00 €</span></div>
             </div>
 
@@ -487,15 +523,14 @@
                 <div class="chart-container" id="categoryChartContainer"></div>
             </div>
 
-            <div class="card" style="border: 1.5px solid #fca5a5; background: #fff5f5;">
+            <div class="card" style="border: 1.5px solid var(--accent-red); background: var(--accent-red-soft);">
                 <div class="card-title" style="color:var(--accent-red);"><span>🧹 Datenbereinigung</span></div>
-                <button class="btn-secondary" style="background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; width:100%; font-weight:bold; padding:8px; margin-bottom:8px;" onclick="clearAllExtraTransfersGlobally()">Alle manuellen Zuweisungen löschen</button>
-                <button class="btn-secondary" style="background:#ef4444; color:#fff; border:none; width:100%; font-weight:bold; padding:8px;" onclick="resetAllGoalStornosGlobally()">🔄 Alles auf Standard zurücksetzen (Stornos aufheben)</button>
+                <button class="btn-secondary" style="background:var(--card-bg); color:var(--accent-red); width:100%; font-weight:bold; padding:8px; margin-bottom:8px;" onclick="clearAllExtraTransfersGlobally()">Alle manuellen Zuweisungen löschen</button>
+                <button class="btn-secondary" style="background:var(--accent-red); color:#fff; border:none; width:100%; font-weight:bold; padding:8px;" onclick="resetAllGoalStornosGlobally()">🔄 Alles auf Standard zurücksetzen (Stornos aufheben)</button>
             </div>
 
             <div class="card">
                 <div class="card-title">📋 Buchungen</div>
-                <!-- SUCH- UND FILTERLEISTE -->
                 <div class="grid" style="margin-bottom: 10px;">
                     <div class="input-group" style="margin-bottom:0;">
                         <input type="text" id="hhSearchInput" placeholder="🔍 Buchung suchen..." oninput="renderHaushaltView()">
@@ -517,8 +552,8 @@
 
         <!-- TAB 3: PROGNOSE & KASSETTE -->
         <div id="uebersicht-view" class="view-section">
-            <div class="card" style="border: 1px solid #f59e0b;">
-                <div class="card-title"><span>🪙 Bargeld-Kassette</span><span id="cashTotalBadge" style="color:#b45309; font-size:1rem;">0,00 €</span></div>
+            <div class="card" style="border: 1px solid var(--accent-orange);">
+                <div class="card-title"><span>🪙 Bargeld-Kassette</span><span id="cashTotalBadge" class="val-orange" style="font-size:1rem;">0,00 €</span></div>
                 <div class="cash-grid">
                     <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c100')">100€</div><label onclick="incrementCash('c100')">100 €</label><input type="number" id="c100" min="0" value="0" oninput="calcCashBox()"></div>
                     <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c50')">50€</div><label onclick="incrementCash('c50')">50 €</label><input type="number" id="c50" min="0" value="0" oninput="calcCashBox()"></div>
@@ -530,7 +565,7 @@
                     <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c050')">50c</div><label onclick="incrementCash('c050')">50c</label><input type="number" id="c050" min="0" value="0" oninput="calcCashBox()"></div>
                     <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c020')">20c</div><label onclick="incrementCash('c020')">20c</label><input type="number" id="c020" min="0" value="0" oninput="calcCashBox()"></div>
                 </div>
-                <button class="btn-secondary" style="width:100%; margin-top:8px; background:#f59e0b; color:#fff; font-weight:bold; border:none; padding:8px; border-radius:8px;" onclick="saveCashBoxLocally()">💾 Stückelung speichern</button>
+                <button class="btn-secondary" style="width:100%; margin-top:8px; background:var(--accent-orange); color:#fff; font-weight:bold; border:none; padding:8px; border-radius:8px;" onclick="saveCashBoxLocally()">💾 Stückelung speichern</button>
             </div>
 
             <div class="card">
@@ -585,14 +620,14 @@
                 <button class="btn-add" onclick="saveGoal()">Unterkonto / Ziel Hinzufügen ➕</button>
             </div>
 
-            <div class="card" style="background:#f0fdf4; border:1.5px solid var(--accent-green);">
-                <div class="card-title" style="color:#15803d;"><span>🔄 Geld zwischen Zielen verschieben</span></div>
+            <div class="card" style="background:var(--accent-green-soft); border:1.5px solid var(--accent-green);">
+                <div class="card-title" style="color:var(--accent-green);"><span>🔄 Geld zwischen Zielen verschieben</span></div>
                 <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">Verschiebe hier variabel Guthaben zwischen all deinen Zielen.</div>
                 <div class="grid">
-                    <div class="input-group"><label>Von Ziel (Quelle)</label><select id="subKontosourceSelect" style="background:#fff;"></select></div>
-                    <div class="input-group"><label>Zu Ziel (Empfänger)</label><select id="subKontoTargetSelect" style="background:#fff;"></select></div>
-                    <div class="input-group"><label>Betrag (€)</label><input type="number" id="subKontoTransferAmount" placeholder="200.00" style="background:#fff;"></div>
-                    <div class="input-group"><label>Ab Monat</label><input type="month" id="subKontoTransferMonth" style="background:#fff;"></div>
+                    <div class="input-group"><label>Von Ziel (Quelle)</label><select id="subKontosourceSelect"></select></div>
+                    <div class="input-group"><label>Zu Ziel (Empfänger)</label><select id="subKontoTargetSelect"></select></div>
+                    <div class="input-group"><label>Betrag (€)</label><input type="number" id="subKontoTransferAmount" placeholder="200.00"></div>
+                    <div class="input-group"><label>Ab Monat</label><input type="month" id="subKontoTransferMonth"></div>
                 </div>
                 <button class="btn-secondary" style="width:100%; margin-top:8px; background:var(--accent-green); color:#fff; font-weight:bold;" onclick="executeSubKontoTransferPlan()">Dauerhaft in Planung übertragen 🚀</button>
             </div>
@@ -606,7 +641,7 @@
         <!-- TAB 5: RECHNER -->
         <div id="rechner-view" class="view-section">
             <div class="card" style="border: 1px solid var(--accent);">
-                <div class="card-title" style="color:var(--accent);"><span>🧮 Rechner</span></div>
+                <div class="card-title" style="color:var(--accent);"><span>🧮 Rechner (Tastatur-Support aktiv ⌨️)</span></div>
                 <div class="calc-display" id="calcDisplay">0</div>
                 <div class="calc-grid">
                     <button class="calc-btn ac" onclick="calcClear()">AC</button><button class="calc-btn op" onclick="calcAppend('%')">%</button><button class="calc-btn op" onclick="calcAppend('/')">÷</button><button class="calc-btn op" onclick="calcBack()">⌫</button>
@@ -620,18 +655,18 @@
 
         <!-- TAB 6: MALLE LIVE LINEUP -->
         <div id="lineup-view" class="view-section">
-            <div class="card" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border: 2px solid #f59e0b;">
-                <div class="card-title" style="color: #b45309; margin-bottom: 6px;">
+            <div class="card" style="background: var(--accent-orange-soft); border: 2px solid var(--accent-orange);">
+                <div class="card-title" style="color: var(--accent-orange); margin-bottom: 6px;">
                     <span><span class="live-pulse"></span>HEUTE LIVE AUF MALLE</span>
-                    <span id="lineupTodayDateLabel" style="font-size:0.75rem; background:#ffffff; padding:3px 8px; border-radius:8px; border:1px solid #fde68a;">-</span>
+                    <span id="lineupTodayDateLabel" style="font-size:0.75rem; background:var(--card-bg); color:var(--text-main); padding:3px 8px; border-radius:8px; border:1px solid var(--border);">-</span>
                 </div>
                 <div class="history-list" id="lineupTodayList"></div>
             </div>
 
-            <div class="card" style="border: 1.5px solid #7dd3fc;">
+            <div class="card" style="border: 1.5px solid var(--accent);">
                 <div class="card-title" style="color: var(--accent);">
                     <span>📸 Multispalten-Flyer scannen</span>
-                    <span class="badge" style="background:#e0f2fe; color:#0369a1;">Smart-Multi-KI ⚡</span>
+                    <span class="badge badge-dauer">Smart-OCR ⚡</span>
                 </div>
                 <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
                     Lade große Programm-Übersichten hoch oder importiere vorbereitete JSON-Pläne über den „Laden“-Button oben.
@@ -644,7 +679,7 @@
                     <input type="file" id="lineupScreenshotInput" accept="image/*" multiple style="display:none" onchange="processLineupScreenshots(event)">
                 </div>
 
-                <div id="ocrStatusBox" style="display:none; background:#f8fafc; border:1px solid var(--border); padding:10px; border-radius:10px; margin-bottom:10px;">
+                <div id="ocrStatusBox" style="display:none; background:var(--card-sub); border:1px solid var(--border); padding:10px; border-radius:10px; margin-bottom:10px;">
                     <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px;">
                         <span id="ocrStatusText">Lese Flyer aus...</span>
                         <span id="ocrProgressPct">0%</span>
@@ -654,9 +689,23 @@
                     </div>
                 </div>
 
-                <details id="lineupManualDetails">
+                <details id="lineupManualDetails" open>
                     <summary style="font-size: 0.8rem; color: var(--text-main);">✍️ Einzelnen Termin manuell hinzufügen</summary>
-                    <div class="grid" style="margin-top: 8px;">
+                    
+                    <!-- SCHNELLWAHL-CHIPS FÜR BELIEBTE KÜNSTLER -->
+                    <div style="margin-top:8px;">
+                        <label style="display:block; margin-bottom:3px;">Schnellwahl Künstler:</label>
+                        <div class="quick-btn-row">
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Mia Julia')">Mia Julia</button>
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Lorenz Büffel')">Lorenz Büffel</button>
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Julian Sommer')">Julian Sommer</button>
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Isi Glück')">Isi Glück</button>
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Frenzy')">Frenzy</button>
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Ikke Hüftgold')">Ikke Hüftgold</button>
+                        </div>
+                    </div>
+
+                    <div class="grid" style="margin-top: 6px;">
                         <div class="input-group">
                             <label>Location</label>
                             <select id="lineupLocationInput">
@@ -673,16 +722,16 @@
                             <input type="date" id="lineupDateInput">
                         </div>
                         <div class="input-group">
-                            <label>Uhrzeit (ca.)</label>
+                            <label>Uhrzeit (Nacht-Logik aktiv 🌙)</label>
                             <input type="time" id="lineupTimeInput" value="22:00">
                         </div>
                         <div class="input-group">
                             <label>Künstler / Act</label>
-                            <input type="text" id="lineupArtistInput" placeholder="z.B. Mia Julia, Lorenz Büffel...">
+                            <input type="text" id="lineupArtistInput" placeholder="z.B. Mia Julia..." onkeydown="if(event.key==='Enter') saveLineupEntry()">
                         </div>
                         <div class="input-group full">
                             <label>Notiz / Bühne (optional)</label>
-                            <input type="text" id="lineupNoteInput" placeholder="z.B. New Arena, Mainstage, Closing...">
+                            <input type="text" id="lineupNoteInput" placeholder="z.B. New Arena, Mainstage, Closing..." onkeydown="if(event.key==='Enter') saveLineupEntry()">
                         </div>
                     </div>
                     <button class="btn-add" style="background: var(--accent-green);" onclick="saveLineupEntry()">Auftritt zur Liste hinzufügen 🎤➕</button>
@@ -691,8 +740,14 @@
 
             <div class="card">
                 <div class="card-title">
-                    <span>🗓️ Alle geplanten Auftritte (nach Uhrzeit sortiert)</span>
-                    <button class="btn-secondary" style="font-size:0.65rem; padding:3px 6px; color:#dc2626;" onclick="clearPastLineupEntries()">Vergangene löschen 🧹</button>
+                    <span>🗓️ Fahrplan (Chronologisch + Nacht-Logik 🌙)</span>
+                    <button class="btn-secondary" style="font-size:0.65rem; padding:3px 6px; color:var(--accent-red);" onclick="clearPastLineupEntries()">Vergangene löschen 🧹</button>
+                </div>
+                <div style="margin-bottom:8px;">
+                    <label class="checkbox-container" style="padding:7px 10px;">
+                        <input type="checkbox" id="lineupFavOnlyCheckbox" onchange="renderLineupView()">
+                        <strong style="font-size:0.75rem; color:var(--accent-orange);">⭐ Nur meine Favoriten (Pflicht-Acts) anzeigen</strong>
+                    </label>
                 </div>
                 <div class="grid" style="margin-bottom: 10px;">
                     <div class="input-group" style="margin-bottom:0;">
@@ -715,9 +770,9 @@
 
         <!-- TAB 7: URLAUBS-PLANER -->
         <div id="urlaub-view" class="view-section">
-            <div class="card" style="border: 2px solid var(--accent); background: #f0f9ff;">
+            <div class="card" style="border: 2px solid var(--accent); background: var(--accent-soft);">
                 <div class="card-title" style="color: var(--accent);"><span>✈️ Urlaubs-Planer wählen</span></div>
-                <select id="urlaubSelectSwitch" onchange="switchActiveUrlaub(this.value)" style="font-weight: bold; color: var(--accent); background: #fff;"></select>
+                <select id="urlaubSelectSwitch" onchange="switchActiveUrlaub(this.value)" style="font-weight: bold; color: var(--accent);"></select>
             </div>
             
             <div class="card">
@@ -737,12 +792,12 @@
             <div class="card">
                 <div class="card-title"><span id="uHeaderTitle">✈️ Urlaub</span></div>
                 <div class="stat-row"><span>Ziel:</span><strong id="uTargetGoalName" style="color:var(--accent);">-</strong></div>
-                <div class="stat-row"><span>Gesamtbudget (Aktuell / Geplant):</span><span><strong id="uTargetBudgetDisplay" class="val-highlight">0,00 €</strong> / <span id="uPlannedBudgetDisplay" style="color:var(--text-sub);">0,00 €</span></span></div>
-                <div class="input-group full" style="margin-top: 10px; background: #f0fdf4; padding: 10px; border-radius: 10px; border: 1.5px solid #86efac;">
-                    <label style="color: #15803d; font-weight: bold;">💡 Gesamtbudget Vorschau (€) (Überschreibt Ziel rein für die Berechnung):</label>
-                    <input type="number" id="urlaubPreviewBudgetInput" placeholder="z.B. 1000 oder leer lassen für echtes Ziel" style="background:#fff;" onchange="saveUrlaubPreviewBudget()">
+                <div class="stat-row"><span>Gesamtbudget (Aktuell / Geplant):</span><span><strong id="uTargetBudgetDisplay" class="val-highlight">0,00 €</strong> / <span id="uPlannedBudgetDisplay" class="sensitive-val" style="color:var(--text-sub);">0,00 €</span></span></div>
+                <div class="input-group full" style="margin-top: 10px; background: var(--accent-green-soft); padding: 10px; border-radius: 10px; border: 1.5px solid var(--accent-green);">
+                    <label style="color: var(--accent-green); font-weight: bold;">💡 Gesamtbudget Vorschau (€) (Überschreibt Ziel rein für die Berechnung):</label>
+                    <input type="number" id="urlaubPreviewBudgetInput" placeholder="z.B. 1000 oder leer lassen für echtes Ziel" onchange="saveUrlaubPreviewBudget()">
                 </div>
-                <button class="btn-secondary" style="width:100%; margin-top:8px; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5; font-weight:bold;" onclick="deleteCurrentUrlaubPlan()">🗑️ Planer löschen</button>
+                <button class="btn-secondary" style="width:100%; margin-top:8px; background:var(--accent-red-soft); color:var(--accent-red); font-weight:bold;" onclick="deleteCurrentUrlaubPlan()">🗑️ Planer löschen</button>
             </div>
             <div class="card">
                 <div class="card-title">📌 Fixkosten & Verpflegung</div>
@@ -775,12 +830,12 @@
                         <option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option><option value="2029">2029</option>
                     </select>
                 </div>
-                <div class="stat-row"><span>Gesamteinnahmen (Ist / Geplant):</span><span><strong id="jahrEinnahmen" class="val-highlight">0,00 €</strong> / <span id="jahrGeplantEinnahmen" style="color:var(--text-sub);">0,00 €</span></span></div>
+                <div class="stat-row"><span>Gesamteinnahmen (Ist / Geplant):</span><span><strong id="jahrEinnahmen" class="val-highlight">0,00 €</strong> / <span id="jahrGeplantEinnahmen" class="sensitive-val" style="color:var(--text-sub);">0,00 €</span></span></div>
                 <div class="stat-row"><span>Fixkosten:</span><span id="jahrFix" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Haushalt-Ausgaben:</span><span id="jahrHaushaltAusgaben" class="val-red">0,00 €</span></div>
                 <div class="stat-row"><span>Echtes Sparen (Netto):</span><span id="jahrEchtesSparen" class="val-highlight">0,00 €</span></div>
-                <div class="stat-row" style="font-weight: bold; background: #f0fdf4; padding: 8px; border-radius: 8px; border: 1px solid #bbf7d0; margin-top: 5px;">
-                    <span style="color:#15803d;">🎯 Echte Sparquote:</span><span id="jahrEchteSparquote" class="val-highlight">0.0%</span>
+                <div class="stat-row" style="font-weight: bold; background: var(--accent-green-soft); padding: 8px; border-radius: 8px; border: 1px solid var(--accent-green); margin-top: 5px;">
+                    <span style="color:var(--accent-green);">🎯 Echte Sparquote:</span><span id="jahrEchteSparquote" class="val-highlight">0.0%</span>
                 </div>
             </div>
 
@@ -805,10 +860,10 @@
 
         <!-- TAB 9: DOKUMENTE & ABRECHNUNGEN -->
         <div id="dok-view" class="view-section">
-            <div class="card" style="background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%); border: 1.5px solid #7dd3fc;">
+            <div class="card" style="background: var(--accent-soft); border: 1.5px solid var(--accent);">
                 <div class="card-title" style="color: var(--accent);">
                     <span>📂 Abrechnungs-Archiv</span>
-                    <span class="badge" style="background:#dcfce7; color:#15803d; font-size:0.75rem;">Aktiv ✅</span>
+                    <span id="storageQuotaBadge" class="badge badge-booked" style="font-size:0.7rem;">Speicher: 0.0 MB</span>
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 10px;">
                     Lade hier deine heruntergeladenen Abrechnungen (PDF oder Bild) hoch, um sie sicher zu speichern und jederzeit auszudrucken.
@@ -834,54 +889,54 @@
 
         <!-- TAB 10: SCHULDENBEREINIGUNG -->
         <div id="schulden-view" class="view-section">
-            <div class="card" style="background: linear-gradient(135deg, #f3e8ff 0%, #ffffff 100%); border: 1.5px solid #c084fc;">
-                <div class="card-title" style="color:#7e22ce;">
+            <div class="card" style="background: var(--accent-purple-soft); border: 1.5px solid var(--accent-purple);">
+                <div class="card-title" style="color:var(--accent-purple);">
                     <span>🤝 Außergerichtliche Schuldenbereinigung</span>
-                    <span class="badge" style="background:#dcfce7; color:#15803d; font-size:0.75rem;">Aktiv ✅</span>
+                    <span class="badge badge-booked" style="font-size:0.75rem;">Aktiv ✅</span>
                 </div>
                 
                 <div style="margin-bottom: 12px;">
                     <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:bold; margin-bottom:4px;">
                         <span>Tilgungsfortschritt</span>
-                        <span id="debtProgressPct" style="color:#7e22ce;">0%</span>
+                        <span id="debtProgressPct" style="color:var(--accent-purple);">0%</span>
                     </div>
-                    <div class="progress-bar-container" style="height:12px; background:#e9d5ff;">
+                    <div class="progress-bar-container" style="height:12px;">
                         <div id="debtProgressBar" class="progress-bar-fill" style="background:#9333ea; width:0%;"></div>
                     </div>
                     <div style="display:flex; justify-content:space-between; font-size:0.68rem; color:var(--text-sub); margin-top:4px;">
                         <span>Start: Juni 2024</span>
-                        <span id="debtFreeDateDisplay" style="font-weight:bold; color:#166534;">Ziel: Mai 2029 🎯</span>
+                        <span id="debtFreeDateDisplay" style="font-weight:bold; color:var(--accent-green);">Ziel: Mai 2029 🎯</span>
                     </div>
                 </div>
 
                 <div class="kpi-grid">
-                    <div class="kpi-card" style="background:#ffffff;">
+                    <div class="kpi-card">
                         <div class="kpi-label">Urspr. Schulden</div>
-                        <div class="kpi-val" style="color:#ef4444; font-size:1rem;">58.120,44 €</div>
+                        <div class="kpi-val" style="color:var(--accent-red); font-size:1rem;">58.120,44 €</div>
                     </div>
-                    <div class="kpi-card" style="background:#ffffff;">
+                    <div class="kpi-card">
                         <div class="kpi-label">Ersparnis (Vergleich)</div>
-                        <div class="kpi-val" style="color:#10b981; font-size:1rem;">30.899,84 €</div>
+                        <div class="kpi-val" style="color:var(--accent-green); font-size:1rem;">30.899,84 €</div>
                     </div>
-                    <div class="kpi-card" style="background:#ffffff;">
+                    <div class="kpi-card">
                         <div class="kpi-label">Vergleichssumme</div>
-                        <div class="kpi-val" style="color:#0284c7; font-size:1rem;">27.220,60 €</div>
+                        <div class="kpi-val" style="color:var(--accent); font-size:1rem;">27.220,60 €</div>
                     </div>
-                    <div class="kpi-card" style="background:#ffffff;">
+                    <div class="kpi-card">
                         <div class="kpi-label">Bereits getilgt</div>
-                        <div class="kpi-val" id="debtPaidTotal" style="color:#15803d; font-size:1rem;">0,00 €</div>
+                        <div class="kpi-val" id="debtPaidTotal" style="color:var(--accent-green); font-size:1rem;">0,00 €</div>
                     </div>
                 </div>
 
-                <div style="background:#ffffff; border:1px solid #e9d5ff; padding:10px; border-radius:10px; margin-top:8px;">
+                <div style="background:var(--card-bg); border:1px solid var(--border); padding:10px; border-radius:10px; margin-top:8px;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <div>
                             <span style="font-size:0.75rem; color:var(--text-sub); font-weight:bold;">AKTUELLE RESTSCHULD</span>
-                            <div id="debtRemainingTotal" style="font-size:1.3rem; font-weight:800; color:#9333ea;">0,00 €</div>
+                            <div id="debtRemainingTotal" class="sensitive-val" style="font-size:1.3rem; font-weight:800; color:var(--accent-purple);">0,00 €</div>
                         </div>
                         <div style="text-align:right;">
                             <span style="font-size:0.7rem; color:var(--text-sub);">Monatliche Gesamtrate</span>
-                            <div style="font-size:1rem; font-weight:bold; color:#0f172a;">453,95 € / Mo.</div>
+                            <div class="sensitive-val" style="font-size:1rem; font-weight:bold;">453,95 € / Mo.</div>
                         </div>
                     </div>
                 </div>
@@ -913,7 +968,7 @@
     </div>
 
     <!-- MODALE -->
-    <div id="expenseModal" class="modal"><div class="modal-content"><div class="card-title">Fixkosten (<span id="modalExpMonth">-</span>)</div><div class="grid" style="gap: 6px; margin-bottom: 10px;"><div class="input-group full"><label>Name</label><input type="text" id="expName"></div><div class="input-group"><label>€</label><input type="number" id="expAmount"></div><div class="input-group"><label>Art</label><select id="expType" onchange="toggleEndDateInput()"><option value="dauer">Dauer</option><option value="einmalig">Einmalig</option></select></div><div class="input-group full" id="endDateGroup"><label>Bis Monat</label><input type="month" id="expEndDate"></div><div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Hinzufügen</button></div></div><div class="history-list" id="expenseItemsList" style="margin-bottom: 10px;"></div><div class="stat-row" style="font-weight: bold; margin-bottom: 10px;"><span>Summe:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div><button class="btn-add" onclick="closeExpenseModal()">Fertig</button></div></div>
+    <div id="expenseModal" class="modal"><div class="modal-content"><div class="card-title">Fixkosten (<span id="modalExpMonth">-</span>)</div><div class="grid" style="gap: 6px; margin-bottom: 10px;"><div class="input-group full"><label>Name</label><input type="text" id="expName"></div><div class="input-group"><label>€</label><input type="number" id="expAmount"></div><div class="input-group"><label>Art</label><select id="expType" onchange="toggleEndDateInput()"><option value="dauer">Dauer</option><option value="einmalig">Einmalig</option></select></div><div class="input-group full" id="endDateGroup"><label>Bis Monat (Vertragsende)</label><input type="month" id="expEndDate"></div><div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Hinzufügen</button></div></div><div class="history-list" id="expenseItemsList" style="margin-bottom: 10px;"></div><div class="stat-row" style="font-weight: bold; margin-bottom: 10px;"><span>Summe:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div><button class="btn-add" onclick="closeExpenseModal()">Fertig</button></div></div>
     <div id="monthCloseModal" class="modal"><div class="modal-content"><div class="card-title">🏁 Monatsabschluss</div><p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:10px;">Restbudget übertragen?</p><div class="stat-row" style="margin-bottom:10px;"><span>Rest:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div><div class="input-group" style="margin-bottom: 10px;"><label>Ziel:</label><select id="closeTargetSelect"><option value="kassette">🪙 Kassette</option><option value="notfall">🛡️ Notfallkonto</option><option value="freizeit">🎉 Freizeitkonto</option></select></div><button class="btn-add" onclick="executeMonthClose()" style="background:var(--accent-green); margin-bottom: 6px;">Buchen 🚀</button><button class="btn-secondary" onclick="closeMonthCloseModal()" style="width:100%;">Überspringen</button></div></div>
     <div id="cloudModal" class="modal"><div class="modal-content"><div class="card-title">☁️ Cloud-Sync</div><div class="input-group" style="margin-bottom: 6px;"><label>URL:</label><input type="text" id="cloudSyncUrlInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>API Key:</label><input type="password" id="cloudSyncKeyInput"></div><button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 6px;">Speichern</button><button class="btn-secondary" onclick="pullFromCloudNow()" style="width:100%; margin-bottom: 5px;">Laden (Pull)</button><button class="btn-secondary" onclick="syncWithCloudNow(false)" style="width:100%; margin-bottom: 6px;">Speichern (Push)</button><button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button></div></div>
     
@@ -926,21 +981,21 @@
             <div class="input-group" style="margin-bottom: 6px;"><label>Stand (Aktuell / Geplant):</label><span><strong id="modalCurrentInputDisplay">0</strong> / <span id="modalPlannedStandDisplay">0</span></span></div>
             <div class="input-group" style="margin-bottom: 6px;"><input type="number" id="modalCurrentInput" style="display:none;"></div>
             
-            <div style="background:#fff1f2; border:1px solid #fecdd3; padding:10px; border-radius:10px; margin-bottom:10px;">
-                <label style="color:#e11d48; font-weight:bold;">🗑️ Ziel ab Monat stoppen & Beträge verschieben</label>
+            <div style="background:var(--accent-red-soft); border:1px solid var(--accent-red); padding:10px; border-radius:10px; margin-bottom:10px;">
+                <label style="color:var(--accent-red); font-weight:bold;">🗑️ Ziel ab Monat stoppen & Beträge verschieben</label>
                 <div style="font-size:0.7rem; color:var(--text-sub); margin-bottom:4px;">Stoppt die geplanten Raten ab dem gewählten Monat und trägt diese monatlich auf das Ziel ein.</div>
                 <div class="grid" style="gap:5px;">
-                    <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.68rem;">Stopp ab Monat:</label><input type="month" id="stornoMonthInput" value="2027-06" style="background:#fff; font-size:0.78rem; padding:5px;"></div>
-                    <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.68rem;">Geld schieben auf Ziel:</label><select id="stornoTargetSelect" style="background:#fff; font-size:0.78rem; padding:5px;"></select></div>
+                    <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.68rem;">Stopp ab Monat:</label><input type="month" id="stornoMonthInput" value="2027-06" style="font-size:0.78rem; padding:5px;"></div>
+                    <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.68rem;">Geld schieben auf Ziel:</label><select id="stornoTargetSelect" style="font-size:0.78rem; padding:5px;"></select></div>
                 </div>
-                <button class="btn-secondary" style="background:#e11d48; color:#fff; width:100%; font-weight:bold; margin-top:6px;" onclick="executeGoalDissolutionAtMonth()">Ziel ab Monat stoppen & Beträge verschieben 🚀</button>
+                <button class="btn-secondary" style="background:var(--accent-red); color:#fff; width:100%; font-weight:bold; margin-top:6px;" onclick="executeGoalDissolutionAtMonth()">Ziel ab Monat stoppen & Beträge verschieben 🚀</button>
             </div>
 
-            <div style="background:#e0f2fe; padding:8px; border-radius:8px; margin-bottom:10px;">
-                <label style="color:#0369a1; font-weight:bold;">🔄 Sofort-Umbuchung</label>
+            <div style="background:var(--accent-soft); padding:8px; border-radius:8px; margin-bottom:10px;">
+                <label style="color:var(--accent); font-weight:bold;">🔄 Sofort-Umbuchung</label>
                 <div class="grid" style="gap:5px; margin-top:3px;">
-                    <div class="input-group full" style="margin-bottom:0;"><select id="transferTargetSelect" style="background:#fff; font-size:0.78rem; padding:5px;"></select></div>
-                    <div class="input-group" style="margin-bottom:0;"><input type="number" id="transferAmountInput" placeholder="€" style="background:#fff; font-size:0.78rem; padding:5px;"></div>
+                    <div class="input-group full" style="margin-bottom:0;"><select id="transferTargetSelect" style="font-size:0.78rem; padding:5px;"></select></div>
+                    <div class="input-group" style="margin-bottom:0;"><input type="number" id="transferAmountInput" placeholder="€" style="font-size:0.78rem; padding:5px;"></div>
                     <div><button class="btn-secondary" style="background:var(--accent); color:#fff; width:100%; height:100%; font-weight:bold;" onclick="executeAccountTransfer()">Überweisen</button></div>
                 </div>
             </div>
@@ -949,13 +1004,13 @@
                 <div style="display:flex; gap:5px; margin-top:3px;"><input type="number" id="manualDepositAmount" placeholder="€" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border);"><button class="btn-secondary" style="background:var(--accent-green); color:#fff; font-weight:bold; padding:8px 14px; border:none; border-radius:8px; cursor:pointer;" onclick="addManualDepositToGoal()">Einzahlen ➕</button></div>
             </div>
             <div style="background:var(--card-sub); padding:8px; border-radius:8px; margin-bottom:10px;">
-                <label style="color:#ef4444; font-weight:bold;">➖ Abheben</label>
-                <div style="display:flex; gap:5px; margin-top:3px;"><input type="number" id="manualWithdrawAmount" placeholder="€" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border);"><button class="btn-secondary" style="background:#ef4444; color:#fff; font-weight:bold; padding:8px 14px; border:none; border-radius:8px; cursor:pointer;" onclick="withdrawManualFromGoal()">Abheben ➖</button></div>
+                <label style="color:var(--accent-red); font-weight:bold;">➖ Abheben</label>
+                <div style="display:flex; gap:5px; margin-top:3px;"><input type="number" id="manualWithdrawAmount" placeholder="€" style="flex:1; padding:8px; border-radius:8px; border:1px solid var(--border);"><button class="btn-secondary" style="background:var(--accent-red); color:#fff; font-weight:bold; padding:8px 14px; border:none; border-radius:8px; cursor:pointer;" onclick="withdrawManualFromGoal()">Abheben ➖</button></div>
             </div>
             <button class="btn-add" onclick="saveModalChanges()" style="margin-bottom: 6px;">Speichern</button>
-            <button class="btn-add" onclick="deleteCurrentModalGoal()" style="background:#ef4444; color:#fff; margin-bottom: 10px;">🗑️ Komplett Löschen</button>
+            <button class="btn-add" onclick="deleteCurrentModalGoal()" style="background:var(--accent-red); color:#fff; margin-bottom: 10px;">🗑️ Komplett Löschen</button>
             <div class="history-list" id="modalHistoryList"></div>
-            <button class="btn-add" onclick="closeModal()" style="background: var(--border); color: var(--text-main); margin-top: 8px;">Schließen</button>
+            <button class="btn-add" onclick="closeModal()" style="background: var(--tab-bg); color: var(--text-main); margin-top: 8px;">Schließen</button>
         </div>
     </div>
 
@@ -1034,7 +1089,74 @@
         let lastUpdateTime = localStorage.getItem('finanz_last_update_time') || '-';
         let currentModalGoalId = null, currentMonthItems = [], currentMonthPausedItems = [], syncTimeout = null;
 
+        // ==========================================
+        // DARK MODE, PRIVACY MODE & SWIPE GESTEN
+        // ==========================================
+        function initUiModes() {
+            if (localStorage.getItem('finanz_dark_mode') === 'true') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('darkModeToggleBtn').innerText = '☀️';
+            }
+            if (localStorage.getItem('finanz_privacy_mode') === 'true') {
+                document.body.classList.add('privacy-mode');
+                document.getElementById('privacyToggleBtn').innerText = '🙈';
+            }
+            setupSwipeNavigation();
+            setupCalculatorKeyboard();
+        }
+
+        function toggleDarkMode() {
+            const isDark = document.body.classList.toggle('dark-mode');
+            localStorage.setItem('finanz_dark_mode', isDark);
+            document.getElementById('darkModeToggleBtn').innerText = isDark ? '☀️' : '🌙';
+        }
+
+        function togglePrivacyMode() {
+            const isPriv = document.body.classList.toggle('privacy-mode');
+            localStorage.setItem('finanz_privacy_mode', isPriv);
+            document.getElementById('privacyToggleBtn').innerText = isPriv ? '🙈' : '👁️';
+        }
+
+        function setupSwipeNavigation() {
+            let touchStartX = 0, touchStartY = 0;
+            document.addEventListener('touchstart', e => {
+                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
+            }, { passive: true });
+
+            document.addEventListener('touchend', e => {
+                if (e.target.closest('.table-wrapper') || e.target.closest('.tab-bar') || e.target.closest('.quick-btn-row')) return;
+                const dx = e.changedTouches[0].screenX - touchStartX;
+                const dy = e.changedTouches[0].screenY - touchStartY;
+                if (Math.abs(dx) > 75 && Math.abs(dx) > Math.abs(dy) * 1.8) {
+                    const visibleTabs = Array.from(document.querySelectorAll('.tab-btn')).filter(b => b.style.display !== 'none');
+                    const activeIdx = visibleTabs.findIndex(b => b.classList.contains('active'));
+                    if (activeIdx === -1) return;
+                    if (dx < 0 && activeIdx < visibleTabs.length - 1) {
+                        visibleTabs[activeIdx + 1].click();
+                        visibleTabs[activeIdx + 1].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    } else if (dx > 0 && activeIdx > 0) {
+                        visibleTabs[activeIdx - 1].click();
+                        visibleTabs[activeIdx - 1].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                    }
+                }
+            }, { passive: true });
+        }
+
+        function setupCalculatorKeyboard() {
+            document.addEventListener('keydown', e => {
+                const rechnerTab = document.getElementById('rechner-view');
+                if (!rechnerTab || !rechnerTab.classList.contains('active')) return;
+                if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
+                if (/^[0-9\+\-\*\/\.\%]$/.test(e.key)) { e.preventDefault(); calcAppend(e.key); }
+                else if (e.key === 'Enter' || e.key === '=') { e.preventDefault(); calcResult(); }
+                else if (e.key === 'Backspace') { e.preventDefault(); calcBack(); }
+                else if (e.key === 'Escape' || e.key.toLowerCase() === 'c') { e.preventDefault(); calcClear(); }
+            });
+        }
+
         window.addEventListener('DOMContentLoaded', async () => {
+            initUiModes();
             const mInput = document.getElementById('monthInput');
             const hhInput = document.getElementById('hhMonthInput');
             const hhDate = document.getElementById('HHDate');
@@ -1047,7 +1169,6 @@
             if(subMonthInput) subMonthInput.value = "2026-12";
             if(lineupDateInput) lineupDateInput.value = new Date().toISOString().slice(0,10);
 
-            // Automatischer Pull beim Start, falls Cloud-URL hinterlegt ist
             if (cloudConfig.url) {
                 await pullFromCloudNow(true);
             }
@@ -1066,7 +1187,40 @@
             renderAbrechnungenDocs();
             updateCalendarBudgetDisplay();
             renderLineupView();
+            updateStorageQuotaDisplay();
         });
+
+        function updateStorageQuotaDisplay() {
+            const badge = document.getElementById('storageQuotaBadge');
+            if (!badge) return;
+            let totalBytes = 0;
+            for (let key in localStorage) {
+                if (localStorage.hasOwnProperty(key)) {
+                    totalBytes += ((localStorage[key].length + key.length) * 2);
+                }
+            }
+            const mb = (totalBytes / (1024 * 1024)).toFixed(2);
+            badge.innerText = `Speicher: ${mb} / 5.0 MB`;
+            badge.style.background = parseFloat(mb) > 4.0 ? 'var(--accent-red-soft)' : 'var(--accent-green-soft)';
+            badge.style.color = parseFloat(mb) > 4.0 ? 'var(--accent-red)' : 'var(--accent-green)';
+        }
+
+        function checkContractWarnings() {
+            const card = document.getElementById('contractWarningCard');
+            const list = document.getElementById('contractWarningList');
+            if (!card || !list) return;
+            const currentM = getSelectedMonthKey();
+            const nextM = getNextMonthKey(currentM);
+            const next2M = getNextMonthKey(nextM);
+
+            const expiring = (currentMonthItems || []).filter(i => i.type === 'dauer' && i.endDate && (i.endDate === currentM || i.endDate === nextM || i.endDate === next2M));
+            if (expiring.length === 0) {
+                card.style.display = 'none';
+                return;
+            }
+            card.style.display = 'block';
+            list.innerHTML = expiring.map(i => `<div>• <strong>${i.name}</strong> (${parseFloat(i.amount).toFixed(2)} €) läuft am <strong>${i.endDate}</strong> aus!</div>`).join('');
+        }
 
         function populateRestSplitDropdown() {
             const sel = document.getElementById('restSplitTargetSelect');
@@ -1086,8 +1240,77 @@
         }
 
         // ==========================================
-        // MALLE LIVE LINEUP & MULTI-SPALTEN FLYER PARSER
+        // KASSENBON OCR IM HAUSHALTSBUCH
         // ==========================================
+        async function scanReceiptForAmount(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const statusEl = document.getElementById('receiptOcrStatus');
+            statusEl.style.display = 'block';
+            statusEl.innerText = '🔍 Lese Kassenbon-Summe aus...';
+
+            try {
+                const res = await Tesseract.recognize(file, 'deu+eng');
+                const lines = (res.data.text || '').split('\n');
+                let detectedTotal = null;
+
+                for (let line of lines) {
+                    const lower = line.toLowerCase();
+                    if (lower.includes('summe') || lower.includes('gesamt') || lower.includes('total') || lower.includes('zu zahlen') || lower.includes('bar') || lower.includes('karte')) {
+                        const m = line.match(/(\d+[,\.]\d{2})/);
+                        if (m) {
+                            detectedTotal = parseFloat(m[1].replace(',', '.'));
+                        }
+                    }
+                }
+                if (detectedTotal === null) {
+                    const allMatches = (res.data.text || '').match(/\b\d+[,\.]\d{2}\b/g);
+                    if (allMatches && allMatches.length > 0) {
+                        const nums = allMatches.map(x => parseFloat(x.replace(',', '.'))).filter(n => !isNaN(n) && n < 5000);
+                        if (nums.length > 0) detectedTotal = Math.max(...nums);
+                    }
+                }
+
+                if (detectedTotal !== null && detectedTotal > 0) {
+                    document.getElementById('HHAmount').value = detectedTotal.toFixed(2);
+                    statusEl.innerText = `✅ Summe erkannt: ${detectedTotal.toFixed(2)} € (bitte kurz prüfen)`;
+                } else {
+                    statusEl.innerText = 'ℹ️ Keine eindeutige Summe auf dem Beleg erkannt – bitte manuell eingeben.';
+                }
+            } catch (e) {
+                statusEl.innerText = 'ℹ️ Beleg angehängt (OCR übersprungen).';
+            }
+        }
+
+        // ==========================================
+        // MALLE LIVE LINEUP & NACHT-LOGIK (00:00-05:59)
+        // ==========================================
+        function quickFillArtist(name) {
+            const inp = document.getElementById('lineupArtistInput');
+            if (inp) {
+                inp.value = name;
+                inp.focus();
+            }
+        }
+
+        function toggleFavoriteArtist(id) {
+            const ev = lineupEvents.find(e => e.id === id);
+            if (!ev) return;
+            ev.isFav = !ev.isFav;
+            saveLocally();
+            renderLineupView();
+        }
+
+        function getNightSortMinutes(timeStr) {
+            const parts = (timeStr || '22:00').split(':');
+            let h = parseInt(parts[0], 10);
+            let m = parseInt(parts[1], 10) || 0;
+            if (isNaN(h)) h = 22;
+            // Alles zwischen 00:00 und 05:59 wird als "spät abends nach Mitternacht" gewertet (+24h)
+            if (h < 6) h += 24;
+            return h * 60 + m;
+        }
+
         async function processLineupScreenshots(event) {
             const files = event.target.files;
             if (!files || files.length === 0) return;
@@ -1102,7 +1325,7 @@
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                statusText.innerText = `Scanne Multispalten-Flyer ${i + 1} von ${files.length}...`;
+                statusText.innerText = `Scanne Flyer ${i + 1} von ${files.length}...`;
                 progressPct.innerText = '0%';
                 progressBar.style.width = '0%';
 
@@ -1132,7 +1355,7 @@
 
             saveLocally();
             renderLineupView();
-            statusText.innerText = `✅ Erfolgreich ${totalAdded} Auftritte aus dem Plakat ausgelesen & gespeichert! 🚀`;
+            statusText.innerText = `✅ Erfolgreich ${totalAdded} Auftritte ausgelesen & gespeichert! 🚀`;
             event.target.value = '';
         }
 
@@ -1142,13 +1365,13 @@
             
             let currentLoc = "Bierkönig";
             let events = [];
-            let currentDate = "2026-10-25";
+            let currentDate = new Date().toISOString().slice(0, 10);
 
             const dateMatch = cleanRaw.match(/\b(0?[1-9]|[12]\d|3[01])[\.\/](0?[1-9]|1[0-2])[\.\/]?(20\d{2})?\b/);
             if (dateMatch) {
                 const day = dateMatch[1].padStart(2, '0');
                 const month = dateMatch[2].padStart(2, '0');
-                const year = dateMatch[3] || "2026";
+                const year = dateMatch[3] || "2027";
                 currentDate = `${year}-${month}-${day}`;
             }
 
@@ -1181,7 +1404,8 @@
                             date: currentDate,
                             time: time,
                             artist: artist,
-                            note: note
+                            note: note,
+                            isFav: false
                         });
                     }
                 }
@@ -1199,7 +1423,7 @@
 
             if (!date || !artist) return alert('Bitte mindestens Datum und Künstler angeben!');
 
-            lineupEvents.push({ id: Date.now(), location, date, time, artist, note });
+            lineupEvents.push({ id: Date.now(), location, date, time, artist, note, isFav: false });
 
             document.getElementById('lineupArtistInput').value = '';
             document.getElementById('lineupNoteInput').value = '';
@@ -1233,6 +1457,23 @@
             return 'badge-sonstige';
         }
 
+        function getLiveCountdownBadge(timeStr, nowObj) {
+            const [h, m] = (timeStr || '22:00').split(':').map(Number);
+            if (isNaN(h)) return '';
+            const target = new Date(nowObj);
+            target.setHours(h, m || 0, 0, 0);
+            if (h < 6 && nowObj.getHours() >= 12) {
+                target.setDate(target.getDate() + 1);
+            }
+            const diffMin = Math.round((target - nowObj) / 60000);
+            if (diffMin >= -45 && diffMin <= 0) {
+                return `<span class="badge" style="background:#ef4444; color:#fff;">🔥 LÄUFT GERADE</span>`;
+            } else if (diffMin > 0 && diffMin <= 180) {
+                return `<span class="badge" style="background:#fef08a; color:#854d0e;">⏱️ in ${diffMin} Min.</span>`;
+            }
+            return '';
+        }
+
         function renderLineupView() {
             const todayList = document.getElementById('lineupTodayList');
             const upcomingList = document.getElementById('lineupUpcomingList');
@@ -1247,30 +1488,34 @@
 
             const filterLoc = document.getElementById('lineupFilterLocation')?.value || '';
             const searchVal = (document.getElementById('lineupSearchInput')?.value || '').toLowerCase();
+            const favOnly = document.getElementById('lineupFavOnlyCheckbox')?.checked || false;
 
-            // GRÜNDLICHE SORTIERUNG: Erst nach Datum, bei gleichem Datum strikt nach Uhrzeit (ortsübergreifend)
+            // CHRONOLOGISCHE SORTIERUNG MIT INTELLIGENTER NACHT-LOGIK (00:00 - 05:59 nach 23:59)
             const sorted = [...lineupEvents].sort((a, b) => {
                 if (a.date !== b.date) return a.date.localeCompare(b.date);
-                return (a.time || '00:00').localeCompare(b.time || '00:00');
+                return getNightSortMinutes(a.time) - getNightSortMinutes(b.time);
             });
 
-            // Für "Heute Live" ebenfalls nach Uhrzeit sortieren
             const todayEvents = sorted.filter(e => e.date === todayStr);
             todayList.innerHTML = '';
             if (todayEvents.length === 0) {
-                todayList.innerHTML = `<div style="text-align:center; color:#92400e; font-size:0.75rem; padding:8px;">Heute noch keine Auftritte eingetragen. Lade oben einen Flyer hoch! 🍺</div>`;
+                todayList.innerHTML = `<div style="text-align:center; color:var(--text-sub); font-size:0.75rem; padding:8px;">Heute noch keine Auftritte eingetragen. Lade oben einen Flyer hoch! 🍺</div>`;
             } else {
                 todayEvents.forEach(ev => {
+                    const countdownBadge = getLiveCountdownBadge(ev.time, now);
                     todayList.innerHTML += `
-                        <div class="history-item" style="background:#ffffff; border-color:#fcd34d;">
+                        <div class="history-item" style="background:var(--card-bg); border-color:var(--accent-orange);">
                             <div>
-                                <div class="history-date">⏰ ${ev.time} Uhr – ${ev.artist}</div>
+                                <div class="history-date">
+                                    <span class="star-btn" onclick="toggleFavoriteArtist(${ev.id})">${ev.isFav ? '⭐' : '☆'}</span>
+                                    ⏰ ${ev.time} Uhr – ${ev.artist} ${countdownBadge}
+                                </div>
                                 <div class="history-sub">
                                     <span class="badge ${getLocationBadgeClass(ev.location)}">${ev.location}</span>
                                     ${ev.note ? `<span style="margin-left:4px; font-weight:600;">(${ev.note})</span>` : ''}
                                 </div>
                             </div>
-                            <span style="cursor:pointer; color:#ef4444; font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})">🗑️</span>
+                            <span style="cursor:pointer; color:var(--accent-red); font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})">🗑️</span>
                         </div>
                     `;
                 });
@@ -1278,6 +1523,7 @@
 
             upcomingList.innerHTML = '';
             const filtered = sorted.filter(ev => {
+                if (favOnly && !ev.isFav) return false;
                 if (filterLoc && ev.location !== filterLoc) return false;
                 if (searchVal && !ev.artist.toLowerCase().includes(searchVal) && !(ev.note || '').toLowerCase().includes(searchVal)) return false;
                 return true;
@@ -1290,16 +1536,19 @@
                     const isToday = ev.date === todayStr;
                     const formattedDate = new Date(ev.date + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
                     upcomingList.innerHTML += `
-                        <div class="history-item" style="${isToday ? 'border-left: 4px solid #f59e0b; background:#fffbeb;' : ''}">
+                        <div class="history-item" style="${isToday ? 'border-left: 4px solid var(--accent-orange); background:var(--accent-orange-soft);' : (ev.isFav ? 'border-left: 4px solid #eab308;' : '')}">
                             <div>
-                                <div class="history-date">🎤 ${ev.artist}</div>
+                                <div class="history-date">
+                                    <span class="star-btn" onclick="toggleFavoriteArtist(${ev.id})">${ev.isFav ? '⭐' : '☆'}</span>
+                                    ${ev.artist}
+                                </div>
                                 <div class="history-sub">
                                     <strong>📅 ${formattedDate}</strong> • ⏰ ${ev.time} Uhr 
                                     <span class="badge ${getLocationBadgeClass(ev.location)}">${ev.location}</span>
                                     ${ev.note ? `<span style="margin-left:4px;">• ${ev.note}</span>` : ''}
                                 </div>
                             </div>
-                            <span style="cursor:pointer; color:#ef4444; font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})">🗑️</span>
+                            <span style="cursor:pointer; color:var(--accent-red); font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})">🗑️</span>
                         </div>
                     `;
                 });
@@ -1328,6 +1577,7 @@
                 document.getElementById('docNameInput').value = '';
                 fileInput.value = '';
                 renderAbrechnungenDocs();
+                updateStorageQuotaDisplay();
                 alert('Abrechnung erfolgreich gespeichert! 📂');
             };
         }
@@ -1348,8 +1598,8 @@
                             <div class="history-sub">Gespeichert am: ${doc.date}</div>
                         </div>
                         <div style="display:flex; gap:6px; align-items:center;">
-                            <button class="btn-secondary" style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:0.7rem;" onclick="printDoc('${doc.id}')">🖨️ Drucken</button>
-                            <span style="cursor:pointer; color:#ef4444; font-size:0.9rem;" onclick="deleteDoc(${doc.id})">🗑️</span>
+                            <button class="btn-secondary" style="background:var(--accent-soft); color:var(--accent); font-size:0.7rem;" onclick="printDoc('${doc.id}')">🖨️ Drucken</button>
+                            <span style="cursor:pointer; color:var(--accent-red); font-size:0.9rem;" onclick="deleteDoc(${doc.id})">🗑️</span>
                         </div>
                     </div>
                 `;
@@ -1373,6 +1623,7 @@
                 dsstevDocs = dsstevDocs.filter(d => d.id !== id);
                 saveLocally();
                 renderAbrechnungenDocs();
+                updateStorageQuotaDisplay();
             }
         }
 
@@ -1518,8 +1769,8 @@
                     <tr>
                         <td><strong>${c.id}</strong></td>
                         <td>${c.name}<br><span style="font-size:0.65rem; color:var(--text-sub);">${c.bank}</span></td>
-                        <td><strong>${c.rate.toFixed(2)} €</strong></td>
-                        <td>${c.total.toFixed(2)} €</td>
+                        <td><strong class="sensitive-val">${c.rate.toFixed(2)} €</strong></td>
+                        <td class="sensitive-val">${c.total.toFixed(2)} €</td>
                         <td><input type="number" class="debt-input" value="${remaining.toFixed(2)}" step="0.01" onchange="updateDebtOverride(${c.id}, this.value)"></td>
                     </tr>
                 `;
@@ -1626,7 +1877,10 @@
                 localStorage.setItem('finanz_dsstev_docs_local', JSON.stringify(dsstevDocs));
                 localStorage.setItem('finanz_lineup_local', JSON.stringify(lineupEvents));
                 setTimestampNow();
-            } catch(e) {}
+                updateStorageQuotaDisplay();
+            } catch(e) {
+                alert('⚠️ Hinweis: Browser-Speicher voll! Bitte alte Abrechnungen oder Belege löschen.');
+            }
             if (cloudConfig.url) {
                 if (syncTimeout) clearTimeout(syncTimeout);
                 syncTimeout = setTimeout(() => syncWithCloudNow(true), 1000);
@@ -1729,7 +1983,7 @@
                 extraTransfers: entries[m]?.extraTransfers || [],
                 notes: document.getElementById('monthNotesInput')?.value || ''
             };
-            saveLocally(); liveCalc(); renderHistory();
+            saveLocally(); liveCalc(); renderHistory(); checkContractWarnings();
         }
 
         function exportBackupJSON() {
@@ -1838,7 +2092,7 @@
             if(viewId === 'jahres-view') renderJahresView();
             if(viewId === 'urlaub-view') renderUrlaubView();
             if(viewId === 'ziele-view') { renderGoals(); updateSubKontoDropdowns(); }
-            if(viewId === 'dok-view') { renderAbrechnungenDocs(); }
+            if(viewId === 'dok-view') { renderAbrechnungenDocs(); updateStorageQuotaDisplay(); }
             if(viewId === 'lineup-view') { renderLineupView(); }
         }
 
@@ -1890,7 +2144,7 @@
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView(); populateManualDistributeDropdown();
-            updateCalendarBudgetDisplay();
+            updateCalendarBudgetDisplay(); checkContractWarnings();
         }
 
         function populateManualDistributeDropdown() {
@@ -1948,6 +2202,7 @@
                 haushaltItems.push({ id: Date.now()+1, name, amount, category, date: `${nextM}-${d}`, type, receipt });
             }
             saveLocally(); document.getElementById('HHName').value = ''; document.getElementById('HHAmount').value = ''; document.getElementById('HHRepeatCheckbox').checked = false; rInput.value = '';
+            document.getElementById('receiptOcrStatus').style.display = 'none';
             renderHaushaltView(); renderJahresView(); updateCalendarBudgetDisplay();
         }
 
@@ -1971,7 +2226,7 @@
                 if (filterCat && item.category !== filterCat) return;
 
                 const div = document.createElement('div'); div.className = 'history-item';
-                div.innerHTML = `<div><div class="history-date" style="${isInc?'color:var(--accent-green);':''}">${item.name} <span class="badge ${isInc?'badge-income':'badge-kategorie'}">${item.category}</span> ${item.receipt?`<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">Beleg</button>`:''}</div><div class="history-sub">${item.date}</div></div><div style="text-align:right;"><span class="${isInc?'val-highlight':'val-red'}">${isInc?'+':'-'}${amt.toFixed(2)} €</span> <span style="cursor:pointer; color:#ef4444;" onclick="deleteHaushaltItem(${item.id})">🗑️</span></div>`;
+                div.innerHTML = `<div><div class="history-date" style="${isInc?'color:var(--accent-green);':''}">${item.name} <span class="badge ${isInc?'badge-income':'badge-kategorie'}">${item.category}</span> ${item.receipt?`<button class="receipt-btn" onclick="showReceiptModal('${item.receipt}')">Beleg</button>`:''}</div><div class="history-sub">${item.date}</div></div><div style="text-align:right;"><span class="${isInc?'val-highlight':'val-red'}">${isInc?'+':'-'}${amt.toFixed(2)} €</span> <span style="cursor:pointer; color:var(--accent-red);" onclick="deleteHaushaltItem(${item.id})">🗑️</span></div>`;
                 list.appendChild(div);
             });
             const chartCard = document.getElementById('categoryChartCard'), chartContainer = document.getElementById('categoryChartContainer'); chartContainer.innerHTML = '';
@@ -1985,7 +2240,7 @@
 
             (entries[m]?.extraTransfers || []).forEach(tr => {
                 if (!searchVal || tr.targetName.toLowerCase().includes(searchVal)) {
-                    list.innerHTML += `<div class="history-item" style="background:#f0f9ff;"><div class="history-date" style="color:var(--accent);">⚡ Manuell: ${tr.targetName}</div><div style="text-align:right;"><span class="val-red">-${tr.amount.toFixed(2)} €</span></div></div>`;
+                    list.innerHTML += `<div class="history-item" style="background:var(--accent-soft);"><div class="history-date" style="color:var(--accent);">⚡ Manuell: ${tr.targetName}</div><div style="text-align:right;"><span class="val-red">-${tr.amount.toFixed(2)} €</span></div></div>`;
                 }
             });
 
@@ -2018,7 +2273,7 @@
             currentMonthItems.forEach((item, idx) => {
                 const isPaused = currentMonthPausedItems.includes(item.name);
                 if(!isPaused) total += parseFloat(item.amount || 0);
-                list.innerHTML += `<div class="history-item"><div><div class="history-date">${item.name} <span class="badge ${item.type==='dauer'?'badge-dauer':'badge-once'}">${item.type}</span> ${isPaused?'<span class="badge badge-paused">Pausiert</span>':''}</div></div><div style="text-align:right;"><span class="${isPaused?'':'val-red'}" style="${isPaused?'text-decoration:line-through;':''}">-${parseFloat(item.amount).toFixed(2)} €</span> ${item.type==='dauer'?`<span class="action-link" onclick="togglePauseExpense('${item.name}')">${isPaused?'▶️':'⏸️'}</span>`:''} <span style="color:#ef4444; cursor:pointer;" onclick="deleteExpenseItem(${idx})">🗑️</span></div></div>`;
+                list.innerHTML += `<div class="history-item"><div><div class="history-date">${item.name} <span class="badge ${item.type==='dauer'?'badge-dauer':'badge-once'}">${item.type}</span> ${item.endDate?`<span class="badge badge-once">bis ${item.endDate}</span>`:''} ${isPaused?'<span class="badge badge-paused">Pausiert</span>':''}</div></div><div style="text-align:right;"><span class="${isPaused?'':'val-red'}" style="${isPaused?'text-decoration:line-through;':''}">-${parseFloat(item.amount).toFixed(2)} €</span> ${item.type==='dauer'?`<span class="action-link" onclick="togglePauseExpense('${item.name}')">${isPaused?'▶️':'⏸️'}</span>`:''} <span style="color:var(--accent-red); cursor:pointer;" onclick="deleteExpenseItem(${idx})">🗑️</span></div></div>`;
             });
             document.getElementById('modalExpTotal').innerText = total.toFixed(2) + ' €';
         }
@@ -2050,7 +2305,6 @@
             const giroPuffer = parseFloat(item.giroPuffer ?? 40) || 0;
             const afterAbzuege = Math.max(0, netto - einkaufsGeld - giroPuffer);
 
-            // Aufteilung zwischen Notfallkonto und ausgewähltem Sparkonto
             const splitMode = item.restSplitMode || 'none';
             const splitVal = parseFloat(item.restSplitVal) || 0;
             const targetId = item.restSplitTargetId || 'sparkonto_main';
@@ -2105,7 +2359,6 @@
             (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
             document.getElementById('resNotfallAbzug').innerText = '-' + (calc.notfallSparen + (isBooked ? extraNotfall : 0)).toFixed(2) + ' €';
 
-            // Sparkonto-Split Anzeige
             const splitRow = document.getElementById('resSparkontoSplitRow');
             if (calc.sparkontoSplitSparen > 0) {
                 const targetObj = goals.find(g => g.id === calc.sparkontoSplitTargetId);
@@ -2401,7 +2654,7 @@
                 const total = runningNotfall + runningKassette + Object.values(subKontenRunning).reduce((a,b)=>a+b, 0); 
                 netWorth.push({ month: k, stand: total, booked: item.booked });
                 
-                tableBody.innerHTML += `<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'PLAN 🔮'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</td><td>${runningNotfall.toFixed(2)} €</td><td>${splitTargetStand.toFixed(2)} €</td><td><strong>${total.toFixed(2)} €</strong></td></tr>`;
+                tableBody.innerHTML += `<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'PLAN 🔮'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</td><td class="sensitive-val">${runningNotfall.toFixed(2)} €</td><td class="sensitive-val">${splitTargetStand.toFixed(2)} €</td><td><strong class="sensitive-val">${total.toFixed(2)} €</strong></td></tr>`;
             });
             renderNetWorthChart(netWorth); renderGoals(); updateSubKontoDropdowns();
         }
@@ -2515,7 +2768,7 @@
                 let actual = parseFloat(u.dailyActuals[i]);
                 let rest = isNaN(actual) ? available : Math.max(0, available - actual);
 
-                tbody.innerHTML += `<tr><td>Tag ${i+1}${isAbreise ? ' 🧳' : ''}</td><td>${dayBase.toFixed(2)} €</td><td><input type="number" style="width:65px; padding:3px; font-size:0.72rem;" value="${manualBonus !== 0 ? manualBonus : ''}" placeholder="+/-" onchange="updateUrlaubBonus(${i}, this.value)"></td><td><strong>${available.toFixed(2)} €</strong></td><td><input type="number" style="width:65px; padding:3px; font-size:0.72rem;" value="${u.dailyActuals[i] ?? ''}" placeholder="Ist" onchange="updateUrlaubActual(${i}, this.value)"></td><td><span class="${rest > 0 ? 'val-highlight' : ''}">${rest.toFixed(2)} €</span></td></tr>`;
+                tbody.innerHTML += `<tr><td>Tag ${i+1}${isAbreise ? ' 🧳' : ''}</td><td class="sensitive-val">${dayBase.toFixed(2)} €</td><td><input type="number" style="width:65px; padding:3px; font-size:0.72rem;" value="${manualBonus !== 0 ? manualBonus : ''}" placeholder="+/-" onchange="updateUrlaubBonus(${i}, this.value)"></td><td><strong class="sensitive-val">${available.toFixed(2)} €</strong></td><td><input type="number" style="width:65px; padding:3px; font-size:0.72rem;" value="${u.dailyActuals[i] ?? ''}" placeholder="Ist" onchange="updateUrlaubActual(${i}, this.value)"></td><td><span class="${rest > 0 ? 'val-highlight' : ''}">${rest.toFixed(2)} €</span></td></tr>`;
             }
         }
 
@@ -2591,17 +2844,17 @@
                                     <span class="history-date">${icon} ${g.name}</span>
                                     ${isCompleted ? '<span class="badge" style="background:#fef3c7; color:#d97706;">👑 100%</span>' : ''}
                                 </div>
-                                <span style="font-size:0.7rem; color:#ef4444; cursor:pointer;" onclick="event.stopPropagation(); deleteGoalDirect(${idx})">🗑️</span>
+                                <span style="font-size:0.7rem; color:var(--accent-red); cursor:pointer;" onclick="event.stopPropagation(); deleteGoalDirect(${idx})">🗑️</span>
                             </div>
                             <div class="history-sub" style="display:flex; justify-content:space-between; margin-top:6px; cursor:pointer;" onclick="openModal('${g.id}')">
-                                <span>Stand: <strong>${cur.toFixed(2)} €</strong> ${hasTarget ? ('/ ' + targetVal.toFixed(2) + ' €') : ''}</span>
+                                <span>Stand: <strong class="sensitive-val">${cur.toFixed(2)} €</strong> ${hasTarget ? ('/ <span class="sensitive-val">' + targetVal.toFixed(2) + ' €</span>') : ''}</span>
                                 <strong class="${pct < 0 ? 'val-red' : 'val-highlight'}" style="font-size:0.8rem;">${hasTarget ? pct.toFixed(0) + '%' : '♾️'}</strong>
                             </div>
                             ${hasTarget ? `<div class="progress-bar-container" style="cursor:pointer;" onclick="openModal('${g.id}')"><div class="progress-bar-fill" style="width:${Math.max(0, pct)}%;"></div></div>` : ''}
                         </div>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:0.68rem; color:var(--text-sub);">
                             <div style="font-weight:bold; color:var(--accent-green);">${reachText}</div>
-                            <div style="cursor:pointer; color:var(--accent; font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
+                            <div style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
                         </div>
                     </div>
                 `;
