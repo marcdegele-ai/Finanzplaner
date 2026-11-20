@@ -658,13 +658,26 @@
                 <div class="history-list" id="lineupTodayList"></div>
             </div>
 
+            <!-- NEUE DIREKT-IMPORT BOX FÜR JSON-CODE -->
+            <div class="card" style="background: var(--accent-green-soft); border: 1.5px solid var(--accent-green);">
+                <div class="card-title" style="color: var(--accent-green); margin-bottom: 6px;">
+                    <span>📋 JSON-Code direkt einfügen</span>
+                    <span class="badge badge-booked">1-Klick Import ⚡</span>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px;">
+                    Kopiere den JSON-Block aus dem Chat hier hinein und klicke auf Importieren – alle Termine werden sofort übernommen:
+                </div>
+                <textarea id="lineupJsonPasteInput" rows="4" placeholder='{"lineupEvents": [ ... ]}' style="font-family: monospace; font-size: 0.75rem; margin-bottom: 8px;"></textarea>
+                <button class="btn-add" style="background: var(--accent-green); margin-top: 0;" onclick="importLineupFromJsonText()">Events importieren 📥</button>
+            </div>
+
             <div class="card" style="border: 1.5px solid var(--accent);">
                 <div class="card-title" style="color: var(--accent);">
                     <span>📸 Multispalten-Flyer scannen</span>
                     <span class="badge badge-dauer">Smart-OCR ⚡</span>
                 </div>
                 <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
-                    Lade große Programm-Übersichten hoch oder importiere vorbereitete JSON-Pläne über den „Laden“-Button oben.
+                    Lade große Programm-Übersichten hoch oder füge oben den JSON-Code direkt ein.
                 </div>
                 
                 <div class="ocr-dropzone" onclick="document.getElementById('lineupScreenshotInput').click()">
@@ -964,7 +977,7 @@
     <!-- MODALE -->
     <div id="expenseModal" class="modal"><div class="modal-content"><div class="card-title">Fixkosten (<span id="modalExpMonth">-</span>)</div><div class="grid" style="gap: 6px; margin-bottom: 10px;"><div class="input-group full"><label>Name</label><input type="text" id="expName"></div><div class="input-group"><label>€</label><input type="number" id="expAmount"></div><div class="input-group"><label>Art</label><select id="expType" onchange="toggleEndDateInput()"><option value="dauer">Dauer</option><option value="einmalig">Einmalig</option></select></div><div class="input-group full" id="endDateGroup"><label>Bis Monat (Vertragsende)</label><input type="month" id="expEndDate"></div><div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Hinzufügen</button></div></div><div class="history-list" id="expenseItemsList" style="margin-bottom: 10px;"></div><div class="stat-row" style="font-weight: bold; margin-bottom: 10px;"><span>Summe:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div><button class="btn-add" onclick="closeExpenseModal()">Fertig</button></div></div>
     <div id="monthCloseModal" class="modal"><div class="modal-content"><div class="card-title">🏁 Monatsabschluss</div><p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:10px;">Restbudget übertragen?</p><div class="stat-row" style="margin-bottom:10px;"><span>Rest:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div><div class="input-group" style="margin-bottom: 10px;"><label>Ziel:</label><select id="closeTargetSelect"><option value="kassette">🪙 Kassette</option><option value="notfall">🛡️ Notfallkonto</option><option value="freizeit">🎉 Freizeitkonto</option></select></div><button class="btn-add" onclick="executeMonthClose()" style="background:var(--accent-green); margin-bottom: 6px;">Buchen 🚀</button><button class="btn-secondary" onclick="closeMonthCloseModal()" style="width:100%;">Überspringen</button></div></div>
-    <div id="cloudModal" class="modal"><div class="modal-content"><div class="card-title">☁️ Cloud-Sync</div><div class="input-group" style="margin-bottom: 6px;"><label>URL:</label><input type="text" id="cloudSyncUrlInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>API Key:</label><input type="password" id="cloudSyncKeyInput"></div><button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 6px;">Speichern</button><button class="btn-secondary" style="width:100%; margin-bottom: 5px;">Laden (Pull)</button><button class="btn-secondary" onclick="syncWithCloudNow(false)" style="width:100%; margin-bottom: 6px;">Speichern (Push)</button><button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button></div></div>
+    <div id="cloudModal" class="modal"><div class="modal-content"><div class="card-title">☁️ Cloud-Sync</div><div class="input-group" style="margin-bottom: 6px;"><label>URL:</label><input type="text" id="cloudSyncUrlInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>API Key:</label><input type="password" id="cloudSyncKeyInput"></div><button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 6px;">Speichern</button><button class="btn-secondary" onclick="pullFromCloudNow(false)" style="width:100%; margin-bottom: 5px;">Laden (Pull)</button><button class="btn-secondary" onclick="syncWithCloudNow(false)" style="width:100%; margin-bottom: 6px;">Speichern (Push)</button><button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button></div></div>
     
     <div id="goalModal" class="modal">
         <div class="modal-content">
@@ -1269,8 +1282,58 @@
         }
 
         // ==========================================
-        // MALLE LIVE LINEUP & NACHT-LOGIK (00:00-05:59)
+        // MALLE LIVE LINEUP, JSON-PASTE & NACHT-LOGIK (00:00-05:59)
         // ==========================================
+        function importLineupFromJsonText() {
+            const textarea = document.getElementById('lineupJsonPasteInput');
+            if (!textarea) return;
+            const raw = textarea.value.trim();
+            if (!raw) return alert('Bitte füge zuerst den JSON-Code in das Textfeld ein!');
+
+            try {
+                const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+                const parsed = JSON.parse(cleaned);
+                const incoming = Array.isArray(parsed) ? parsed : (parsed.lineupEvents || []);
+
+                if (!Array.isArray(incoming) || incoming.length === 0) {
+                    return alert('Keine gültigen Auftritte im JSON gefunden.');
+                }
+
+                let addedCount = 0;
+                incoming.forEach(ev => {
+                    if (ev.date && ev.artist) {
+                        const loc = ev.location || 'Bierkönig';
+                        const time = ev.time || '22:00';
+                        const exists = lineupEvents.some(existing =>
+                            existing.date === ev.date &&
+                            existing.time === time &&
+                            existing.artist.toLowerCase() === ev.artist.toLowerCase() &&
+                            existing.location.toLowerCase() === loc.toLowerCase()
+                        );
+                        if (!exists) {
+                            lineupEvents.push({
+                                id: ev.id || (Date.now() + Math.random()),
+                                location: loc,
+                                date: ev.date,
+                                time: time,
+                                artist: ev.artist,
+                                note: ev.note || '',
+                                isFav: !!ev.isFav
+                            });
+                            addedCount++;
+                        }
+                    }
+                });
+
+                textarea.value = '';
+                saveLocally();
+                renderLineupView();
+                alert(`✅ ${addedCount} neue Auftritte erfolgreich importiert! 🎤🎉`);
+            } catch (err) {
+                alert('❌ Ungültiger JSON-Code: Bitte prüfe, ob alles vollständig kopiert wurde.\n\nDetails: ' + err.message);
+            }
+        }
+
         function quickFillArtist(name) {
             const inp = document.getElementById('lineupArtistInput');
             if (inp) {
