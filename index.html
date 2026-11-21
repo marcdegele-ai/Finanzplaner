@@ -12,7 +12,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#f8fafc">
 
-    <!-- Tesseract.js für Screenshot- & Kassenbon-Texterkennung (OCR) -->
+    <!-- Tesseract.js als Offline-Fallback für Screenshot- & Kassenbon-Texterkennung (OCR) -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <style>
@@ -658,38 +658,39 @@
                 <div class="history-list" id="lineupTodayList"></div>
             </div>
 
-            <!-- NEUE DIREKT-IMPORT BOX FÜR JSON-CODE -->
-            <div class="card" style="background: var(--accent-green-soft); border: 1.5px solid var(--accent-green);">
-                <div class="card-title" style="color: var(--accent-green); margin-bottom: 6px;">
-                    <span>📋 JSON-Code direkt einfügen</span>
-                    <span class="badge badge-booked">1-Klick Import ⚡</span>
-                </div>
-                <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px;">
-                    Kopiere den JSON-Block aus dem Chat hier hinein und klicke auf Importieren – alle Termine werden sofort übernommen:
-                </div>
-                <textarea id="lineupJsonPasteInput" rows="4" placeholder='{"lineupEvents": [ ... ]}' style="font-family: monospace; font-size: 0.75rem; margin-bottom: 8px;"></textarea>
-                <button class="btn-add" style="background: var(--accent-green); margin-top: 0;" onclick="importLineupFromJsonText()">Events importieren 📥</button>
-            </div>
-
+            <!-- KI-SCANNER MIT GEMINI API-KEY -->
             <div class="card" style="border: 1.5px solid var(--accent);">
                 <div class="card-title" style="color: var(--accent);">
-                    <span>📸 Multispalten-Flyer scannen</span>
-                    <span class="badge badge-dauer">Smart-OCR ⚡</span>
+                    <span>📸 Flyer & Storys scannen</span>
+                    <span id="geminiScannerBadge" class="badge badge-dauer">Gemini KI ✨</span>
                 </div>
+
+                <!-- GEMINI API-KEY EINGABE -->
+                <div style="background: var(--accent-purple-soft); border: 1px solid var(--accent-purple); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label style="color: var(--accent-purple); font-weight: 800; font-size: 0.74rem;">🔑 Gemini API-Key (für perfekte Bilderkennung)</label>
+                        <span id="geminiKeyStatusBadge" style="font-size:0.65rem; font-weight:bold; color:var(--text-sub);">Nicht hinterlegt</span>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <input type="password" id="geminiApiKeyInput" placeholder="AQ.Ab8RN6K_..." style="flex:2; font-size:0.78rem; padding:6px 8px;">
+                        <button class="btn-secondary" style="background:var(--accent-purple); color:#fff; border:none; font-weight:bold; padding:6px 12px;" onclick="saveGeminiApiKey()">Speichern 💾</button>
+                    </div>
+                </div>
+
                 <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
-                    Lade große Programm-Übersichten hoch oder füge oben den JSON-Code direkt ein.
+                    Lade Instagram-Storys (z. B. Bierkönig / Megapark) oder Wochenpläne hoch – die KI erkennt automatisch Künstler, Uhrzeit, Datum & Location:
                 </div>
                 
                 <div class="ocr-dropzone" onclick="document.getElementById('lineupScreenshotInput').click()">
                     <div style="font-size: 1.5rem; margin-bottom: 4px;">📲🖼️</div>
-                    <strong style="color: var(--accent); font-size: 0.85rem;">Flyer auswählen oder hochladen</strong>
-                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-top: 2px;">Unterstützt JPG, PNG, WebP</div>
+                    <strong style="color: var(--accent); font-size: 0.85rem;">Flyer / Story auswählen oder hochladen</strong>
+                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-top: 2px;">Unterstützt JPG, PNG, WebP (auch mehrere gleichzeitig)</div>
                     <input type="file" id="lineupScreenshotInput" accept="image/*" multiple style="display:none" onchange="processLineupScreenshots(event)">
                 </div>
 
                 <div id="ocrStatusBox" style="display:none; background:var(--card-sub); border:1px solid var(--border); padding:10px; border-radius:10px; margin-bottom:10px;">
                     <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px;">
-                        <span id="ocrStatusText">Lese Flyer aus...</span>
+                        <span id="ocrStatusText">KI analysiert Bild...</span>
                         <span id="ocrProgressPct">0%</span>
                     </div>
                     <div class="progress-bar-container" style="margin-top:0;">
@@ -697,7 +698,7 @@
                     </div>
                 </div>
 
-                <details id="lineupManualDetails" open>
+                <details id="lineupManualDetails">
                     <summary style="font-size: 0.8rem; color: var(--text-main);">✍️ Einzelnen Termin manuell hinzufügen</summary>
                     
                     <div style="margin-top:8px;">
@@ -744,6 +745,16 @@
                     <button class="btn-add" style="background: var(--accent-green);" onclick="saveLineupEntry()">Auftritt zur Liste hinzufügen 🎤➕</button>
                 </details>
             </div>
+
+            <!-- DIREKT-IMPORT BOX FÜR JSON-CODE -->
+            <details class="card" style="background: var(--accent-green-soft); border: 1.5px solid var(--accent-green);">
+                <summary style="color: var(--accent-green); font-size: 0.85rem;">📋 JSON-Code direkt einfügen (Optional)</summary>
+                <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px;">
+                    Falls du einen fertigen JSON-Block einfügen möchtest, kopiere ihn hier hinein:
+                </div>
+                <textarea id="lineupJsonPasteInput" rows="3" placeholder='{"lineupEvents": [ ... ]}' style="font-family: monospace; font-size: 0.75rem; margin-bottom: 8px;"></textarea>
+                <button class="btn-add" style="background: var(--accent-green); margin-top: 0;" onclick="importLineupFromJsonText()">Events importieren 📥</button>
+            </details>
 
             <div class="card">
                 <div class="card-title">
@@ -1042,6 +1053,8 @@
         let lineupEvents = [];
         try { lineupEvents = JSON.parse(localStorage.getItem('finanz_lineup_local')) || []; } catch(e) {}
 
+        let geminiApiKey = localStorage.getItem('finanz_gemini_api_key') || '';
+
         let debtOverrides = {};
         try { debtOverrides = JSON.parse(localStorage.getItem('finanz_debt_overrides_local')) || {}; } catch(e) {}
 
@@ -1189,6 +1202,7 @@
                 await pullFromCloudNow(true);
             }
 
+            updateGeminiKeyUI();
             populateRestSplitDropdown();
             renderQuickMonthButtons();
             updateHHKategorien();
@@ -1282,8 +1296,129 @@
         }
 
         // ==========================================
-        // MALLE LIVE LINEUP, JSON-PASTE & NACHT-LOGIK (00:00-05:59)
+        // GEMINI KI-SCANNER & LINEUP-FUNKTIONEN
         // ==========================================
+        function saveGeminiApiKey() {
+            const inp = document.getElementById('geminiApiKeyInput');
+            if (!inp) return;
+            geminiApiKey = inp.value.trim();
+            localStorage.setItem('finanz_gemini_api_key', geminiApiKey);
+            updateGeminiKeyUI();
+            saveLocally();
+            alert(geminiApiKey ? '✅ Gemini API-Key gespeichert! Deine App nutzt ab sofort die KI-Bilderkennung.' : 'API-Key entfernt.');
+        }
+
+        function updateGeminiKeyUI() {
+            const inp = document.getElementById('geminiApiKeyInput');
+            const status = document.getElementById('geminiKeyStatusBadge');
+            const badge = document.getElementById('geminiScannerBadge');
+            if (inp) inp.value = geminiApiKey;
+            if (status) {
+                if (geminiApiKey) {
+                    status.innerText = 'Aktiv ✅';
+                    status.style.color = 'var(--accent-green)';
+                } else {
+                    status.innerText = 'Nicht hinterlegt';
+                    status.style.color = 'var(--text-sub)';
+                }
+            }
+            if (badge) {
+                badge.innerText = geminiApiKey ? 'Gemini KI Aktiv ✨' : 'Offline-OCR ⚙️';
+                badge.className = geminiApiKey ? 'badge badge-booked' : 'badge badge-dauer';
+            }
+        }
+
+        function fileToBase64Pure(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const res = reader.result || '';
+                    const base64 = res.split(',')[1];
+                    resolve({ base64, mimeType: file.type || 'image/jpeg' });
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function analyzeFlyerWithGemini(file) {
+            const { base64, mimeType } = await fileToBase64Pure(file);
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const tomorrowDate = new Date();
+            tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+            const tomorrowStr = tomorrowDate.toISOString().slice(0, 10);
+
+            const prompt = `Du bist ein präziser Event-Parser für Mallorca/Ballermann Party-Lineups (Bierkönig, Megapark, Oberbayern, MK Arena, Bamboleo).
+Analysiere das hochgeladene Bild (Instagram-Story, Tages- oder Wochenposter) und extrahiere ALLE Auftritte.
+Heutiges Datum: ${todayStr}, Morgen: ${tomorrowStr}.
+Regeln:
+- Wenn "HEUTE" oder "HEUTE LIVE" steht, nutze ${todayStr}.
+- Wenn "MORGEN" steht, nutze ${tomorrowStr}.
+- Wenn nur Tag/Monat ohne Jahr steht, ergänze das passende Jahr (2026 oder 2027).
+- Erkenne die Location aus Logos, Wasserzeichen, Instagram-Handles (@bierkoenigmallorca -> Bierkönig, @megapark_mallorca -> Megapark) oder Text. Erlaubte Werte für location: "Bierkönig", "Megapark", "Oberbayern", "MK Arena", "Bamboleo", "Sonstige".
+- Uhrzeit immer im 24h-Format "HH:MM" (z.B. "22:00", "00:30"). Falls keine Uhrzeit sichtbar ist, "22:00".
+- Antworte AUSSCHLIESSLICH mit gültigem JSON ohne Markdown-Formatierung in exakt dieser Struktur:
+{"lineupEvents":[{"location":"Bierkönig","date":"YYYY-MM-DD","time":"HH:MM","artist":"Künstlername","note":"","isFav":false}]}`;
+
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            { inlineData: { mimeType: mimeType, data: base64 } }
+                        ]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        temperature: 0.1
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`Gemini API Fehler (${response.status}): ${errText}`);
+            }
+
+            const data = await response.json();
+            const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+            const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+            const parsed = JSON.parse(cleaned);
+            return Array.isArray(parsed) ? parsed : (parsed.lineupEvents || []);
+        }
+
+        function mergeLineupEventsDeduplicated(incomingEvents) {
+            let added = 0;
+            (incomingEvents || []).forEach(ev => {
+                if (ev.date && ev.artist) {
+                    const loc = ev.location || 'Bierkönig';
+                    const time = ev.time || '22:00';
+                    const exists = lineupEvents.some(existing =>
+                        existing.date === ev.date &&
+                        existing.time === time &&
+                        existing.artist.toLowerCase() === ev.artist.toLowerCase() &&
+                        existing.location.toLowerCase() === loc.toLowerCase()
+                    );
+                    if (!exists) {
+                        lineupEvents.push({
+                            id: ev.id || (Date.now() + Math.random()),
+                            location: loc,
+                            date: ev.date,
+                            time: time,
+                            artist: ev.artist,
+                            note: ev.note || '',
+                            isFav: !!ev.isFav
+                        });
+                        added++;
+                    }
+                }
+            });
+            return added;
+        }
+
         function importLineupFromJsonText() {
             const textarea = document.getElementById('lineupJsonPasteInput');
             if (!textarea) return;
@@ -1299,32 +1434,7 @@
                     return alert('Keine gültigen Auftritte im JSON gefunden.');
                 }
 
-                let addedCount = 0;
-                incoming.forEach(ev => {
-                    if (ev.date && ev.artist) {
-                        const loc = ev.location || 'Bierkönig';
-                        const time = ev.time || '22:00';
-                        const exists = lineupEvents.some(existing =>
-                            existing.date === ev.date &&
-                            existing.time === time &&
-                            existing.artist.toLowerCase() === ev.artist.toLowerCase() &&
-                            existing.location.toLowerCase() === loc.toLowerCase()
-                        );
-                        if (!exists) {
-                            lineupEvents.push({
-                                id: ev.id || (Date.now() + Math.random()),
-                                location: loc,
-                                date: ev.date,
-                                time: time,
-                                artist: ev.artist,
-                                note: ev.note || '',
-                                isFav: !!ev.isFav
-                            });
-                            addedCount++;
-                        }
-                    }
-                });
-
+                const addedCount = mergeLineupEventsDeduplicated(incoming);
                 textarea.value = '';
                 saveLocally();
                 renderLineupView();
@@ -1373,37 +1483,42 @@
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                statusText.innerText = `Scanne Flyer ${i + 1} von ${files.length}...`;
-                progressPct.innerText = '0%';
-                progressBar.style.width = '0%';
+                progressPct.innerText = '25%';
+                progressBar.style.width = '25%';
 
                 try {
-                    const result = await Tesseract.recognize(file, 'deu+eng', {
-                        logger: m => {
-                            if (m.status === 'recognizing text') {
-                                const pct = Math.round(m.progress * 100);
-                                progressPct.innerText = pct + '%';
-                                progressBar.style.width = pct + '%';
+                    if (geminiApiKey) {
+                        statusText.innerText = `✨ Gemini KI analysiert Bild ${i + 1} von ${files.length}...`;
+                        progressPct.innerText = '55%';
+                        progressBar.style.width = '55%';
+                        const aiEvents = await analyzeFlyerWithGemini(file);
+                        totalAdded += mergeLineupEventsDeduplicated(aiEvents);
+                        progressPct.innerText = '100%';
+                        progressBar.style.width = '100%';
+                    } else {
+                        statusText.innerText = `⚙️ Offline-OCR scannt Flyer ${i + 1} von ${files.length}...`;
+                        const result = await Tesseract.recognize(file, 'deu+eng', {
+                            logger: m => {
+                                if (m.status === 'recognizing text') {
+                                    const pct = Math.round(m.progress * 100);
+                                    progressPct.innerText = pct + '%';
+                                    progressBar.style.width = pct + '%';
+                                }
                             }
-                        }
-                    });
-
-                    const text = result.data.text || '';
-                    const parsedEvents = parseMultiColumnFlyer(text);
-
-                    parsedEvents.forEach(ev => {
-                        lineupEvents.push(ev);
-                        totalAdded++;
-                    });
-
+                        });
+                        const text = result.data.text || '';
+                        const parsedEvents = parseMultiColumnFlyer(text);
+                        totalAdded += mergeLineupEventsDeduplicated(parsedEvents);
+                    }
                 } catch (err) {
-                    statusText.innerText = '❌ Fehler beim OCR: ' + err.message;
+                    statusText.innerText = '❌ Fehler: ' + err.message;
+                    alert('Scan-Fehler: ' + err.message);
                 }
             }
 
             saveLocally();
             renderLineupView();
-            statusText.innerText = `✅ Erfolgreich ${totalAdded} Auftritte ausgelesen & gespeichert! 🚀`;
+            statusText.innerText = `✅ Fertig! ${totalAdded} neue Auftritte erkannt & gespeichert! 🚀`;
             event.target.value = '';
         }
 
@@ -1471,7 +1586,7 @@
 
             if (!date || !artist) return alert('Bitte mindestens Datum und Künstler angeben!');
 
-            lineupEvents.push({ id: Date.now(), location, date, time, artist, note, isFav: false });
+            mergeLineupEventsDeduplicated([{ location, date, time, artist, note, isFav: false }]);
 
             document.getElementById('lineupArtistInput').value = '';
             document.getElementById('lineupNoteInput').value = '';
@@ -1789,7 +1904,6 @@
             const anchorMonth = getAnchorCurrentMonthKey();
             const selectedMonth = getSelectedMonthKey();
 
-            // 1. Fester Button für den aktuellen Monat
             const homeBtn = document.createElement('button');
             homeBtn.type = 'button';
             homeBtn.className = 'quick-btn current-anchor' + (selectedMonth === anchorMonth ? ' selected-month' : '');
@@ -1797,7 +1911,6 @@
             homeBtn.onclick = () => syncMonthInput(anchorMonth);
             row.appendChild(homeBtn);
 
-            // 2. Die nächsten 3 Folgemonate ab dem aktuellen Monat
             let nextM = anchorMonth;
             for (let i = 0; i < 3; i++) {
                 nextM = getNextMonthKey(nextM);
@@ -1940,6 +2053,7 @@
                 localStorage.setItem('finanz_debt_overrides_local', JSON.stringify(debtOverrides));
                 localStorage.setItem('finanz_dsstev_docs_local', JSON.stringify(dsstevDocs));
                 localStorage.setItem('finanz_lineup_local', JSON.stringify(lineupEvents));
+                localStorage.setItem('finanz_gemini_api_key', geminiApiKey);
                 setTimestampNow();
                 updateStorageQuotaDisplay();
             } catch(e) {
@@ -1963,7 +2077,7 @@
 
         async function syncWithCloudNow(isBackground = false) {
             if (!cloudConfig.url) { if (!isBackground) openCloudModal(); return; }
-            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lineupEvents, lastUpdated: new Date().toISOString() };
+            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lineupEvents, geminiApiKey, lastUpdated: new Date().toISOString() };
             try {
                 let headers = { "Content-Type": "application/json" };
                 if (cloudConfig.key) { 
@@ -2006,6 +2120,7 @@
                         if(remoteData.debtOverrides) debtOverrides = remoteData.debtOverrides;
                         if(remoteData.dsstevDocs) dsstevDocs = remoteData.dsstevDocs;
                         if(remoteData.lineupEvents) lineupEvents = remoteData.lineupEvents;
+                        if(remoteData.geminiApiKey) { geminiApiKey = remoteData.geminiApiKey; updateGeminiKeyUI(); }
                         
                         saveLocally(); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView(); renderAbrechnungenDocs(); updateCalendarBudgetDisplay(); renderLineupView(); populateRestSplitDropdown();
                         if (!isSilent) alert('Daten erfolgreich aus der Cloud geladen! 📥');
@@ -2051,7 +2166,7 @@
         }
 
         function exportBackupJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lineupEvents }, null, 2));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lineupEvents, geminiApiKey }, null, 2));
             const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `Finanzplan_Backup.json`);
             document.body.appendChild(dl); dl.click(); dl.remove();
         }
@@ -2070,6 +2185,7 @@
                         if(p.debtOverrides) debtOverrides = p.debtOverrides;
                         if(p.dsstevDocs) dsstevDocs = p.dsstevDocs;
                         if(p.lineupEvents) lineupEvents = p.lineupEvents;
+                        if(p.geminiApiKey) { geminiApiKey = p.geminiApiKey; updateGeminiKeyUI(); }
                         saveLocally(); alert('Import erfolgreich geladen! ✨'); loadMonthData(); renderHistory(); renderGoals(); renderHaushaltView(); renderJahresView(); checkUrlaubTabVisibility(); loadCashBreakdownToUI(); updateSubKontoDropdowns(); renderSchuldenView(); renderAbrechnungenDocs(); updateCalendarBudgetDisplay(); renderLineupView(); populateRestSplitDropdown();
                     } catch (err) { alert('Fehler: ' + err.message); }
                 };
@@ -2157,7 +2273,7 @@
             if(viewId === 'urlaub-view') renderUrlaubView();
             if(viewId === 'ziele-view') { renderGoals(); updateSubKontoDropdowns(); }
             if(viewId === 'dok-view') { renderAbrechnungenDocs(); updateStorageQuotaDisplay(); }
-            if(viewId === 'lineup-view') { renderLineupView(); }
+            if(viewId === 'lineup-view') { renderLineupView(); updateGeminiKeyUI(); }
         }
 
         function getSelectedMonthKey() { return document.getElementById('monthInput').value || getAnchorCurrentMonthKey(); }
