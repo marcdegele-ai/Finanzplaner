@@ -658,7 +658,7 @@
                 <div class="history-list" id="lineupTodayList"></div>
             </div>
 
-            <!-- KI-SCANNER MIT GEMINI API-KEY -->
+            <!-- KI-SCANNER MIT GEMINI API-KEY & AUTO-RETRY -->
             <div class="card" style="border: 1.5px solid var(--accent);">
                 <div class="card-title" style="color: var(--accent);">
                     <span>📸 Flyer & Storys scannen</span>
@@ -672,13 +672,13 @@
                         <span id="geminiKeyStatusBadge" style="font-size:0.65rem; font-weight:bold; color:var(--text-sub);">Nicht hinterlegt</span>
                     </div>
                     <div style="display:flex; gap:5px;">
-                        <input type="password" id="geminiApiKeyInput" placeholder="AQ.Ab8RN6K_..." style="flex:2; font-size:0.78rem; padding:6px 8px;">
+                        <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." style="flex:2; font-size:0.78rem; padding:6px 8px;">
                         <button class="btn-secondary" style="background:var(--accent-purple); color:#fff; border:none; font-weight:bold; padding:6px 12px;" onclick="saveGeminiApiKey()">Speichern 💾</button>
                     </div>
                 </div>
 
                 <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
-                    Lade Instagram-Storys (z. B. Bierkönig / Megapark) oder Wochenpläne hoch – die KI erkennt automatisch Künstler, Uhrzeit, Datum & Location:
+                    Lade Instagram-Storys (z. B. Bierkönig / Megapark) oder Wochenpläne hoch – inklusive automatischem Auto-Retry & Lite-Fallback bei Server-Überlastung:
                 </div>
                 
                 <div class="ocr-dropzone" onclick="document.getElementById('lineupScreenshotInput').click()">
@@ -987,7 +987,7 @@
 
     <!-- MODALE -->
     <div id="expenseModal" class="modal"><div class="modal-content"><div class="card-title">Fixkosten (<span id="modalExpMonth">-</span>)</div><div class="grid" style="gap: 6px; margin-bottom: 10px;"><div class="input-group full"><label>Name</label><input type="text" id="expName"></div><div class="input-group"><label>€</label><input type="number" id="expAmount"></div><div class="input-group"><label>Art</label><select id="expType" onchange="toggleEndDateInput()"><option value="dauer">Dauer</option><option value="einmalig">Einmalig</option></select></div><div class="input-group full" id="endDateGroup"><label>Bis Monat (Vertragsende)</label><input type="month" id="expEndDate"></div><div class="input-group full"><button class="btn-add" onclick="addExpenseItem()">Hinzufügen</button></div></div><div class="history-list" id="expenseItemsList" style="margin-bottom: 10px;"></div><div class="stat-row" style="font-weight: bold; margin-bottom: 10px;"><span>Summe:</span><span id="modalExpTotal" class="val-red">0,00 €</span></div><button class="btn-add" onclick="closeExpenseModal()">Fertig</button></div></div>
-    <div id="monthCloseModal" class="modal"><div class="modal-content"><div class="card-title">🏁 Monatsabschluss</div><p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:10px;">Restbudget übertragen?</p><div class="stat-row" style="margin-bottom:10px;"><span>Rest:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div><div class="input-group" style="margin-bottom: 10px;"><label>Ziel:</label><select id="closeTargetSelect"><option value="kassette">🪙 Kassette</option><option value="notfall">🛡️ Notfallkonto</option><option value="freizeit">🎉 Freizeitkonto</option></select></div><button class="btn-add" onclick="executeMonthClose()" style="background:var(--accent-green); margin-bottom: 6px;">Buchen 🚀</button><button class="btn-secondary" onclick="closeMonthCloseModal()" style="width:100%;">Überspringen</button></div></div>
+    <div id="monthCloseModal" class="modal"><div class="modal-content"><div class="card-title">🏁 Monatsabschluss</div><p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:10px;">Restbudget übertragen?</p><div class="stat-row" style="margin-bottom:10px;"><span>Rest:</span><span id="closeRestAmount" class="val-highlight">0,00 €</span></div><div class="input-group" style="margin-bottom: 10px;"><label>Ziel:</label><select id="closeTargetSelect"><option value="kassette">🪙 Kassette</option><option value="notfall">🛡️ Notfallkonto</option><option value="freizeit">🎉 Freizeitkonto</option></select></div><button class="btn-add" onclick="executeMonthClose()" style="background:var(--accent-green); margin-bottom: 6px;">Buchen 🚀</button><button class="btn-secondary" style="width:100%;">Überspringen</button></div></div>
     <div id="cloudModal" class="modal"><div class="modal-content"><div class="card-title">☁️ Cloud-Sync</div><div class="input-group" style="margin-bottom: 6px;"><label>URL:</label><input type="text" id="cloudSyncUrlInput"></div><div class="input-group" style="margin-bottom: 10px;"><label>API Key:</label><input type="password" id="cloudSyncKeyInput"></div><button class="btn-add" onclick="saveCloudConfig()" style="background:var(--accent); margin-bottom: 6px;">Speichern</button><button class="btn-secondary" onclick="pullFromCloudNow(false)" style="width:100%; margin-bottom: 5px;">Laden (Pull)</button><button class="btn-secondary" onclick="syncWithCloudNow(false)" style="width:100%; margin-bottom: 6px;">Speichern (Push)</button><button class="btn-secondary" onclick="closeCloudModal()" style="width:100%;">Schließen</button></div></div>
     
     <div id="goalModal" class="modal">
@@ -1296,7 +1296,7 @@
         }
 
         // ==========================================
-        // GEMINI KI-SCANNER & LINEUP-FUNKTIONEN
+        // GEMINI KI-SCANNER MIT AUTO-RETRY & FALLBACK
         // ==========================================
         function saveGeminiApiKey() {
             const inp = document.getElementById('geminiApiKeyInput');
@@ -1341,7 +1341,57 @@
             });
         }
 
-        async function analyzeFlyerWithGemini(file) {
+        async function callGeminiWithRetry(apiKey, payload, onStatusUpdate) {
+            const models = [
+                "gemini-3.8-flash",
+                "gemini-3.8-flash",
+                "gemini-3.8-flash-lite",
+                "gemini-2.5-flash-lite"
+            ];
+
+            let lastError = null;
+
+            for (let i = 0; i < models.length; i++) {
+                const model = models[i];
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+                try {
+                    if (i > 0 && onStatusUpdate) {
+                        onStatusUpdate(`⏳ Server ausgelastet – weiche auf ${model} aus (Versuch ${i + 1}/${models.length})...`);
+                    }
+
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.status === 503 || response.status === 429) {
+                        const errText = await response.text();
+                        lastError = `Gemini API Fehler (${response.status}): ${errText}`;
+                        console.warn(`Modell ${model} ausgelastet (${response.status}), nächster Versuch in 2s...`);
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        continue;
+                    }
+
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(`Gemini API Fehler (${response.status}): ${errText}`);
+                    }
+
+                    return await response.json();
+                } catch (err) {
+                    lastError = err.message;
+                    if (!err.message.includes("503") && !err.message.includes("429")) {
+                        throw err;
+                    }
+                }
+            }
+
+            throw new Error(lastError || "Alle Gemini-Modelle sind aktuell überlastet. Bitte in 30 Sekunden erneut versuchen.");
+        }
+
+        async function analyzeFlyerWithGemini(file, onStatusUpdate) {
             const { base64, mimeType } = await fileToBase64Pure(file);
             const todayStr = new Date().toISOString().slice(0, 10);
             const tomorrowDate = new Date();
@@ -1360,30 +1410,20 @@ Regeln:
 - Antworte AUSSCHLIESSLICH mit gültigem JSON ohne Markdown-Formatierung in exakt dieser Struktur:
 {"lineupEvents":[{"location":"Bierkönig","date":"YYYY-MM-DD","time":"HH:MM","artist":"Künstlername","note":"","isFav":false}]}`;
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`;
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: prompt },
-                            { inlineData: { mimeType: mimeType, data: base64 } }
-                        ]
-                    }],
-                    generationConfig: {
-                        responseMimeType: "application/json",
-                        temperature: 0.1
-                    }
-                })
-            });
+            const requestPayload = {
+                contents: [{
+                    parts: [
+                        { text: prompt },
+                        { inlineData: { mimeType: mimeType, data: base64 } }
+                    ]
+                }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    temperature: 0.1
+                }
+            };
 
-            if (!response.ok) {
-                const errText = await response.text();
-                throw new Error(`Gemini API Fehler (${response.status}): ${errText}`);
-            }
-
-            const data = await response.json();
+            const data = await callGeminiWithRetry(geminiApiKey, requestPayload, onStatusUpdate);
             const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
             const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
             const parsed = JSON.parse(cleaned);
@@ -1491,7 +1531,9 @@ Regeln:
                         statusText.innerText = `✨ Gemini KI analysiert Bild ${i + 1} von ${files.length}...`;
                         progressPct.innerText = '55%';
                         progressBar.style.width = '55%';
-                        const aiEvents = await analyzeFlyerWithGemini(file);
+                        const aiEvents = await analyzeFlyerWithGemini(file, (msg) => {
+                            statusText.innerText = msg;
+                        });
                         totalAdded += mergeLineupEventsDeduplicated(aiEvents);
                         progressPct.innerText = '100%';
                         progressBar.style.width = '100%';
