@@ -2883,7 +2883,7 @@ Regeln:
             
             let subKontenRunning = {};
             goals.forEach(g => {
-                if(g.id !== 'notfall' && g.id !== 'kassette') {
+                if(g.id !== 'notfall' && g.id !== 'kassette' && g.id !== 'freizeit') {
                     subKontenRunning[g.id] = getSavedAmountForGoalUpTo(g, base);
                 }
             });
@@ -2907,10 +2907,15 @@ Regeln:
                     subKontenRunning[calc.sparkontoSplitTargetId] += calc.sparkontoSplitSparen;
                 }
 
+                let giroPufferApplied = false;
                 goals.forEach(g => {
-                    if(g.id !== 'notfall' && g.id !== 'kassette' && subKontenRunning[g.id] !== undefined) {
-                        if(g.type === 'giro_puffer') subKontenRunning[g.id] += calc.giroPuffer;
-                        else {
+                    if(g.id !== 'notfall' && g.id !== 'kassette' && g.id !== 'freizeit' && subKontenRunning[g.id] !== undefined) {
+                        if(g.type === 'giro_puffer') {
+                            if(!giroPufferApplied) {
+                                subKontenRunning[g.id] += calc.giroPuffer;
+                                giroPufferApplied = true;
+                            }
+                        } else {
                             let hasExtra = (item.extraTransfers || []).some(tr => tr.targetId === g.id);
                             if (!hasExtra) subKontenRunning[g.id] += getActiveDeductionsForGoal(g, k);
                         }
