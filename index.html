@@ -2557,7 +2557,7 @@ Regeln:
             const einkaufsGeld = item.taschengeld !== undefined && !isNaN(parseFloat(item.taschengeld)) ? parseFloat(item.taschengeld) : 200;
             const giroPuffer = item.giroPuffer !== undefined && !isNaN(parseFloat(item.giroPuffer)) ? parseFloat(item.giroPuffer) : 40;
             const sparzieleSumme = getTotalGoalDeductionsForMonth(activeMonth, item);
-            const afterAbzuege = Math.max(0, netto - einkaufsGeld - giroPuffer - sparzieleSumme);
+            const afterAbzuege = Math.max(0, netto - einkaufsGeld - sparzieleSumme);
 
             const splitMode = item.restSplitMode || 'none';
             const splitVal = parseFloat(item.restSplitVal) || 0;
@@ -2613,7 +2613,6 @@ Regeln:
             
             let extraNotfall = 0; 
             (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
-            document.getElementById('resNotfallAbzug').innerText = '-' + (calc.notfallSparen + extraNotfall).toFixed(2) + ' €';
 
             const splitValEl = document.getElementById('restSplitValInput');
             if (splitValEl) {
@@ -2652,8 +2651,11 @@ Regeln:
                 }
             });
 
+            const sparplaeneAnzeige = totalDeductions > 0 ? totalDeductions : (calc.notfallSparen + calc.sparkontoSplitSparen);
+            const notfallAnzeige = totalDeductions > 0 ? (calc.notfallSparen + extraNotfall) : extraNotfall;
+            document.getElementById('resNotfallAbzug').innerText = '-' + notfallAnzeige.toFixed(2) + ' €';
             document.getElementById('resBargeld').innerText = calc.bargeldSparen.toFixed(2) + ' €';
-            document.getElementById('resSparzieleAbzug').innerText = '-' + totalDeductions.toFixed(2) + ' €';
+            document.getElementById('resSparzieleAbzug').innerText = '-' + sparplaeneAnzeige.toFixed(2) + ' €';
             
             const finalGesamtSparen = calc.notfallSparen + calc.sparkontoSplitSparen + totalDeductions + calc.bargeldSparen + calc.giroPuffer;
             document.getElementById('resGesamtSparenKpi').innerText = finalGesamtSparen.toFixed(2) + ' €';
@@ -2699,7 +2701,8 @@ Regeln:
         function getSavedAmountForGoalUpTo(goal, upto) {
             if(!goal) return 0;
             if(goal.id === 'kassette') return parseFloat(goal.manualCurrent || 0);
-            
+            if(goal.id === 'freizeit') return 0;
+
             let diff = 0; 
             (transfersList || []).forEach(tr => { 
                 if(tr.dateKey <= upto) { 
@@ -2708,35 +2711,27 @@ Regeln:
                 } 
             });
 
-            if(goal.id === 'notfall' || goal.type === 'notfall_sub' || goal.type === 'giro_puffer') {
-                let sum = parseFloat(goal.manualOffset || 0);
-                Object.keys(entries || {}).sort().forEach(k => { 
-                    let nextK = getNextMonthKey(k);
-                    if(nextK <= upto && entries[k]?.booked) {
-                        let calc = calculateValuesFor(entries[k], k);
-                        if(goal.id === 'notfall') sum += calc.notfallSparen;
-                        if(goal.type === 'giro_puffer') sum += calc.giroPuffer;
-                        if(calc.sparkontoSplitTargetId === goal.id) sum += calc.sparkontoSplitSparen;
-                        (entries[k]?.extraTransfers || []).forEach(tr => { if(tr.targetId === goal.id) sum += tr.amount; });
-                    }
-                });
-                return Math.max(0, sum + diff);
-            }
-            if(goal.id === 'freizeit') return 0;
-            
-            let total = parseFloat(goal.manualOffset || goal.manualCurrent || 0);
+            let sum = parseFloat(goal.manualOffset ?? goal.manualCurrent ?? 0);
             Object.keys(entries || {}).sort().forEach(k => {
-                let nextK = getNextMonthKey(k);
-                if(nextK <= upto && (!goal.startMonth || nextK >= goal.startMonth) && entries[k]?.booked) {
+                if(k <= upto && entries[k]?.booked) {
                     let calc = calculateValuesFor(entries[k], k);
-                    let scheduled = getActiveDeductionsForGoal(goal, k);
                     let extra = 0;
-                    (entries[k]?.extraTransfers || []).forEach(tr => { if (tr.targetId === goal.id) extra += tr.amount; });
-                    if(calc.sparkontoSplitTargetId === goal.id) total += calc.sparkontoSplitSparen;
-                    total += extra > 0 ? extra : scheduled;
+                    (entries[k]?.extraTransfers || []).forEach(tr => { if(tr.targetId === goal.id) extra += parseFloat(tr.amount) || 0; });
+
+                    if(goal.id === 'notfall') {
+                        sum += calc.notfallSparen + extra;
+                    } else if(goal.type === 'giro_puffer') {
+                        sum += calc.giroPuffer + extra;
+                    } else {
+                        let scheduled = (!goal.startMonth || k >= goal.startMonth) ? getActiveDeductionsForGoal(goal, k) : 0;
+                        sum += (extra > 0 ? extra : scheduled);
+                    }
+                    if(calc.sparkontoSplitTargetId === goal.id) {
+                        sum += calc.sparkontoSplitSparen;
+                    }
                 }
             });
-            return Math.max(0, total + diff);
+            return Math.max(0, Math.round((sum + diff) * 100) / 100);
         }
 
         function getGoalData(goalId, overrideFixedRate = null, overrideEndDate = null) {
@@ -2911,7 +2906,7 @@ Regeln:
                 goals.forEach(g => {
                     if(g.id !== 'notfall' && g.id !== 'kassette' && g.id !== 'freizeit' && subKontenRunning[g.id] !== undefined) {
                         if(g.type === 'giro_puffer') {
-                            if(!giroPufferApplied) {
+                            if(!giroPufferApplied && calc.giroPuffer > 0) {
                                 subKontenRunning[g.id] += calc.giroPuffer;
                                 giroPufferApplied = true;
                             }
