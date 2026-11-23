@@ -921,6 +921,15 @@
                     <span>🤝 Außergerichtliche Schuldenbereinigung</span>
                     <span class="badge badge-booked" style="font-size:0.75rem;">Aktiv ✅</span>
                 </div>
+
+                <!-- STICHTAG / MONAT WÄHLEN -->
+                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 8px 10px; border-radius: 10px; margin-bottom: 12px;">
+                    <label style="color: var(--accent-purple); font-weight: 800; font-size: 0.74rem; display:block; margin-bottom:4px;">📅 Stand / Vorschau für Monat wählen:</label>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <input type="month" id="debtMonthInput" min="2024-06" max="2030-12" onchange="renderSchuldenView()" style="flex:2; font-weight:bold; color:var(--accent-purple);">
+                        <button type="button" class="btn-secondary" style="flex:1; background:var(--accent-purple); color:#fff; border:none; padding:8px; font-weight:bold;" onclick="resetDebtMonthToNow()">📍 Heute</button>
+                    </div>
+                </div>
                 
                 <div style="margin-bottom: 12px;">
                     <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:bold; margin-bottom:4px;">
@@ -963,7 +972,7 @@
                         </div>
                         <div style="text-align:right;">
                             <span style="font-size:0.7rem; color:var(--text-sub);">Monatliche Gesamtrate</span>
-                            <div class="sensitive-val" style="font-size:1rem; font-weight:bold;">453,95 € / Mo.</div>
+                            <div id="debtActiveRateDisplay" class="sensitive-val" style="font-size:1rem; font-weight:bold;">453,95 € / Mo.</div>
                         </div>
                     </div>
                 </div>
@@ -1219,8 +1228,10 @@
             const hhDate = document.getElementById('HHDate');
             const subMonthInput = document.getElementById('subKontoTransferMonth');
             const lineupDateInput = document.getElementById('lineupDateInput');
+            const debtMonthInput = document.getElementById('debtMonthInput');
 
             if(mInput) mInput.value = startAnchor;
+            if(debtMonthInput) debtMonthInput.value = new Date().toISOString().slice(0, 7);
             if(hhInput) hhInput.value = startAnchor;
             if(hhDate) hhDate.valueAsDate = new Date();
             if(subMonthInput) subMonthInput.value = startAnchor;
@@ -1997,12 +2008,22 @@ Regeln:
             }
         }
 
-        function renderSchuldenView() {
-            const now = new Date();
-            const curY = now.getFullYear();
-            const curM = now.getMonth() + 1;
+        function resetDebtMonthToNow() {
+            const inp = document.getElementById('debtMonthInput');
+            if (inp) inp.value = new Date().toISOString().slice(0, 7);
+            renderSchuldenView();
+        }
 
-            let totalComp = 0, totalPaid = 0;
+        function renderSchuldenView() {
+            const nowStr = new Date().toISOString().slice(0, 7);
+            const inp = document.getElementById('debtMonthInput');
+            const selectedMonth = (inp && inp.value) ? inp.value : nowStr;
+            if (inp && !inp.value) inp.value = selectedMonth;
+
+            const [curY, curM] = selectedMonth.split('-').map(Number);
+            const isCurrentRealMonth = (selectedMonth === nowStr);
+
+            let totalComp = 0, totalPaid = 0, activeMonthlyRateSum = 0;
             const tbody = document.getElementById('debtCreditorsTableBody');
             if(!tbody) return;
             tbody.innerHTML = '';
@@ -2010,18 +2031,26 @@ Regeln:
             creditorsData.forEach(c => {
                 totalComp += c.total;
                 const [sY, sM] = c.start.split('-').map(Number);
-                let monthsPassed = Math.min(c.months, Math.max(0, (curY - sY) * 12 + (curM - sM) + 1));
+                const diffFromStart = (curY - sY) * 12 + (curM - sM) + 1;
+                let monthsPassed = Math.min(c.months, Math.max(0, diffFromStart));
                 const calcRemaining = Math.max(0, c.total - (monthsPassed * c.rate));
-                const remaining = debtOverrides[c.id] !== undefined ? debtOverrides[c.id] : calcRemaining;
+                
+                const useOverride = isCurrentRealMonth && (debtOverrides[c.id] !== undefined);
+                const remaining = useOverride ? debtOverrides[c.id] : calcRemaining;
                 totalPaid += Math.max(0, c.total - remaining);
 
+                const isFinished = remaining <= 0.01;
+                if (!isFinished && diffFromStart >= 1) {
+                    activeMonthlyRateSum += c.rate;
+                }
+
                 tbody.innerHTML += `
-                    <tr>
+                    <tr style="${isFinished ? 'opacity: 0.6; background: var(--accent-green-soft);' : ''}">
                         <td><strong>${c.id}</strong></td>
-                        <td>${c.name}<br><span style="font-size:0.65rem; color:var(--text-sub);">${c.bank}</span></td>
-                        <td><strong class="sensitive-val">${c.rate.toFixed(2)} €</strong></td>
+                        <td>${c.name} ${isFinished ? '<span class="badge badge-booked">Erledigt ✅</span>' : ''}<br><span style="font-size:0.65rem; color:var(--text-sub);">${c.bank} (${c.months} Mo.)</span></td>
+                        <td><strong class="sensitive-val">${isFinished ? '0,00 €' : c.rate.toFixed(2) + ' €'}</strong></td>
                         <td class="sensitive-val">${c.total.toFixed(2)} €</td>
-                        <td><input type="number" class="debt-input" value="${remaining.toFixed(2)}" step="0.01" onchange="updateDebtOverride(${c.id}, this.value)"></td>
+                        <td><input type="number" class="debt-input" value="${remaining.toFixed(2)}" step="0.01" ${!isCurrentRealMonth ? 'title="Manuelle Korrektur nur im aktuellen Monat"' : ''} onchange="updateDebtOverride(${c.id}, this.value)"></td>
                     </tr>
                 `;
             });
@@ -2033,6 +2062,11 @@ Regeln:
             document.getElementById('debtProgressBar').style.width = pct.toFixed(1) + '%';
             document.getElementById('debtPaidTotal').innerText = totalPaid.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
             document.getElementById('debtRemainingTotal').innerText = remainingTotal.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+            
+            const rateDisplay = document.getElementById('debtActiveRateDisplay');
+            if (rateDisplay) {
+                rateDisplay.innerText = activeMonthlyRateSum.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' € / Mo.';
+            }
         }
 
         function updateDebtOverride(id, val) {
