@@ -2266,6 +2266,7 @@ Regeln:
                 bargeldEinnahme: numOrDefault(document.getElementById('bargeldEinnahmeInput').value, 0),
                 items: JSON.parse(JSON.stringify(currentMonthItems)),
                 pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
+                deletedItems: JSON.parse(JSON.stringify(currentMonthDeletedItems)),
                 bargeld: numOrDefault(document.getElementById('bargeldInput').value, 0),
                 taschengeld: numOrDefault(document.getElementById('taschengeldInput').value, 200),
                 giroPuffer: numOrDefault(document.getElementById('giroPufferInput').value, 40),
@@ -2400,7 +2401,13 @@ Regeln:
 
             if (entries[m]) {
                 let items = entries[m].items || [];
-                inherited.forEach(inh => { if (!items.some(i => i.name.trim().toLowerCase() === inh.name.trim().toLowerCase())) items.push(JSON.parse(JSON.stringify(inh))); });
+                let deleted = entries[m].deletedItems || [];
+                inherited.forEach(inh => {
+                    const normName = inh.name.trim().toLowerCase();
+                    if (!items.some(i => i.name.trim().toLowerCase() === normName) && !deleted.includes(normName)) {
+                        items.push(JSON.parse(JSON.stringify(inh)));
+                    }
+                });
                 if (m >= "2029-07") items = items.filter(i => !i.name.toLowerCase().includes("schulden"));
 
                 entries[m].items = items;
@@ -2438,6 +2445,7 @@ Regeln:
             document.getElementById('monthNotesInput').value = item.notes || '';
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
+            currentMonthDeletedItems = JSON.parse(JSON.stringify(item.deletedItems || []));
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView(); populateManualDistributeDropdown();
             updateCalendarBudgetDisplay();
         }
@@ -2581,14 +2589,42 @@ Regeln:
         function addExpenseItem() {
             const name = document.getElementById('expName').value.trim(), amount = parseFloat(document.getElementById('expAmount').value), type = document.getElementById('expType').value, endDate = document.getElementById('expEndDate').value;
             if(!name || isNaN(amount) || amount <= 0) return alert('Name und Betrag eingeben!');
+            const normName = name.toLowerCase();
+            currentMonthDeletedItems = currentMonthDeletedItems.filter(n => n !== normName);
+            Object.keys(entries).forEach(k => {
+                if (k >= getSelectedMonthKey() && entries[k]?.deletedItems) {
+                    entries[k].deletedItems = entries[k].deletedItems.filter(n => n !== normName);
+                }
+            });
             currentMonthItems.push({ name, amount, type, endDate: type === 'dauer' ? endDate : null });
             document.getElementById('expName').value = ''; document.getElementById('expAmount').value = '';
             renderExpenseItemsModal(); autoSaveLive();
         }
 
+        let currentMonthDeletedItems = [];
+
         function deleteExpenseItem(idx) {
+            const removed = currentMonthItems[idx];
+            const m = getSelectedMonthKey();
+            if (removed && removed.type === 'dauer') {
+                const normName = removed.name.trim().toLowerCase();
+                if (!currentMonthDeletedItems.includes(normName)) {
+                    currentMonthDeletedItems.push(normName);
+                }
+                // Auch aus allen zukünftigen Monaten entfernen und dort als gelöscht markieren
+                Object.keys(entries).forEach(k => {
+                    if (k >= m && entries[k]) {
+                        entries[k].items = (entries[k].items || []).filter(i => i.name.trim().toLowerCase() !== normName);
+                        entries[k].deletedItems = entries[k].deletedItems || [];
+                        if (!entries[k].deletedItems.includes(normName)) {
+                            entries[k].deletedItems.push(normName);
+                        }
+                    }
+                });
+            }
             currentMonthItems.splice(idx, 1);
-            saveLocally(); renderExpenseItemsModal(); autoSaveLive();
+            renderExpenseItemsModal();
+            autoSaveLive();
         }
 
         function getTotalGoalDeductionsForMonth(mKey, monthData) {
