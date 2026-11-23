@@ -2101,6 +2101,7 @@ Regeln:
                 localStorage.setItem('finanz_gemini_api_key', geminiApiKey);
                 setTimestampNow();
                 updateStorageQuotaDisplay();
+                if (urlaubeList && urlaubeList.length > 0) renderUrlaubView();
             } catch(e) {
                 alert('⚠️ Hinweis: Browser-Speicher voll! Bitte alte Abrechnungen oder Belege löschen.');
             }
@@ -2207,7 +2208,7 @@ Regeln:
                 taschengeld: numOrDefault(document.getElementById('taschengeldInput').value, 200),
                 giroPuffer: numOrDefault(document.getElementById('giroPufferInput').value, 40),
                 restSplitMode: document.getElementById('restSplitModeInput').value || 'none',
-                restSplitVal: parseFloat(document.getElementById('restSplitValInput').value) || 0,
+                restSplitVal: (document.getElementById('restSplitModeInput').value === 'none') ? 0 : (parseFloat(document.getElementById('restSplitValInput').value) || 0),
                 restSplitTargetId: document.getElementById('restSplitTargetSelect').value || 'sparkonto_main',
                 booked: document.getElementById('gehaltBookedInput').checked,
                 extraTransfers: entries[m]?.extraTransfers || [],
@@ -2369,7 +2370,8 @@ Regeln:
             document.getElementById('taschengeldInput').value = item.taschengeld ?? 200;
             document.getElementById('giroPufferInput').value = item.giroPuffer ?? 40;
             document.getElementById('restSplitModeInput').value = item.restSplitMode || 'none';
-            document.getElementById('restSplitValInput').value = item.restSplitVal || 0;
+            document.getElementById('restSplitValInput').value = (item.restSplitMode === 'none') ? 0 : (item.restSplitVal || 0);
+            document.getElementById('restSplitValInput').disabled = (item.restSplitMode === 'none' || !item.restSplitMode);
             if (item.restSplitTargetId) document.getElementById('restSplitTargetSelect').value = item.restSplitTargetId;
             document.getElementById('monthNotesInput').value = item.notes || '';
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
@@ -2613,6 +2615,11 @@ Regeln:
             (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
             document.getElementById('resNotfallAbzug').innerText = '-' + (calc.notfallSparen + extraNotfall).toFixed(2) + ' €';
 
+            const splitValEl = document.getElementById('restSplitValInput');
+            if (splitValEl) {
+                splitValEl.disabled = (item.restSplitMode === 'none');
+                if (item.restSplitMode === 'none') splitValEl.value = 0;
+            }
             const splitRow = document.getElementById('resSparkontoSplitRow');
             if (calc.sparkontoSplitSparen > 0) {
                 const targetObj = goals.find(g => g.id === calc.sparkontoSplitTargetId);
@@ -2695,7 +2702,7 @@ Regeln:
             
             let diff = 0; 
             (transfersList || []).forEach(tr => { 
-                if(tr.dateKey < upto && entries[tr.dateKey]?.booked) { 
+                if(tr.dateKey <= upto) { 
                     if(tr.fromId === goal.id) diff -= tr.amount; 
                     if(tr.toId === goal.id) diff += tr.amount; 
                 } 
@@ -2870,15 +2877,18 @@ Regeln:
 
         function renderHistory() {
             const tableBody = document.getElementById('monthSavingsTableBody'); if(!tableBody) return; tableBody.innerHTML = '';
-            let runningNotfall = parseFloat(goals.find(g => g.id === 'notfall')?.manualOffset || 0);
-            let runningKassette = parseFloat(goals.find(g => g.id === 'kassette')?.manualCurrent || 0);
+            let base = getSelectedMonthKey();
+            let runningNotfall = getSavedAmountForGoalUpTo(goals.find(g => g.id === 'notfall'), base);
+            let runningKassette = getSavedAmountForGoalUpTo(goals.find(g => g.id === 'kassette'), base);
             
             let subKontenRunning = {};
             goals.forEach(g => {
-                if(g.id !== 'notfall' && g.id !== 'kassette') subKontenRunning[g.id] = parseFloat(g.manualOffset || g.manualCurrent || 0);
+                if(g.id !== 'notfall' && g.id !== 'kassette') {
+                    subKontenRunning[g.id] = getSavedAmountForGoalUpTo(g, base);
+                }
             });
 
-            let base = getSelectedMonthKey(), allM = new Set(); let t = base; 
+            let allM = new Set(); let t = base; 
             for(let i=0; i<12; i++) { allM.add(t); t = getNextMonthKey(t); }
             let netWorth = [];
 
@@ -2900,7 +2910,10 @@ Regeln:
                 goals.forEach(g => {
                     if(g.id !== 'notfall' && g.id !== 'kassette' && subKontenRunning[g.id] !== undefined) {
                         if(g.type === 'giro_puffer') subKontenRunning[g.id] += calc.giroPuffer;
-                        else subKontenRunning[g.id] += getActiveDeductionsForGoal(g, k);
+                        else {
+                            let hasExtra = (item.extraTransfers || []).some(tr => tr.targetId === g.id);
+                            if (!hasExtra) subKontenRunning[g.id] += getActiveDeductionsForGoal(g, k);
+                        }
                     }
                 });
 
@@ -2967,8 +2980,10 @@ Regeln:
             const goal = goals.find(g => g.id === u.goalId);
             document.getElementById('uHeaderTitle').innerText = goal ? goal.name : 'Urlaub';
             document.getElementById('uTargetGoalName').innerText = goal ? goal.name : '-';
-            const target = goal ? goal.target : 0; 
-            document.getElementById('uTargetBudgetDisplay').innerText = getSavedAmountForGoal(goal).toFixed(2) + ' € (Aktuell)';
+            const target = goal ? (parseFloat(goal.target) || 0) : 0; 
+            const currentSaved = goal ? getSavedAmountForGoalUpTo(goal, getSelectedMonthKey()) : 0;
+
+            document.getElementById('uTargetBudgetDisplay').innerText = currentSaved.toFixed(2) + ' € (Live-Stand)';
             document.getElementById('uPlannedBudgetDisplay').innerText = target > 0 ? (target.toFixed(2) + ' € (Ziel)') : 'Endlos';
             
             document.getElementById('urlaubManualStartDate').value = u.startDate || '';
@@ -2982,7 +2997,9 @@ Regeln:
             document.getElementById('uFixAbreisePuffer').value = u.fixAbreisePuffer || 0;
             document.getElementById('uFixAbreiseTag').value = u.fixAbreiseTag || '';
 
-            let effectiveBudget = (u.previewBudget !== undefined && u.previewBudget !== '' && !isNaN(parseFloat(u.previewBudget))) ? parseFloat(u.previewBudget) : target;
+            let effectiveBudget = (u.previewBudget !== undefined && u.previewBudget !== '' && !isNaN(parseFloat(u.previewBudget)))
+                ? parseFloat(u.previewBudget)
+                : currentSaved;
 
             let days = 4; if (u.startDate && u.endDate) days = Math.max(1, Math.floor((new Date(u.endDate) - new Date(u.startDate))/(1000*60*60*24))+1);
             if (!u.dailyBonuses || u.dailyBonuses.length !== days) { u.dailyBonuses = new Array(days).fill(0); u.dailyActuals = new Array(days).fill(''); }
