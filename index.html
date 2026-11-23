@@ -2725,7 +2725,7 @@ Regeln:
                 } 
             });
 
-            let sum = parseFloat(goal.manualOffset ?? goal.manualCurrent ?? 0);
+            let sum = (parseFloat(goal.manualOffset) || 0) + (['notfall', 'freizeit', 'kassette'].includes(goal.id) || goal.type === 'notfall_sub' || goal.type === 'giro_puffer' ? 0 : (parseFloat(goal.manualCurrent) || 0));
             Object.keys(entries || {}).sort().forEach(k => {
                 if(k <= upto && entries[k]?.booked) {
                     let calc = calculateValuesFor(entries[k], k);
@@ -3215,16 +3215,24 @@ Regeln:
         function addManualDepositToGoal() {
             const amt = parseFloat(document.getElementById('manualDepositAmount').value); if(isNaN(amt)||amt<=0) return alert('Bitte gültigen Betrag eingeben!');
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
-            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') g.manualOffset = (g.manualOffset || 0) + amt; else g.manualCurrent = (g.manualCurrent || 0) + amt;
+            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') {
+                g.manualOffset = (parseFloat(g.manualOffset) || 0) + amt;
+            } else {
+                g.manualCurrent = (parseFloat(g.manualCurrent) || 0) + amt;
+            }
             document.getElementById('manualDepositAmount').value = '';
-            saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert(`${amt.toFixed(2)} € erfolgreich eingezahlt! ➕`);
+            saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId);
         }
         function withdrawManualFromGoal() {
             const amt = parseFloat(document.getElementById('manualWithdrawAmount').value); if(isNaN(amt)||amt<=0) return alert('Bitte gültigen Betrag eingeben!');
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
-            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') g.manualOffset = (g.manualOffset || 0) - amt; else g.manualCurrent = (g.manualCurrent || 0) - amt;
+            if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') {
+                g.manualOffset = (parseFloat(g.manualOffset) || 0) - amt;
+            } else {
+                g.manualCurrent = (parseFloat(g.manualCurrent) || 0) - amt;
+            }
             document.getElementById('manualWithdrawAmount').value = '';
-            saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId); alert(`${amt.toFixed(2)} € erfolgreich abgehoben! ➖`);
+            saveLocally(); renderGoals(); renderHistory(); openModal(currentModalGoalId);
         }
 
         function saveGoal() {
@@ -3235,7 +3243,9 @@ Regeln:
             const evAmt = parseFloat(document.getElementById('zielPlannedEventAmount')?.value) || 0;
             const evMon = document.getElementById('zielPlannedEventMonth')?.value || '';
             const plannedEvents = (evAmt > 0 && evMon) ? [{ id: Date.now() + Math.random(), month: evMon, amount: evAmt, note: 'Geplanter Betrag' }] : [];
-            goals.push({ id, name, target, type, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), endDate: document.getElementById('zielAutoDivideCheckbox').checked?document.getElementById('zielEndMonthInput').value:null, manualCurrent: parseFloat(document.getElementById('zielStart').value)||0, manualOffset: parseFloat(document.getElementById('zielStart').value)||0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked, plannedEvents });
+            const startAmt = parseFloat(document.getElementById('zielStart').value)||0;
+            const usesOffset = ['notfall','freizeit'].includes(id) || type === 'notfall_sub' || type === 'giro_puffer';
+            goals.push({ id, name, target, type, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), endDate: document.getElementById('zielAutoDivideCheckbox').checked?document.getElementById('zielEndMonthInput').value:null, manualCurrent: usesOffset ? 0 : startAmt, manualOffset: usesOffset ? startAmt : 0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked, plannedEvents });
             
             if(document.getElementById('zielAutoUrlaubCheckbox').checked) {
                 urlaubeList.push({ goalId: id, startDate: document.getElementById('zielStartDateInput').value, endDate: document.getElementById('zielEndDateInput').value });
