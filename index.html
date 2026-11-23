@@ -587,6 +587,8 @@
                     <div class="input-group full"><label>Name</label><input type="text" id="zielName" placeholder="Z.B. Auto, Technik, Sparkonto..."></div>
                     <div class="input-group"><label>Zielbetrag (€) (Opt. / 0 = Endlos)</label><input type="number" id="zielBetrag" placeholder="0 oder 1500" oninput="autoCalculateMonthlyRate()"></div>
                     <div class="input-group"><label>Sparrate (€/Mo)</label><input type="number" id="zielFixedMonthly" placeholder="100"></div>
+                    <div class="input-group"><label>Geplanter Event-Betrag (€) (z.B. Geburtstag)</label><input type="number" id="zielPlannedEventAmount" placeholder="0" oninput="autoCalculateMonthlyRate()"></div>
+                    <div class="input-group"><label>Event-Monat (optional)</label><input type="month" id="zielPlannedEventMonth" onchange="autoCalculateMonthlyRate()"></div>
                     <div class="input-group full"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
                     <div class="input-group full">
                         <label>Typ / Zuordnung</label>
@@ -1027,6 +1029,18 @@
             </div>
             <button class="btn-add" onclick="saveModalChanges()" style="margin-bottom: 6px;">Speichern</button>
             <button class="btn-add" onclick="deleteCurrentModalGoal()" style="background:var(--accent-red); color:#fff; margin-bottom: 10px;">🗑️ Komplett Löschen</button>
+            <div style="background:var(--accent-orange-soft); border:1px solid var(--accent-orange); padding:10px; border-radius:10px; margin-bottom:10px;">
+                <label style="color:var(--accent-orange); font-weight:800;">🎂 Geplante Beträge (z. B. Geburtstag / Event)</label>
+                <div style="font-size:0.7rem; color:var(--text-sub); margin-bottom:6px;">Plane feste Ausgaben/Beträge in bestimmten Monaten – das Sparbuch rechnet dir live hoch, ob das Geld dann reicht!</div>
+                <div class="grid" style="gap:5px; margin-bottom:6px;">
+                    <div class="input-group" style="margin-bottom:0;"><label style="font-size:0.68rem;">Monat</label><input type="month" id="plannedEventMonthInput" style="font-size:0.78rem; padding:5px;"></div>
+                    <div class="input-group" style="margin-bottom:0;"><label style="font-size:0.68rem;">Betrag (€)</label><input type="number" id="plannedEventAmountInput" placeholder="z.B. 150" style="font-size:0.78rem; padding:5px;"></div>
+                    <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.68rem;">Anlass / Notiz</label><input type="text" id="plannedEventNoteInput" placeholder="z.B. Geburtstag Sarah" style="font-size:0.78rem; padding:5px;"></div>
+                </div>
+                <button type="button" class="btn-secondary" style="background:var(--accent-orange); color:#fff; border:none; width:100%; font-weight:bold;" onclick="addPlannedEventToCurrentGoal()">Geplanten Betrag vormerken 📅➕</button>
+                <div id="plannedEventsListInModal" class="history-list" style="margin-top:8px;"></div>
+            </div>
+            <div style="font-size:0.75rem; font-weight:800; color:var(--accent); margin-bottom:6px;">📈 Hochrechnung im Sparbuch</div>
             <div class="history-list" id="modalHistoryList"></div>
             <button class="btn-add" onclick="closeModal()" style="background: var(--tab-bg); color: var(--text-main); margin-top: 8px;">Schließen</button>
         </div>
@@ -2783,9 +2797,12 @@ Regeln:
                 let transferDiff = 0;
                 (transfersList || []).forEach(tr => { if (tr.dateKey === k) { if(tr.fromId === goalId) transferDiff -= tr.amount; if(tr.toId === goalId) transferDiff += tr.amount; } });
 
-                proj += add + transferDiff; 
-                if(item.booked) sum += add + transferDiff;
-                breakdown.push({ month: k, amount: add + transferDiff, totalSoFar: proj });
+                const monthPlannedEvents = (goal.plannedEvents || []).filter(pe => pe.month === k);
+                const plannedOutSum = monthPlannedEvents.reduce((acc, pe) => acc + (parseFloat(pe.amount) || 0), 0);
+                const netChange = add + transferDiff - plannedOutSum;
+                proj += netChange; 
+                if(item.booked) sum += netChange;
+                breakdown.push({ month: k, amount: add + transferDiff, plannedOut: plannedOutSum, plannedNotes: monthPlannedEvents.map(pe => pe.note || 'Event').join(', '), totalSoFar: proj });
             });
             return { total: (goal.id === 'kassette'?goal.manualCurrent:sum), projectedTotal: proj, breakdown };
         }
@@ -3117,6 +3134,7 @@ Regeln:
                                 </div>
                                 <span style="font-size:0.7rem; color:var(--accent-red); cursor:pointer;" onclick="event.stopPropagation(); deleteGoalDirect(${idx})">🗑️</span>
                             </div>
+                            ${(g.plannedEvents && g.plannedEvents.length > 0) ? `<div style="margin-top:4px;"><span class="badge" style="background:var(--accent-orange-soft); color:var(--accent-orange);">🎂 ${g.plannedEvents.length} geplant (${g.plannedEvents.reduce((s,x)=>s+(parseFloat(x.amount)||0),0).toFixed(0)} €)</span></div>` : ''}
                             <div class="history-sub" style="display:flex; justify-content:space-between; margin-top:6px; cursor:pointer;" onclick="openModal('${g.id}')">
                                 <span>Stand: <strong class="sensitive-val">${cur.toFixed(2)} €</strong> ${hasTarget ? ('/ <span class="sensitive-val">' + targetVal.toFixed(2) + ' €</span>') : ''}</span>
                                 <strong class="${pct < 0 ? 'val-red' : 'val-highlight'}" style="font-size:0.8rem;">${hasTarget ? pct.toFixed(0) + '%' : '♾️'}</strong>
@@ -3151,7 +3169,9 @@ Regeln:
             const hist = document.getElementById('modalHistoryList');
             hist.innerHTML = '';
             data.breakdown.forEach(b => {
-                hist.innerHTML += `<div class="history-item"><div>${b.month}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Geplant)</span><div class="history-sub" style="color:var(--accent); font-weight:bold;">Stand: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
+                const outBadge = b.plannedOut > 0 ? `<div class="history-sub" style="color:var(--accent-red); font-weight:bold;">🎂 Geplant (${b.plannedNotes}): -${b.plannedOut.toFixed(2)} €</div>` : '';
+                const standColor = b.totalSoFar < 0 ? 'var(--accent-red)' : 'var(--accent)';
+                hist.innerHTML += `<div class="history-item" style="${b.totalSoFar < 0 ? 'border-color:var(--accent-red); background:var(--accent-red-soft);' : ''}"><div><strong>${b.month}</strong>${outBadge}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Sparrate)</span><div class="history-sub" style="color:${standColor}; font-weight:800;">Hochrechnung: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
             });
         }
 
@@ -3170,6 +3190,9 @@ Regeln:
             const stornoSel = document.getElementById('stornoTargetSelect'); stornoSel.innerHTML = '';
             goals.forEach(x => { if(x.id !== gid) { sel.add(new Option(x.name, x.id)); stornoSel.add(new Option(x.name, x.id)); } });
 
+            const evMonthInp = document.getElementById('plannedEventMonthInput');
+            if (evMonthInp && !evMonthInp.value) evMonthInp.value = getSelectedMonthKey();
+            renderPlannedEventsInModal(g);
             updateLiveModalProjection();
             document.getElementById('goalModal').classList.add('active');
         }
@@ -3209,16 +3232,70 @@ Regeln:
             if(!name) return alert('Bitte einen Namen eingeben!');
             const target = parseFloat(document.getElementById('zielBetrag').value) || 0;
             const id = 'goal_' + Date.now(), type = document.getElementById('zielTypeSelect').value;
-            goals.push({ id, name, target, type, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), endDate: document.getElementById('zielAutoDivideCheckbox').checked?document.getElementById('zielEndMonthInput').value:null, manualCurrent: parseFloat(document.getElementById('zielStart').value)||0, manualOffset: parseFloat(document.getElementById('zielStart').value)||0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked });
+            const evAmt = parseFloat(document.getElementById('zielPlannedEventAmount')?.value) || 0;
+            const evMon = document.getElementById('zielPlannedEventMonth')?.value || '';
+            const plannedEvents = (evAmt > 0 && evMon) ? [{ id: Date.now() + Math.random(), month: evMon, amount: evAmt, note: 'Geplanter Betrag' }] : [];
+            goals.push({ id, name, target, type, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), endDate: document.getElementById('zielAutoDivideCheckbox').checked?document.getElementById('zielEndMonthInput').value:null, manualCurrent: parseFloat(document.getElementById('zielStart').value)||0, manualOffset: parseFloat(document.getElementById('zielStart').value)||0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked, plannedEvents });
             
             if(document.getElementById('zielAutoUrlaubCheckbox').checked) {
                 urlaubeList.push({ goalId: id, startDate: document.getElementById('zielStartDateInput').value, endDate: document.getElementById('zielEndDateInput').value });
                 activeUrlaubGoalId = id;
             }
 
-            saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = '';
+            saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; if(document.getElementById('zielPlannedEventAmount')) document.getElementById('zielPlannedEventAmount').value = ''; if(document.getElementById('zielPlannedEventMonth')) document.getElementById('zielPlannedEventMonth').value = '';
             renderGoals(); renderHistory(); checkUrlaubTabVisibility(); updateSubKontoDropdowns(); alert('Sparziel / Unterkonto angelegt! 🎯');
         }
+
+        function addPlannedEventToCurrentGoal() {
+            if (!currentModalGoalId) return;
+            const g = goals.find(x => x.id === currentModalGoalId);
+            if (!g) return;
+            const month = document.getElementById('plannedEventMonthInput').value;
+            const amount = parseFloat(document.getElementById('plannedEventAmountInput').value);
+            const note = (document.getElementById('plannedEventNoteInput').value || '').trim() || 'Geplanter Betrag';
+            if (!month || isNaN(amount) || amount <= 0) return alert('Bitte Monat und einen gültigen Betrag eingeben!');
+            if (!g.plannedEvents) g.plannedEvents = [];
+            g.plannedEvents.push({ id: Date.now() + Math.random(), month, amount, note });
+            document.getElementById('plannedEventAmountInput').value = '';
+            document.getElementById('plannedEventNoteInput').value = '';
+            saveLocally();
+            renderPlannedEventsInModal(g);
+            updateLiveModalProjection();
+            renderGoals();
+        }
+
+        function deletePlannedEventFromGoal(eventId) {
+            if (!currentModalGoalId) return;
+            const g = goals.find(x => x.id === currentModalGoalId);
+            if (!g || !g.plannedEvents) return;
+            g.plannedEvents = g.plannedEvents.filter(pe => pe.id !== eventId);
+            saveLocally();
+            renderPlannedEventsInModal(g);
+            updateLiveModalProjection();
+            renderGoals();
+        }
+
+        function renderPlannedEventsInModal(goal) {
+            const box = document.getElementById('plannedEventsListInModal');
+            if (!box) return;
+            const evs = (goal.plannedEvents || []).slice().sort((a, b) => a.month.localeCompare(b.month));
+            if (evs.length === 0) {
+                box.innerHTML = `<div style="font-size:0.7rem; color:var(--text-sub);">Noch keine geplanten Beträge (z. B. Geburtstag) hinterlegt.</div>`;
+                return;
+            }
+            box.innerHTML = evs.map(pe => `
+                <div class="history-item" style="padding:6px 10px;">
+                    <div>
+                        <div class="history-date" style="font-size:0.78rem;">🎂 ${pe.month} – ${pe.note}</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <strong class="val-red" style="font-size:0.78rem;">-${parseFloat(pe.amount).toFixed(2)} €</strong>
+                        <span style="cursor:pointer; color:var(--accent-red); font-size:0.8rem;" onclick="deletePlannedEventFromGoal(${pe.id})">🗑️</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
     </script>
 </body>
 </html>
