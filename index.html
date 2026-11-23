@@ -2557,7 +2557,7 @@ Regeln:
             const einkaufsGeld = item.taschengeld !== undefined && !isNaN(parseFloat(item.taschengeld)) ? parseFloat(item.taschengeld) : 200;
             const giroPuffer = item.giroPuffer !== undefined && !isNaN(parseFloat(item.giroPuffer)) ? parseFloat(item.giroPuffer) : 40;
             const sparzieleSumme = getTotalGoalDeductionsForMonth(activeMonth, item);
-            const afterAbzuege = Math.max(0, netto - einkaufsGeld - sparzieleSumme);
+            const afterAbzuege = Math.max(0, netto - einkaufsGeld - giroPuffer - sparzieleSumme);
 
             const splitMode = item.restSplitMode || 'none';
             const splitVal = parseFloat(item.restSplitVal) || 0;
