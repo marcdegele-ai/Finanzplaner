@@ -2190,16 +2190,22 @@ Regeln:
             calcDisplayUpdate();
         }
 
+        function numOrDefault(val, def) {
+            if (val === '' || val === null || val === undefined) return def;
+            const n = parseFloat(val);
+            return isNaN(n) ? def : n;
+        }
+
         function autoSaveLive() {
             const m = getSelectedMonthKey(); if(!m) return;
             entries[m] = {
-                gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300,
-                bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0,
+                gehalt: numOrDefault(document.getElementById('gehaltInput').value, 2300),
+                bargeldEinnahme: numOrDefault(document.getElementById('bargeldEinnahmeInput').value, 0),
                 items: JSON.parse(JSON.stringify(currentMonthItems)),
                 pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
-                bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0,
-                taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200,
-                giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 40,
+                bargeld: numOrDefault(document.getElementById('bargeldInput').value, 0),
+                taschengeld: numOrDefault(document.getElementById('taschengeldInput').value, 200),
+                giroPuffer: numOrDefault(document.getElementById('giroPufferInput').value, 40),
                 restSplitMode: document.getElementById('restSplitModeInput').value || 'none',
                 restSplitVal: parseFloat(document.getElementById('restSplitValInput').value) || 0,
                 restSplitTargetId: document.getElementById('restSplitTargetSelect').value || 'sparkonto_main',
@@ -2521,14 +2527,35 @@ Regeln:
             saveLocally(); renderExpenseItemsModal(); autoSaveLive();
         }
 
-        function calculateValuesFor(item) {
-            if(!item) return { netto: 0, einkaufsGeld: 0, giroPuffer: 40, notfallSparen: 0, sparkontoSplitSparen: 0, sparkontoSplitTargetId: 'sparkonto_main', bargeldSparen: 0, gesamtSparen: 0 };
-            const fix = getTotalFixForMonthData(item), g = (parseFloat(item.gehalt) || 2300) + (parseFloat(item.bargeldEinnahme) || 0);
+        function getTotalGoalDeductionsForMonth(mKey, monthData) {
+            let total = 0;
+            (goals || []).forEach(g => {
+                if (g.id === 'notfall' || g.type === 'giro_puffer') return;
+                let extra = 0;
+                (monthData?.extraTransfers || []).forEach(tr => {
+                    if (tr.targetId === g.id) extra += parseFloat(tr.amount) || 0;
+                });
+                if (extra > 0) {
+                    total += extra;
+                } else {
+                    total += getActiveDeductionsForGoal(g, mKey);
+                }
+            });
+            return Math.round(total * 100) / 100;
+        }
+
+        function calculateValuesFor(item, mKey = null) {
+            if(!item) return { netto: 0, einkaufsGeld: 0, giroPuffer: 40, sparzieleSumme: 0, notfallSparen: 0, sparkontoSplitSparen: 0, sparkontoSplitTargetId: 'sparkonto_main', bargeldSparen: 0, gesamtSparen: 0 };
+            const activeMonth = mKey || getSelectedMonthKey();
+            const fix = getTotalFixForMonthData(item);
+            const gehaltVal = item.gehalt !== undefined ? parseFloat(item.gehalt) : 2300;
+            const g = (isNaN(gehaltVal) ? 2300 : gehaltVal) + (parseFloat(item.bargeldEinnahme) || 0);
             const netto = g - fix;
             
-            const einkaufsGeld = parseFloat(item.taschengeld ?? 200) || 0;
-            const giroPuffer = parseFloat(item.giroPuffer ?? 40) || 0;
-            const afterAbzuege = Math.max(0, netto - einkaufsGeld - giroPuffer);
+            const einkaufsGeld = item.taschengeld !== undefined && !isNaN(parseFloat(item.taschengeld)) ? parseFloat(item.taschengeld) : 200;
+            const giroPuffer = item.giroPuffer !== undefined && !isNaN(parseFloat(item.giroPuffer)) ? parseFloat(item.giroPuffer) : 40;
+            const sparzieleSumme = getTotalGoalDeductionsForMonth(activeMonth, item);
+            const afterAbzuege = Math.max(0, netto - einkaufsGeld - giroPuffer - sparzieleSumme);
 
             const splitMode = item.restSplitMode || 'none';
             const splitVal = parseFloat(item.restSplitVal) || 0;
@@ -2549,11 +2576,12 @@ Regeln:
                 netto: Math.round(netto*100)/100, 
                 einkaufsGeld: einkaufsGeld, 
                 giroPuffer: giroPuffer,
+                sparzieleSumme: sparzieleSumme,
                 notfallSparen: Math.round(notfall*100)/100, 
                 sparkontoSplitSparen: Math.round(sparkontoSplit*100)/100,
                 sparkontoSplitTargetId: targetId,
                 bargeldSparen: bargeld, 
-                gesamtSparen: Math.round((notfall + sparkontoSplit + bargeld + giroPuffer)*100)/100 
+                gesamtSparen: Math.round((notfall + sparkontoSplit + sparzieleSumme + bargeld + giroPuffer)*100)/100 
             };
         }
 
@@ -2561,19 +2589,20 @@ Regeln:
             const m = getSelectedMonthKey(), monthData = entries[m] || {};
             const isBooked = document.getElementById('gehaltBookedInput').checked;
             const item = { 
-                gehalt: parseFloat(document.getElementById('gehaltInput').value) || 2300, 
-                bargeldEinnahme: parseFloat(document.getElementById('bargeldEinnahmeInput').value) || 0, 
+                gehalt: numOrDefault(document.getElementById('gehaltInput').value, 2300), 
+                bargeldEinnahme: numOrDefault(document.getElementById('bargeldEinnahmeInput').value, 0), 
                 items: currentMonthItems, 
                 pausedItems: currentMonthPausedItems, 
-                bargeld: parseFloat(document.getElementById('bargeldInput').value) || 0, 
-                taschengeld: parseFloat(document.getElementById('taschengeldInput').value) || 200, 
-                giroPuffer: parseFloat(document.getElementById('giroPufferInput').value) || 40,
+                bargeld: numOrDefault(document.getElementById('bargeldInput').value, 0), 
+                taschengeld: numOrDefault(document.getElementById('taschengeldInput').value, 200), 
+                giroPuffer: numOrDefault(document.getElementById('giroPufferInput').value, 40),
                 restSplitMode: document.getElementById('restSplitModeInput').value || 'none',
-                restSplitVal: parseFloat(document.getElementById('restSplitValInput').value) || 0,
+                restSplitVal: numOrDefault(document.getElementById('restSplitValInput').value, 0),
                 restSplitTargetId: document.getElementById('restSplitTargetSelect').value || 'sparkonto_main',
-                booked: isBooked 
+                booked: isBooked,
+                extraTransfers: monthData.extraTransfers || []
             };
-            const calc = calculateValuesFor(item);
+            const calc = calculateValuesFor(item, m);
             
             document.getElementById('displayMonth').innerText = m;
             document.getElementById('resNetto').innerText = calc.netto.toFixed(2) + ' €';
@@ -2582,7 +2611,7 @@ Regeln:
             
             let extraNotfall = 0; 
             (monthData.extraTransfers || []).forEach(tr => { if (tr.targetId === 'notfall') extraNotfall += tr.amount; });
-            document.getElementById('resNotfallAbzug').innerText = '-' + (calc.notfallSparen + (isBooked ? extraNotfall : 0)).toFixed(2) + ' €';
+            document.getElementById('resNotfallAbzug').innerText = '-' + (calc.notfallSparen + extraNotfall).toFixed(2) + ' €';
 
             const splitRow = document.getElementById('resSparkontoSplitRow');
             if (calc.sparkontoSplitSparen > 0) {
@@ -2601,13 +2630,13 @@ Regeln:
             
             goals.forEach(g => {
                 if(g.id === 'notfall' || g.type === 'giro_puffer') return;
-                let share = isBooked ? getActiveDeductionsForGoal(g, m) : 0;
+                let share = getActiveDeductionsForGoal(g, m);
                 let extraShare = 0, extraId = null;
                 (monthData.extraTransfers || []).forEach(tr => { 
                     if (tr.targetId === g.id) { extraShare += tr.amount; extraId = tr.id; } 
                 });
                 
-                if (extraShare > 0 && isBooked) {
+                if (extraShare > 0) {
                     totalDeductions += extraShare;
                     container.innerHTML += `<div class="stat-row sub-row"><span>⚡ ${g.name} (Extra <button class="storno-btn" onclick="cancelExtraTransfer(${extraId})">Storno</button>)</span><span class="val-red">-${extraShare.toFixed(2)} €</span></div>`;
                 } else if (share > 0) {
@@ -2655,7 +2684,7 @@ Regeln:
         function renderNextThree(k) {
             const list = document.getElementById('nextThreeList'); list.innerHTML = ''; let t = k;
             for(let i=0; i<3; i++) {
-                t = getNextMonthKey(t); const item = getMonthDataOrFallback(t), calc = calculateValuesFor(item);
+                t = getNextMonthKey(t); const item = getMonthDataOrFallback(t), calc = calculateValuesFor(item, t);
                 list.innerHTML += `<div class="history-item" onclick="syncMonthInput('${t}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><div><div class="history-date">${t} ${item.booked?'✅':''}</div><div class="history-sub">Gehalt: ${item.gehalt}€</div></div><div style="text-align:right;"><span class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</span></div></div>`;
             }
         }
@@ -2677,7 +2706,7 @@ Regeln:
                 Object.keys(entries || {}).sort().forEach(k => { 
                     let nextK = getNextMonthKey(k);
                     if(nextK <= upto && entries[k]?.booked) {
-                        let calc = calculateValuesFor(entries[k]);
+                        let calc = calculateValuesFor(entries[k], k);
                         if(goal.id === 'notfall') sum += calc.notfallSparen;
                         if(goal.type === 'giro_puffer') sum += calc.giroPuffer;
                         if(calc.sparkontoSplitTargetId === goal.id) sum += calc.sparkontoSplitSparen;
@@ -2692,7 +2721,7 @@ Regeln:
             Object.keys(entries || {}).sort().forEach(k => {
                 let nextK = getNextMonthKey(k);
                 if(nextK <= upto && (!goal.startMonth || nextK >= goal.startMonth) && entries[k]?.booked) {
-                    let calc = calculateValuesFor(entries[k]);
+                    let calc = calculateValuesFor(entries[k], k);
                     let scheduled = getActiveDeductionsForGoal(goal, k);
                     let extra = 0;
                     (entries[k]?.extraTransfers || []).forEach(tr => { if (tr.targetId === goal.id) extra += tr.amount; });
@@ -2726,7 +2755,7 @@ Regeln:
             else if (goal.fixedMonthly !== undefined && goal.fixedMonthly !== null) fixedRate = parseFloat(String(goal.fixedMonthly).replace(',', '.')) || 0;
             
             monthList.forEach(k => {
-                const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
+                const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item, k);
                 let add = 0, isTerminated = false;
                 if (endLimitStr && k >= endLimitStr) isTerminated = true;
                 if (u && u.endDate && k >= u.endDate.slice(0, 7)) isTerminated = true;
@@ -2854,7 +2883,7 @@ Regeln:
             let netWorth = [];
 
             Array.from(allM).sort().forEach(k => {
-                const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item);
+                const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item, k);
                 let extraN = 0; 
                 (item.extraTransfers || []).forEach(tr => { 
                     if (tr.targetId === 'notfall') extraN += tr.amount; 
@@ -2901,7 +2930,7 @@ Regeln:
 
             for(let m=1; m<=12; m++) {
                 const mk = `${yr}-${String(m).padStart(2,'0')}`;
-                const item = getMonthDataOrFallback(mk), calc = calculateValuesFor(item);
+                const item = getMonthDataOrFallback(mk), calc = calculateValuesFor(item, mk);
                 let e = (item.gehalt || 2300) + (item.bargeldEinnahme || 0);
                 geplantEinnahmen += e;
                 
