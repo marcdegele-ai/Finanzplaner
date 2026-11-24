@@ -421,6 +421,16 @@
                 <div class="card-title">🔮 Vorschau (3 Monate)</div>
                 <div class="history-list" id="nextThreeList"></div>
             </div>
+
+            <div class="card" style="background: var(--card-sub); border: 1px solid var(--border);">
+                <div class="card-title"><span>⚡ Schnell-Aktionen</span></div>
+                <div class="grid" style="gap: 6px;">
+                    <button type="button" class="btn-secondary" style="padding: 8px; font-weight: bold;" onclick="switchTab('haushalt-view', document.querySelector('[data-view=haushalt-view]'))">🏠 Haushaltsbuch öffnen</button>
+                    <button type="button" class="btn-secondary" style="padding: 8px; font-weight: bold;" onclick="switchTab('dok-view', document.querySelector('[data-view=dok-view]'))">📂 Abrechnungen &amp; Dokumente</button>
+                    <button type="button" class="btn-secondary" style="padding: 8px; font-weight: bold;" onclick="switchTab('jahres-view', document.querySelector('[data-view=jahres-view]'))">📈 Jahres-Check</button>
+                    <button type="button" class="btn-secondary" style="padding: 8px; font-weight: bold;" onclick="openCloudModal()">☁️ Cloud-Sync prüfen</button>
+                </div>
+            </div>
         </div>
 
         <!-- TAB 2: HAUSHALTSBUCH -->
@@ -541,6 +551,11 @@
                         </select>
                     </div>
                 </div>
+                <div style="display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
+                    <button type="button" class="quick-btn" id="hhFilterAllBtn" onclick="setHhTypeFilter('all')">Alle</button>
+                    <button type="button" class="quick-btn" id="hhFilterExpBtn" onclick="setHhTypeFilter('expense')">🔴 Nur Ausgaben</button>
+                    <button type="button" class="quick-btn" id="hhFilterIncBtn" onclick="setHhTypeFilter('income')">🟢 Nur Einnahmen</button>
+                </div>
                 <div class="history-list" id="HHList"></div>
             </div>
         </div>
@@ -595,7 +610,7 @@
                         </select>
                     </div>
                     <div class="input-group"><label>Geplanter Event-Betrag (€)</label><input type="number" id="zielPlannedEventAmount" placeholder="0" oninput="autoCalculateMonthlyRate()"></div>
-                    <div class="input-group full"><label>Event-Monat (optional)</label><input type="month" id="zielPlannedEventMonth" onchange="autoCalculateMonthlyRate()"></div>
+                    <div class="input-group full"><label>Event-Datum (tagegenau, optional)</label><input type="date" id="zielPlannedEventDate" onchange="autoCalculateMonthlyRate()"></div>
                     <div class="input-group full"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
                     <div class="input-group full">
                         <label>Typ / Zuordnung</label>
@@ -612,9 +627,10 @@
                         <label class="checkbox-container"><input type="checkbox" id="zielCapAtTargetCheckbox" checked><div><strong>Auto-Stopp bei Erreichen</strong></div></label>
                     </div>
                     <div class="input-group full">
-                        <label class="checkbox-container"><input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()"><div><strong>Gleichmäßig bis Endmonat aufteilen</strong></div></label>
+                        <label class="checkbox-container"><input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()"><div><strong>Gleichmäßig bis Zieldatum (tagegenau) aufteilen</strong></div></label>
                     </div>
-                    <div class="input-group full" id="zielEndMonthGroup" style="display:none;"><label>Endmonat</label><input type="month" id="zielEndMonthInput" value="2027-12"></div>
+                    <div class="input-group" id="zielEndDateExactGroup" style="display:none;"><label>Zieldatum (tagegenau)</label><input type="date" id="zielExactEndDateInput" onchange="syncExactEndDateToMonth()"></div>
+                    <div class="input-group" id="zielEndMonthGroup" style="display:none;"><label>Endmonat (automatisch / alternativ)</label><input type="month" id="zielEndMonthInput" value="2027-12" onchange="autoCalculateMonthlyRate()"></div>
                     <div class="input-group full">
                         <label class="checkbox-container"><input type="checkbox" id="zielAutoUrlaubCheckbox" onchange="toggleAutoUrlaubFields()"><div><strong>✨ Urlaubs-Planer generieren</strong></div></label>
                     </div>
@@ -699,7 +715,10 @@
                 </div>
 
                 <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 10px; border-radius: 10px;">
-                    <label style="color: var(--accent-green); font-weight: 800; font-size: 0.75rem; display:block; margin-bottom: 5px;">📥 3. Fertige JSON-Datei laden oder Code einfügen:</label>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px; gap:6px; flex-wrap:wrap;">
+                        <label style="color: var(--accent-green); font-weight: 800; font-size: 0.75rem;">📥 3. Fertige JSON-Datei laden, exportieren oder einfügen:</label>
+                        <button type="button" class="btn-secondary" style="padding: 3px 8px; font-size: 0.68rem;" onclick="downloadCurrentLineupJson()">⬇️ Aktuelles LineUp als .json</button>
+                    </div>
                     <div style="display:flex; gap:6px; margin-bottom:8px;">
                         <button type="button" class="btn-add" style="background: var(--accent-green); margin-top:0; font-size:0.78rem;" onclick="document.getElementById('lineupJsonFileInput').click()">📂 .json Datei hochladen</button>
                         <input type="file" id="lineupJsonFileInput" accept=".json,application/json" style="display:none" onchange="importLineupFromJsonFile(event)">
@@ -1038,7 +1057,10 @@
             <div class="card-title" id="modalTitle">Ziel-Details</div>
             <div class="input-group" style="margin-bottom: 6px;"><label>Zielbetrag (€) (0 = Endlos):</label><input type="number" id="modalTargetInput" oninput="updateLiveModalProjection()"></div>
             <div class="input-group" style="margin-bottom: 6px;"><label>Dauerauftrag (€/Mo):</label><input type="number" id="modalFixedMonthlyInput" oninput="updateLiveModalProjection()"></div>
-            <div class="input-group" style="margin-bottom: 6px;"><label>End-Monat:</label><input type="month" id="modalEndMonthInput" onchange="updateLiveModalProjection()"></div>
+            <div class="grid" style="gap: 6px; margin-bottom: 6px;">
+                <div class="input-group" style="margin-bottom: 0;"><label>Zieldatum (tagegenau):</label><input type="date" id="modalExactEndDateInput" onchange="syncModalExactDateToMonth()"></div>
+                <div class="input-group" style="margin-bottom: 0;"><label>End-Monat:</label><input type="month" id="modalEndMonthInput" onchange="updateLiveModalProjection()"></div>
+            </div>
             <div class="input-group" style="margin-bottom: 6px;"><label>Stand (Aktuell / Geplant):</label><span><strong id="modalCurrentInputDisplay">0</strong> / <span id="modalPlannedStandDisplay">0</span></span></div>
             <div class="input-group" style="margin-bottom: 6px;"><input type="number" id="modalCurrentInput" style="display:none;"></div>
             
@@ -1081,14 +1103,20 @@
                             <option value="in">🟢 Geplante Einnahme (+ €)</option>
                         </select>
                     </div>
-                    <div class="input-group" style="margin-bottom:0;"><label style="font-size:0.68rem;">Monat</label><input type="month" id="plannedEventMonthInput" style="font-size:0.78rem; padding:5px;"></div>
+                    <div class="input-group" style="margin-bottom:0;"><label style="font-size:0.68rem;">Datum (tagegenau)</label><input type="date" id="plannedEventDateInput" style="font-size:0.78rem; padding:5px;"></div>
                     <div class="input-group" style="margin-bottom:0;"><label style="font-size:0.68rem;">Betrag (€)</label><input type="number" id="plannedEventAmountInput" placeholder="z.B. 150" style="font-size:0.78rem; padding:5px;"></div>
                     <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.68rem;">Anlass / Notiz</label><input type="text" id="plannedEventNoteInput" placeholder="z.B. Geburtstag Sarah / Steuerrückzahlung" style="font-size:0.78rem; padding:5px;"></div>
                 </div>
-                <button type="button" class="btn-secondary" style="background:var(--accent-orange); color:#fff; border:none; width:100%; font-weight:bold;" onclick="addPlannedEventToCurrentGoal()">Geplanten Betrag vormerken 📅➕</button>
+                <button type="button" class="btn-secondary" style="background:var(--accent-orange); color:#fff; border:none; width:100%; font-weight:bold;" onclick="addPlannedEventToCurrentGoal()">Geplanten Betrag tagegenau vormerken 📅➕</button>
                 <div id="plannedEventsListInModal" class="history-list" style="margin-top:8px;"></div>
             </div>
-            <div style="font-size:0.75rem; font-weight:800; color:var(--accent); margin-bottom:6px;">📈 Hochrechnung im Sparbuch</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:6px;">
+                <span style="font-size:0.75rem; font-weight:800; color:var(--accent);">📈 Hochrechnung im Sparbuch</span>
+                <div style="display:flex; gap:4px;">
+                    <button type="button" class="quick-btn" id="projModeMonthBtn" onclick="setGoalProjectionMode('month')">Monate</button>
+                    <button type="button" class="quick-btn" id="projModeDayBtn" onclick="setGoalProjectionMode('day')">Tagegenau</button>
+                </div>
+            </div>
             <div class="history-list" id="modalHistoryList"></div>
             <button class="btn-add" onclick="closeModal()" style="background: var(--tab-bg); color: var(--text-main); margin-top: 8px;">Schließen</button>
         </div>
@@ -1282,6 +1310,7 @@
             updateCalendarBudgetDisplay();
             renderLineupView();
             updateStorageQuotaDisplay();
+            setHhTypeFilter('all');
         });
 
         function updateStorageQuotaDisplay() {
@@ -1442,6 +1471,36 @@
             // Fallback für Desktop / Browser ohne File-Share: Gemini öffnen + Hinweis
             window.open('https://gemini.google.com/app', '_blank');
             alert('✅ Der JSON-Befehl wurde in deine Zwischenablage kopiert & Gemini geöffnet!\n\nFüge im Gemini-Chat jetzt einfach das Bild + den kopierten Text ein – du bekommst sofort die fertige .json-Datei zurück.');
+        }
+
+        function downloadCurrentLineupJson() {
+            const payload = JSON.stringify({ lineupEvents }, null, 2);
+            const blob = new Blob([payload], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Mallorca_LineUp_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function editLineupEntry(id) {
+            const ev = lineupEvents.find(e => e.id === id);
+            if (!ev) return;
+            const newArtist = prompt('Künstler / Act anpassen:', ev.artist);
+            if (newArtist === null) return;
+            const newTime = prompt('Uhrzeit (HH:MM) anpassen:', ev.time || '22:00');
+            if (newTime === null) return;
+            const newNote = prompt('Notiz / Bühne anpassen:', ev.note || '');
+            if (newNote === null) return;
+
+            ev.artist = newArtist.trim() || ev.artist;
+            ev.time = newTime.trim() || ev.time;
+            ev.note = newNote.trim();
+            saveLocally();
+            renderLineupView();
         }
 
         function importLineupFromJsonFile(event) {
@@ -1751,7 +1810,7 @@
                                     ${ev.note ? `<span style="margin-left:4px; font-weight:600;">(${ev.note})</span>` : ''}
                                 </div>
                             </div>
-                            <span style="cursor:pointer; color:var(--accent-red); font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})">🗑️</span>
+                            <div style="display:flex; gap:8px; align-items:center;"><span style="cursor:pointer; color:var(--accent); font-size:0.88rem;" onclick="editLineupEntry(${ev.id})" title="Bearbeiten">✏️</span><span style="cursor:pointer; color:var(--accent-red); font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})" title="Löschen">🗑️</span></div>
                         </div>
                     `;
                 });
@@ -1784,7 +1843,7 @@
                                     ${ev.note ? `<span style="margin-left:4px;">• ${ev.note}</span>` : ''}
                                 </div>
                             </div>
-                            <span style="cursor:pointer; color:var(--accent-red); font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})">🗑️</span>
+                            <div style="display:flex; gap:8px; align-items:center;"><span style="cursor:pointer; color:var(--accent); font-size:0.88rem;" onclick="editLineupEntry(${ev.id})" title="Bearbeiten">✏️</span><span style="cursor:pointer; color:var(--accent-red); font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})" title="Löschen">🗑️</span></div>
                         </div>
                     `;
                 });
@@ -2084,17 +2143,188 @@
         }
 
         function toggleAutoDivideFields() {
-            document.getElementById('zielEndMonthGroup').style.display = document.getElementById('zielAutoDivideCheckbox').checked ? 'block' : 'none';
+            const show = document.getElementById('zielAutoDivideCheckbox').checked;
+            document.getElementById('zielEndDateExactGroup').style.display = show ? 'flex' : 'none';
+            document.getElementById('zielEndMonthGroup').style.display = show ? 'flex' : 'none';
+            if (show && !document.getElementById('zielExactEndDateInput').value) {
+                const mVal = document.getElementById('zielEndMonthInput').value || '2027-12';
+                const [y, m] = mVal.split('-').map(Number);
+                const lastD = new Date(y, m, 0).getDate();
+                document.getElementById('zielExactEndDateInput').value = `${mVal}-${String(lastD).padStart(2, '0')}`;
+            }
             autoCalculateMonthlyRate();
+        }
+
+        function syncExactEndDateToMonth() {
+            const dVal = document.getElementById('zielExactEndDateInput').value;
+            if (dVal && dVal.length >= 7) {
+                document.getElementById('zielEndMonthInput').value = dVal.slice(0, 7);
+            }
+            autoCalculateMonthlyRate();
+        }
+
+        function syncModalExactDateToMonth() {
+            const dVal = document.getElementById('modalExactEndDateInput').value;
+            if (dVal && dVal.length >= 7) {
+                document.getElementById('modalEndMonthInput').value = dVal.slice(0, 7);
+            }
+            updateLiveModalProjection();
+        }
+
+        let goalProjectionMode = 'month';
+        function setGoalProjectionMode(mode) {
+            goalProjectionMode = mode;
+            const mBtn = document.getElementById('projModeMonthBtn');
+            const dBtn = document.getElementById('projModeDayBtn');
+            if (mBtn) mBtn.classList.toggle('selected-month', mode === 'month');
+            if (dBtn) dBtn.classList.toggle('selected-month', mode === 'day');
+            updateLiveModalProjection();
+        }
+
+        function normalizeEventDateStr(pe) {
+            if (!pe) return '';
+            if (pe.date && /^\d{4}-\d{2}-\d{2}$/.test(pe.date)) return pe.date;
+            const raw = pe.date || pe.month || '';
+            if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+            if (/^\d{4}-\d{2}$/.test(raw)) return raw + '-01';
+            return raw;
+        }
+
+        function normalizeEventMonthStr(pe) {
+            const d = normalizeEventDateStr(pe);
+            return d ? d.slice(0, 7) : '';
+        }
+
+        function buildDayByDayGoalTimeline(goal, overrideFixedRate = null, overrideEndDate = null) {
+            const baseMonth = getSelectedMonthKey();
+            const todayStr = new Date().toISOString().slice(0, 10);
+            let startDay = todayStr.slice(0, 7) === baseMonth ? todayStr : (baseMonth + '-01');
+            if (goal.startDate && /^\d{4}-\d{2}-\d{2}$/.test(goal.startDate) && goal.startDate > startDay) {
+                startDay = goal.startDate;
+            }
+
+            let endLimitStr = overrideEndDate !== null ? (overrideEndDate || null) : (goal.endDate ? goal.endDate : null);
+            let exactEndLimitDay = goal.exactTargetDate || null;
+            const modalExactInp = document.getElementById('modalExactEndDateInput');
+            if (currentModalGoalId === goal.id && modalExactInp) {
+                exactEndLimitDay = modalExactInp.value || null;
+            }
+            const u = urlaubeList.find(item => item.goalId === goal.id);
+            if (u && u.endDate) {
+                endLimitStr = u.endDate.slice(0, 7);
+                exactEndLimitDay = u.endDate;
+            }
+
+            const startYear = parseInt(startDay.slice(0, 4), 10) || 2026;
+            const endDay = `${startYear + 1}-12-31`;
+
+            let running = goal.id === 'kassette'
+                ? parseFloat(goal.manualCurrent || 0)
+                : parseFloat(goal.manualOffset || goal.manualCurrent || 0);
+
+            // Vorherige geplante Events bis zum Starttag einrechnen
+            (goal.plannedEvents || []).forEach(pe => {
+                const evDate = normalizeEventDateStr(pe);
+                if (evDate && evDate < startDay) {
+                    const amt = parseFloat(pe.amount) || 0;
+                    running += (pe.type === 'in' ? amt : -amt);
+                }
+            });
+
+            const fixedRate = overrideFixedRate !== null
+                ? (parseFloat(overrideFixedRate) || 0)
+                : (parseFloat(String(goal.fixedMonthly ?? 0).replace(',', '.')) || 0);
+
+            const rows = [];
+            let curDate = new Date(startDay + 'T12:00:00');
+            const lastDate = new Date(endDay + 'T12:00:00');
+            let dayCount = 0;
+
+            while (curDate <= lastDate && dayCount < 735) {
+                const iso = curDate.toISOString().slice(0, 10);
+                const mKey = iso.slice(0, 7);
+                const item = getMonthDataOrFallback(mKey);
+                const calc = calculateValuesFor(item, mKey);
+                const isTerminated = exactEndLimitDay
+                    ? (iso > exactEndLimitDay)
+                    : !!(endLimitStr && mKey >= endLimitStr);
+
+                let monthSavingsAdd = 0;
+                if (!isTerminated) {
+                    if (goal.id === 'notfall') monthSavingsAdd = calc.notfallSparen;
+                    else if (goal.type === 'giro_puffer') monthSavingsAdd = calc.giroPuffer;
+                    else if (goal.id === 'kassette') monthSavingsAdd = calc.bargeldSparen;
+                    else if (goal.id !== 'freizeit') {
+                        let extra = 0;
+                        (item.extraTransfers || []).forEach(tr => { if (tr.targetId === goal.id) extra += parseFloat(tr.amount) || 0; });
+                        monthSavingsAdd = extra > 0 ? extra : fixedRate;
+                    }
+                    if (calc.sparkontoSplitTargetId === goal.id) {
+                        monthSavingsAdd += calc.sparkontoSplitSparen;
+                    }
+                }
+
+                // Tägliche anteilige Sparrate (Monatssparrate / Tage des Monats) am Ende jedes Tages
+                const [yNum, mNum] = mKey.split('-').map(Number);
+                const daysInMonth = new Date(yNum, mNum, 0).getDate();
+                const dailySaving = monthSavingsAdd / daysInMonth;
+
+                // Tagegenaue geplante Events an diesem genauen Datum
+                const dayEvents = (goal.plannedEvents || []).filter(pe => normalizeEventDateStr(pe) === iso);
+                const dayIn = dayEvents.filter(pe => pe.type === 'in').reduce((s, pe) => s + (parseFloat(pe.amount) || 0), 0);
+                const dayOut = dayEvents.filter(pe => (pe.type || 'out') === 'out').reduce((s, pe) => s + (parseFloat(pe.amount) || 0), 0);
+
+                running = running + dailySaving + dayIn - dayOut;
+
+                if (dayEvents.length > 0 || iso === startDay || iso === exactEndLimitDay || iso.endsWith('-01') || iso === endDay) {
+                    rows.push({
+                        date: iso,
+                        month: mKey,
+                        dailySaving,
+                        dayIn,
+                        dayInNotes: dayEvents.filter(pe => pe.type === 'in').map(pe => pe.note || 'Einnahme').join(', '),
+                        dayOut,
+                        dayOutNotes: dayEvents.filter(pe => (pe.type || 'out') === 'out').map(pe => pe.note || 'Ausgabe').join(', '),
+                        hasEvent: dayEvents.length > 0,
+                        totalSoFar: running
+                    });
+                }
+
+                curDate.setDate(curDate.getDate() + 1);
+                dayCount++;
+            }
+
+            return rows;
         }
 
         function autoCalculateMonthlyRate() {
             const target = parseFloat(document.getElementById('zielBetrag').value) || 0;
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
-            const remaining = Math.max(0, target - startVal);
-            let endMonthStr = document.getElementById('zielAutoUrlaubCheckbox').checked ? document.getElementById('zielEndDateInput').value?.slice(0, 7) : "";
-            if (!endMonthStr && document.getElementById('zielAutoDivideCheckbox').checked) endMonthStr = document.getElementById('zielEndMonthInput').value;
-            if (target > 0 && endMonthStr) {
+            const evType = document.getElementById('zielPlannedEventType')?.value || 'out';
+            const evAmt = parseFloat(document.getElementById('zielPlannedEventAmount')?.value) || 0;
+            const evDelta = evType === 'in' ? evAmt : -evAmt;
+            const remaining = Math.max(0, target - startVal - evDelta);
+
+            let exactEndDate = document.getElementById('zielAutoUrlaubCheckbox').checked ? document.getElementById('zielEndDateInput').value : "";
+            if (!exactEndDate && document.getElementById('zielAutoDivideCheckbox').checked) {
+                exactEndDate = document.getElementById('zielExactEndDateInput')?.value || "";
+            }
+            let endMonthStr = exactEndDate ? exactEndDate.slice(0, 7) : "";
+            if (!endMonthStr && document.getElementById('zielAutoDivideCheckbox').checked) {
+                endMonthStr = document.getElementById('zielEndMonthInput').value;
+            }
+
+            if (target > 0 && exactEndDate && /^\d{4}-\d{2}-\d{2}$/.test(exactEndDate)) {
+                const selM = getSelectedMonthKey();
+                const nowIso = new Date().toISOString().slice(0, 10);
+                const startIso = nowIso.startsWith(selM) ? nowIso : (selM + '-01');
+                const d1 = new Date(startIso + 'T12:00:00');
+                const d2 = new Date(exactEndDate + 'T12:00:00');
+                const diffDays = Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)) + 1);
+                const dailyNeeded = remaining / diffDays;
+                const monthlyEquiv = dailyNeeded * 30.4375;
+                document.getElementById('zielFixedMonthly').value = monthlyEquiv.toFixed(2);
+            } else if (target > 0 && endMonthStr) {
                 const [sY, sM] = getSelectedMonthKey().split('-').map(Number);
                 const [eY, eM] = endMonthStr.split('-').map(Number);
                 let diffMonths = Math.max(1, (eY - sY) * 12 + (eM - sM) + 1);
@@ -2501,6 +2731,16 @@
 
         function deleteHaushaltItem(id) { if(confirm('Löschen?')) { haushaltItems = haushaltItems.filter(i => i.id !== id); saveLocally(); renderHaushaltView(); renderJahresView(); updateCalendarBudgetDisplay(); } }
 
+        let hhTypeFilter = 'all';
+        function setHhTypeFilter(mode) {
+            hhTypeFilter = mode;
+            ['all', 'expense', 'income'].forEach(m => {
+                const btn = document.getElementById('hhFilter' + (m === 'all' ? 'All' : (m === 'expense' ? 'Exp' : 'Inc')) + 'Btn');
+                if (btn) btn.classList.toggle('selected-month', m === mode);
+            });
+            renderHaushaltView();
+        }
+
         function renderHaushaltView() {
             const m = getSelectedMonthKey(); document.getElementById('HHMonthDisplay').innerText = m; document.getElementById('hhMonthInput').value = m;
             const list = document.getElementById('HHList'); list.innerHTML = ''; let totalSpent = 0, totalIncome = 0, plannedExpense = 0, catTotals = {};
@@ -2515,6 +2755,7 @@
             (haushaltItems || []).filter(i => i.date?.startsWith(m)).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(item => {
                 const isInc = item.type === 'income', amt = parseFloat(item.amount || 0);
                 if (isInc) totalIncome += amt; else { totalSpent += amt; catTotals[item.category] = (catTotals[item.category] || 0) + amt; }
+                if (hhTypeFilter !== 'all' && (item.type || 'expense') !== hhTypeFilter) return;
                 if (searchVal && !item.name.toLowerCase().includes(searchVal)) return;
                 if (filterCat && item.category !== filterCat) return;
 
@@ -2871,7 +3112,7 @@
                 let transferDiff = 0;
                 (transfersList || []).forEach(tr => { if (tr.dateKey === k) { if(tr.fromId === goalId) transferDiff -= tr.amount; if(tr.toId === goalId) transferDiff += tr.amount; } });
 
-                const monthPlannedEvents = (goal.plannedEvents || []).filter(pe => pe.month === k);
+                const monthPlannedEvents = (goal.plannedEvents || []).filter(pe => normalizeEventMonthStr(pe) === k);
                 const plannedOutEvents = monthPlannedEvents.filter(pe => (pe.type || 'out') === 'out');
                 const plannedInEvents = monthPlannedEvents.filter(pe => pe.type === 'in');
                 const plannedOutSum = plannedOutEvents.reduce((acc, pe) => acc + (parseFloat(pe.amount) || 0), 0);
@@ -3200,7 +3441,13 @@
                 let reachText = "Endlos-Sparziel ♾️";
                 if (hasTarget) {
                     if (isCompleted) reachText = "Erreicht! 🎉";
-                    else if (g.fixedMonthly > 0) {
+                    else if (g.exactTargetDate && /^\d{4}-\d{2}-\d{2}$/.test(g.exactTargetDate)) {
+                        const fmtTarget = new Date(g.exactTargetDate + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                        const todayIso = new Date().toISOString().slice(0, 10);
+                        const daysLeft = Math.max(1, Math.round((new Date(g.exactTargetDate + 'T12:00:00') - new Date(todayIso + 'T12:00:00')) / (1000 * 60 * 60 * 24)) + 1);
+                        const perDay = Math.max(0, (targetVal - cur) / daysLeft);
+                        reachText = `🎯 ${fmtTarget} (${perDay.toFixed(2)} €/Tag)`;
+                    } else if (g.fixedMonthly > 0) {
                         const monthsNeeded = Math.ceil((targetVal - cur) / g.fixedMonthly);
                         const [curY, curM] = getSelectedMonthKey().split('-').map(Number);
                         let targetMonth = curM + monthsNeeded, targetYear = curY;
@@ -3257,12 +3504,26 @@
 
             const hist = document.getElementById('modalHistoryList');
             hist.innerHTML = '';
-            data.breakdown.forEach(b => {
-                const inBadge = b.plannedIn > 0 ? `<div class="history-sub" style="color:var(--accent-green); font-weight:bold;">💰 Geplante Einnahme (${b.plannedInNotes}): +${b.plannedIn.toFixed(2)} €</div>` : '';
-                const outBadge = b.plannedOut > 0 ? `<div class="history-sub" style="color:var(--accent-red); font-weight:bold;">🎂 Geplante Ausgabe (${b.plannedOutNotes}): -${b.plannedOut.toFixed(2)} €</div>` : '';
-                const standColor = b.totalSoFar < 0 ? 'var(--accent-red)' : 'var(--accent)';
-                hist.innerHTML += `<div class="history-item" style="${b.totalSoFar < 0 ? 'border-color:var(--accent-red); background:var(--accent-red-soft);' : ''}"><div><strong>${b.month}</strong>${inBadge}${outBadge}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Sparrate)</span><div class="history-sub" style="color:${standColor}; font-weight:800;">Hochrechnung: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
-            });
+            if (goalProjectionMode === 'day') {
+                const dayRows = buildDayByDayGoalTimeline(g, tempRate, tempEndMonth);
+                dayRows.forEach(dr => {
+                    const fmtDate = new Date(dr.date + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                    const inBadge = dr.dayIn > 0 ? `<div class="history-sub" style="color:var(--accent-green); font-weight:bold;">💰 Einnahme (${dr.dayInNotes}): +${dr.dayIn.toFixed(2)} €</div>` : '';
+                    const outBadge = dr.dayOut > 0 ? `<div class="history-sub" style="color:var(--accent-red); font-weight:bold;">🎂 Ausgabe (${dr.dayOutNotes}): -${dr.dayOut.toFixed(2)} €</div>` : '';
+                    const standColor = dr.totalSoFar < 0 ? 'var(--accent-red)' : 'var(--accent)';
+                    const borderStyle = dr.totalSoFar < 0
+                        ? 'border-color:var(--accent-red); background:var(--accent-red-soft);'
+                        : (dr.hasEvent ? 'border-left:4px solid var(--accent-orange);' : '');
+                    hist.innerHTML += `<div class="history-item" style="${borderStyle}"><div><strong>📅 ${fmtDate}</strong>${inBadge}${outBadge}</div><div style="text-align:right;"><span class="val-highlight">+${dr.dailySaving.toFixed(2)} € / Tag</span><div class="history-sub" style="color:${standColor}; font-weight:800;">Stand am Tag: ${dr.totalSoFar.toFixed(2)} €</div></div></div>`;
+                });
+            } else {
+                data.breakdown.forEach(b => {
+                    const inBadge = b.plannedIn > 0 ? `<div class="history-sub" style="color:var(--accent-green); font-weight:bold;">💰 Geplante Einnahme (${b.plannedInNotes}): +${b.plannedIn.toFixed(2)} €</div>` : '';
+                    const outBadge = b.plannedOut > 0 ? `<div class="history-sub" style="color:var(--accent-red); font-weight:bold;">🎂 Geplante Ausgabe (${b.plannedOutNotes}): -${b.plannedOut.toFixed(2)} €</div>` : '';
+                    const standColor = b.totalSoFar < 0 ? 'var(--accent-red)' : 'var(--accent)';
+                    hist.innerHTML += `<div class="history-item" style="${b.totalSoFar < 0 ? 'border-color:var(--accent-red); background:var(--accent-red-soft);' : ''}"><div><strong>${b.month}</strong>${inBadge}${outBadge}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Sparrate)</span><div class="history-sub" style="color:${standColor}; font-weight:800;">Hochrechnung: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
+                });
+            }
         }
 
         function openModal(gid) {
@@ -3270,7 +3531,8 @@
             document.getElementById('modalTitle').innerText = g.name;
             document.getElementById('modalTargetInput').value = g.target || '';
             document.getElementById('modalFixedMonthlyInput').value = g.fixedMonthly || '';
-            document.getElementById('modalEndMonthInput').value = g.endDate || '';
+            document.getElementById('modalExactEndDateInput').value = g.exactTargetDate || '';
+            document.getElementById('modalEndMonthInput').value = g.endDate || (g.exactTargetDate ? g.exactTargetDate.slice(0, 7) : '');
             
             const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey());
             document.getElementById('modalCurrentInputDisplay').innerText = cur.toFixed(2) + ' €';
@@ -3280,10 +3542,14 @@
             const stornoSel = document.getElementById('stornoTargetSelect'); stornoSel.innerHTML = '';
             goals.forEach(x => { if(x.id !== gid) { sel.add(new Option(x.name, x.id)); stornoSel.add(new Option(x.name, x.id)); } });
 
-            const evMonthInp = document.getElementById('plannedEventMonthInput');
-            if (evMonthInp && !evMonthInp.value) evMonthInp.value = getSelectedMonthKey();
+            const evDateInp = document.getElementById('plannedEventDateInput');
+            if (evDateInp && !evDateInp.value) {
+                const selM = getSelectedMonthKey();
+                const nowIso = new Date().toISOString().slice(0, 10);
+                evDateInp.value = nowIso.startsWith(selM) ? nowIso : (selM + '-15');
+            }
+            setGoalProjectionMode(goalProjectionMode);
             renderPlannedEventsInModal(g);
-            updateLiveModalProjection();
             document.getElementById('goalModal').classList.add('active');
         }
         function closeModal() { document.getElementById('goalModal').classList.remove('active'); }
@@ -3291,7 +3557,8 @@
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
             g.target = parseFloat(document.getElementById('modalTargetInput').value) || 0;
             g.fixedMonthly = parseFloat(document.getElementById('modalFixedMonthlyInput').value) || 0;
-            g.endDate = document.getElementById('modalEndMonthInput').value || null;
+            g.exactTargetDate = document.getElementById('modalExactEndDateInput').value || null;
+            g.endDate = document.getElementById('modalEndMonthInput').value || (g.exactTargetDate ? g.exactTargetDate.slice(0, 7) : null);
             const cur = parseFloat(document.getElementById('modalCurrentInput').value);
             if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') g.manualOffset = cur; else g.manualCurrent = cur;
             saveLocally(); renderGoals(); renderHistory(); closeModal();
@@ -3332,18 +3599,21 @@
             const id = 'goal_' + Date.now(), type = document.getElementById('zielTypeSelect').value;
             const evType = document.getElementById('zielPlannedEventType')?.value || 'out';
             const evAmt = parseFloat(document.getElementById('zielPlannedEventAmount')?.value) || 0;
-            const evMon = document.getElementById('zielPlannedEventMonth')?.value || '';
-            const plannedEvents = (evAmt > 0 && evMon) ? [{ id: Date.now() + Math.random(), type: evType, month: evMon, amount: evAmt, note: evType === 'in' ? 'Geplante Einnahme' : 'Geplante Ausgabe' }] : [];
+            const evDate = document.getElementById('zielPlannedEventDate')?.value || '';
+            const plannedEvents = (evAmt > 0 && evDate) ? [{ id: Date.now() + Math.random(), type: evType, date: evDate, month: evDate.slice(0, 7), amount: evAmt, note: evType === 'in' ? 'Geplante Einnahme' : 'Geplante Ausgabe' }] : [];
             const startAmt = parseFloat(document.getElementById('zielStart').value)||0;
             const usesOffset = ['notfall','freizeit'].includes(id) || type === 'notfall_sub' || type === 'giro_puffer';
-            goals.push({ id, name, target, type, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), endDate: document.getElementById('zielAutoDivideCheckbox').checked?document.getElementById('zielEndMonthInput').value:null, manualCurrent: usesOffset ? 0 : startAmt, manualOffset: usesOffset ? startAmt : 0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked, plannedEvents });
+            const autoDivide = document.getElementById('zielAutoDivideCheckbox').checked;
+            const exactTargetDate = autoDivide ? (document.getElementById('zielExactEndDateInput')?.value || null) : (document.getElementById('zielAutoUrlaubCheckbox').checked ? (document.getElementById('zielEndDateInput')?.value || null) : null);
+            const endDateMonth = autoDivide ? (document.getElementById('zielEndMonthInput').value || (exactTargetDate ? exactTargetDate.slice(0, 7) : null)) : null;
+            goals.push({ id, name, target, type, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), exactTargetDate, endDate: endDateMonth, manualCurrent: usesOffset ? 0 : startAmt, manualOffset: usesOffset ? startAmt : 0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked, plannedEvents });
             
             if(document.getElementById('zielAutoUrlaubCheckbox').checked) {
                 urlaubeList.push({ goalId: id, startDate: document.getElementById('zielStartDateInput').value, endDate: document.getElementById('zielEndDateInput').value });
                 activeUrlaubGoalId = id;
             }
 
-            saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; if(document.getElementById('zielPlannedEventAmount')) document.getElementById('zielPlannedEventAmount').value = ''; if(document.getElementById('zielPlannedEventMonth')) document.getElementById('zielPlannedEventMonth').value = '';
+            saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; if(document.getElementById('zielPlannedEventAmount')) document.getElementById('zielPlannedEventAmount').value = ''; if(document.getElementById('zielPlannedEventDate')) document.getElementById('zielPlannedEventDate').value = ''; if(document.getElementById('zielExactEndDateInput')) document.getElementById('zielExactEndDateInput').value = '';
             renderGoals(); renderHistory(); checkUrlaubTabVisibility(); updateSubKontoDropdowns(); alert('Sparziel / Unterkonto angelegt! 🎯');
         }
 
@@ -3352,13 +3622,13 @@
             const g = goals.find(x => x.id === currentModalGoalId);
             if (!g) return;
             const type = document.getElementById('plannedEventTypeInput')?.value || 'out';
-            const month = document.getElementById('plannedEventMonthInput').value;
+            const date = document.getElementById('plannedEventDateInput').value;
             const amount = parseFloat(document.getElementById('plannedEventAmountInput').value);
             const defaultNote = type === 'in' ? 'Geplante Einnahme' : 'Geplante Ausgabe';
             const note = (document.getElementById('plannedEventNoteInput').value || '').trim() || defaultNote;
-            if (!month || isNaN(amount) || amount <= 0) return alert('Bitte Monat und einen gültigen Betrag eingeben!');
+            if (!date || isNaN(amount) || amount <= 0) return alert('Bitte ein genaues Datum und einen gültigen Betrag eingeben!');
             if (!g.plannedEvents) g.plannedEvents = [];
-            g.plannedEvents.push({ id: Date.now() + Math.random(), type, month, amount, note });
+            g.plannedEvents.push({ id: Date.now() + Math.random(), type, date, month: date.slice(0, 7), amount, note });
             document.getElementById('plannedEventAmountInput').value = '';
             document.getElementById('plannedEventNoteInput').value = '';
             saveLocally();
@@ -3381,7 +3651,7 @@
         function renderPlannedEventsInModal(goal) {
             const box = document.getElementById('plannedEventsListInModal');
             if (!box) return;
-            const evs = (goal.plannedEvents || []).slice().sort((a, b) => a.month.localeCompare(b.month));
+            const evs = (goal.plannedEvents || []).slice().sort((a, b) => normalizeEventDateStr(a).localeCompare(normalizeEventDateStr(b)));
             if (evs.length === 0) {
                 box.innerHTML = `<div style="font-size:0.7rem; color:var(--text-sub);">Noch keine geplanten Ausgaben oder Einnahmen hinterlegt.</div>`;
                 return;
@@ -3391,10 +3661,14 @@
                 const icon = isInc ? '💰' : '🎂';
                 const valClass = isInc ? 'val-highlight' : 'val-red';
                 const sign = isInc ? '+' : '-';
+                const rawDate = normalizeEventDateStr(pe);
+                const labelDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
+                    ? new Date(rawDate + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    : (pe.month || rawDate);
                 return `
                 <div class="history-item" style="padding:6px 10px;">
                     <div>
-                        <div class="history-date" style="font-size:0.78rem;">${icon} ${pe.month} – ${pe.note}</div>
+                        <div class="history-date" style="font-size:0.78rem;">${icon} ${labelDate} – ${pe.note}</div>
                     </div>
                     <div style="display:flex; align-items:center; gap:6px;">
                         <strong class="${valClass}" style="font-size:0.78rem;">${sign}${parseFloat(pe.amount).toFixed(2)} €</strong>
