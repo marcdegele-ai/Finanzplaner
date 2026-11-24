@@ -671,243 +671,7 @@
             <div class="card" style="border: 1.5px solid var(--accent);">
                 <div class="card-title" style="color: var(--accent);">
                     <span>📸 Flyer & Storys scannen</span>
-                    <span id="geminiScannerBadge" class="badge badge-dauer">Offline-OCR ⚙️</span>
-                </div>
-
-                <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
-                        Tagesbudget (heute) & Wochenbudget (bis zum kommenden Sonntag).
-                    </div>
-                    <div class="kpi-grid" style="margin-bottom: 0;">
-                        <div class="kpi-card" style="background: var(--card-bg);">
-                            <div class="kpi-label" style="color: var(--accent-green);">Verbleibend Heute</div>
-                            <div class="kpi-val" id="calendarBudgetToday" style="color: var(--accent-green); font-size: 1.1rem;">0,00 €</div>
-                        </div>
-                        <div class="kpi-card" style="background: var(--card-bg);">
-                            <div class="kpi-label" style="color: var(--accent-green);">Verbleibend Bis Sonntag</div>
-                            <div class="kpi-val" id="calendarBudgetWeek" style="color: var(--accent-green); font-size: 1.1rem;">0,00 €</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Restgeld aufs Sparkonto überweisen -->
-                <div style="background: var(--accent-green-soft); border: 1.5px solid var(--accent-green); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
-                    <span style="font-size: 0.75rem; font-weight: bold; color: var(--accent-green); display:block; margin-bottom: 4px;">🐖 Restgeld / Wochenpuffer aufs Sparkonto</span>
-                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Nicht benötigtes Budget direkt auf ein Sparziel buchen.</div>
-                    <div class="grid" style="gap: 5px;">
-                        <div class="input-group full" style="margin-bottom:0;"><select id="hhSaveTargetSelect" style="font-size:0.78rem;"></select></div>
-                        <div class="input-group" style="margin-bottom:0;"><input type="number" id="hhSaveAmountInput" placeholder="Betrag €" style="font-size:0.78rem;" onkeydown="if(event.key==='Enter') executeHaushaltSavingsTransfer()"></div>
-                        <div><button class="btn-secondary" style="background:var(--accent-green); color:#fff; font-weight:bold; width:100%; height:100%; font-size:0.75rem;" onclick="executeHaushaltSavingsTransfer()">Überweisen 🚀</button></div>
-                    </div>
-                </div>
-
-                <!-- SCHNELL-RESTGELD VERTEILER (ONE-CLICK) -->
-                <div style="background: var(--accent-soft); border: 1.5px solid var(--accent); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
-                    <span style="font-size: 0.75rem; font-weight: bold; color: var(--accent); display:block; margin-bottom: 4px;">⚡ Schnell-Restgeld Verteiler (One-Click)</span>
-                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-bottom: 6px;">Verteilt das aktuelle Rest-Budget direkt auf dein Standard-Sparziel.</div>
-                    <div style="display: flex; gap: 5px;">
-                        <select id="quickDistributeTargetSelect" style="flex: 2; font-size:0.78rem;"></select>
-                        <button class="btn-secondary" style="flex: 1; background: var(--accent); color:#fff; font-weight:bold; border:none; font-size:0.75rem;" onclick="executeQuickDistribute()">Restgeld buchen 🚀</button>
-                    </div>
-                </div>
-
-                <!-- BLITZ-BUCHUNG QUICK ADD -->
-                <div style="background: var(--accent-purple-soft); border: 1px solid var(--accent-purple); padding: 8px; border-radius: 10px; margin-bottom: 10px;">
-                    <span style="font-size: 0.73rem; font-weight: bold; color: var(--accent-purple); display:block; margin-bottom: 4px;">⚡ Blitz-Ausgabe (Unterwegs • Enter zum Buchen)</span>
-                    <div style="display: flex; gap: 5px;">
-                        <input type="text" id="quickAddName" placeholder="Z.B. Bäcker / EDEKA" style="flex:2;" onkeydown="if(event.key==='Enter') document.getElementById('quickAddAmount').focus()">
-                        <input type="number" id="quickAddAmount" placeholder="€" style="flex:1;" onkeydown="if(event.key==='Enter') quickAddExpense()">
-                        <button class="btn-secondary" style="background:var(--accent-purple); color:#fff; font-weight:bold; border:none;" onclick="quickAddExpense()">Buchen</button>
-                    </div>
-                </div>
-
-                <div class="quick-btn-row">
-                    <button class="quick-btn" onclick="quickFillHH(10)">+10€</button><button class="quick-btn" onclick="quickFillHH(20)">+20€</button><button class="quick-btn" onclick="quickFillHH(50)">+50€</button><button class="quick-btn" onclick="quickFillHH(100)">+100€</button>
-                </div>
-                <div class="grid">
-                    <div class="input-group full"><label>Typ</label><select id="HHType" onchange="updateHHKategorien()"><option value="expense">🔴 Ausgabe</option><option value="income">🟢 Einnahme</option></select></div>
-                    <div class="input-group full"><label>Bezeichnung</label><input type="text" id="HHName" placeholder="Tanken, EDEKA..."></div>
-                    <div class="input-group"><label>Betrag (€)</label><input type="number" id="HHAmount" placeholder="0.00" onkeydown="if(event.key==='Enter') addHaushaltItem()"></div>
-                    <div class="input-group"><label>Kategorie</label><select id="HHKategorie"></select></div>
-                    <div class="input-group full"><label>Datum</label><input type="date" id="HHDate"></div>
-                    <div class="input-group full">
-                        <label class="checkbox-container"><input type="checkbox" id="HHRepeatCheckbox"><div><strong>Jeden Monat wiederholen 🔄</strong></div></label>
-                    </div>
-                    <div class="input-group full">
-                        <label>📸 Beleg / Kassenbon (OCR erkennt Summe automatisch! 🧾)</label>
-                        <input type="file" id="HHReceiptInput" accept="image/*" capture="environment" onchange="scanReceiptForAmount(event)">
-                        <div id="receiptOcrStatus" style="font-size:0.68rem; color:var(--accent); font-weight:bold; margin-top:2px; display:none;"></div>
-                    </div>
-                </div>
-                <button class="btn-add" onclick="addHaushaltItem()">Buchung hinzufügen ➕</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📊 Monats-Bilanz (<span id="HHMonthDisplay">-</span>)</div>
-                <div class="stat-row"><span>Fixkosten-Quote:</span><span id="fixQuoteDisplay" class="val-red">0.0%</span></div>
-                <div class="stat-row"><span>Ausgaben (Ist / Geplant):</span><span><strong id="HHTotalDisplay" class="val-red">0,00 €</strong> / <span id="HHPlannedExpenseDisplay" class="sensitive-val" style="color:var(--text-sub);">0,00 €</span></span></div>
-                <div class="stat-row"><span>Einnahmen (Ist / Geplant):</span><span><strong id="HHIncomeTotalDisplay" class="val-highlight">+0,00 €</strong> / <span id="HHPlannedIncomeDisplay" class="sensitive-val" style="color:var(--text-sub);">0,00 €</span></span></div>
-                <div class="stat-row" style="font-weight:bold;"><span>Rest-Budget (Einkaufs-Geld):</span><span id="HHRestDisplay">0,00 €</span></div>
-            </div>
-
-            <div class="card" id="categoryChartCard" style="display:none;">
-                <div class="card-title">📊 Ausgaben nach Kategorie (Soll / Ist)</div>
-                <div class="chart-container" id="categoryChartContainer"></div>
-            </div>
-
-            <div class="card" style="border: 1.5px solid var(--accent-red); background: var(--accent-red-soft);">
-                <div class="card-title" style="color:var(--accent-red);"><span>🧹 Datenbereinigung</span></div>
-                <button class="btn-secondary" style="background:var(--card-bg); color:var(--accent-red); width:100%; font-weight:bold; padding:8px; margin-bottom:8px;" onclick="clearAllExtraTransfersGlobally()">Alle manuellen Zuweisungen löschen</button>
-                <button class="btn-secondary" style="background:var(--accent-red); color:#fff; border:none; width:100%; font-weight:bold; padding:8px;" onclick="resetAllGoalStornosGlobally()">🔄 Alles auf Standard zurücksetzen (Stornos aufheben)</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📋 Buchungen</div>
-                <div class="grid" style="margin-bottom: 10px;">
-                    <div class="input-group" style="margin-bottom:0;">
-                        <input type="text" id="hhSearchInput" placeholder="🔍 Buchung suchen..." oninput="renderHaushaltView()">
-                    </div>
-                    <div class="input-group" style="margin-bottom:0;">
-                        <select id="hhFilterCatSelect" onchange="renderHaushaltView()">
-                            <option value="">Alle Kategorien</option>
-                            <option value="🛒 Lebensmittel">🛒 Lebensmittel</option>
-                            <option value="🚗 Mobilität">🚗 Mobilität</option>
-                            <option value="🎉 Freizeit">🎉 Freizeit</option>
-                            <option value="💡 Haushalt">💡 Haushalt</option>
-                            <option value="📦 Sonstiges">📦 Sonstiges</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="history-list" id="HHList"></div>
-            </div>
-        </div>
-
-        <!-- TAB 3: PROGNOSE & KASSETTE -->
-        <div id="uebersicht-view" class="view-section">
-            <div class="card" style="border: 1px solid var(--accent-orange);">
-                <div class="card-title"><span>🪙 Bargeld-Kassette</span><span id="cashTotalBadge" class="val-orange" style="font-size:1rem;">0,00 €</span></div>
-                <div class="cash-grid">
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c100')">100€</div><label onclick="incrementCash('c100')">100 €</label><input type="number" id="c100" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c50')">50€</div><label onclick="incrementCash('c50')">50 €</label><input type="number" id="c50" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c20')">20€</div><label onclick="incrementCash('c20')">20 €</label><input type="number" id="c20" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c10')">10€</div><label onclick="incrementCash('c10')">10 €</label><input type="number" id="c10" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="cash-badge-img" style="color:#0f172a; font-weight:bold; font-size:0.6rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c5')">5€</div><label onclick="incrementCash('c5')">5 €</label><input type="number" id="c5" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c2')">2€</div><label onclick="incrementCash('c2')">2 €</label><input type="number" id="c2" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="color:#fff; font-weight:bold; font-size:0.55rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c1')">1€</div><label onclick="incrementCash('c1')">1 €</label><input type="number" id="c1" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c050')">50c</div><label onclick="incrementCash('c050')">50c</label><input type="number" id="c050" min="0" value="0" oninput="calcCashBox()"></div>
-                    <div class="cash-box"><div class="coin-badge-img" style="background:#b45309; color:#fff; font-weight:bold; font-size:0.5rem; display:flex; align-items:center; justify-content:center;" onclick="incrementCash('c020')">20c</div><label onclick="incrementCash('c020')">20c</label><input type="number" id="c020" min="0" value="0" oninput="calcCashBox()"></div>
-                </div>
-                <button class="btn-secondary" style="width:100%; margin-top:8px; background:var(--accent-orange); color:#fff; font-weight:bold; border:none; padding:8px; border-radius:8px;" onclick="saveCashBoxLocally()">💾 Stückelung speichern</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📈 Vermögensverlauf</div>
-                <div class="chart-container" id="netWorthChartContainer"></div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📈 Monatsübersicht (Ist vs. Geplant)</div>
-                <div class="table-wrapper">
-                    <table class="month-table">
-                        <thead><tr><th>Monat</th><th>Status</th><th>Sparrate (Geplant)</th><th>Notfall</th><th>Sparkonto-Anteil</th><th>Gesamt</th></tr></thead>
-                        <tbody id="monthSavingsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 4: SPARZIELE -->
-        <div id="ziele-view" class="view-section">
-            <div class="card">
-                <div class="card-title">🎯 Sparziel oder Unterkonto anlegen</div>
-                <div class="grid">
-                    <div class="input-group full"><label>Name</label><input type="text" id="zielName" placeholder="Z.B. Auto, Technik, Sparkonto..."></div>
-                    <div class="input-group"><label>Zielbetrag (€) (Opt. / 0 = Endlos)</label><input type="number" id="zielBetrag" placeholder="0 oder 1500" oninput="autoCalculateMonthlyRate()"></div>
-                    <div class="input-group"><label>Sparrate (€/Mo)</label><input type="number" id="zielFixedMonthly" placeholder="100"></div>
-                    <div class="input-group">
-                        <label>Geplantes Event – Art</label>
-                        <select id="zielPlannedEventType">
-                            <option value="out">➖ Ausgabe (z. B. Geburtstag)</option>
-                            <option value="in">➕ Einnahme (z. B. Bonus / Steuerrückzahlung)</option>
-                        </select>
-                    </div>
-                    <div class="input-group"><label>Geplanter Event-Betrag (€)</label><input type="number" id="zielPlannedEventAmount" placeholder="0" oninput="autoCalculateMonthlyRate()"></div>
-                    <div class="input-group full"><label>Event-Monat (optional)</label><input type="month" id="zielPlannedEventMonth" onchange="autoCalculateMonthlyRate()"></div>
-                    <div class="input-group full"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
-                    <div class="input-group full">
-                        <label>Typ / Zuordnung</label>
-                        <select id="zielTypeSelect">
-                            <option value="notfall_sub">🛡️ Notfallkonto-Unterkonto / Sparkonto</option>
-                            <option value="giro_puffer">🏦 Girokonto-Puffer (Verbleibt auf Giro)</option>
-                            <option value="custom">⚙️ Manuell (Freizeitkonto / Endlos)</option>
-                            <option value="notfall">🛡️ Haupt-Notfallkonto</option>
-                            <option value="freizeit">🎉 Freizeitkonto</option>
-                            <option value="kassette">🪙 Bargeld-Kassette</option>
-                        </select>
-                    </div>
-                    <div class="input-group full">
-                        <label class="checkbox-container"><input type="checkbox" id="zielCapAtTargetCheckbox" checked><div><strong>Auto-Stopp bei Erreichen</strong></div></label>
-                    </div>
-                    <div class="input-group full">
-                        <label class="checkbox-container"><input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()"><div><strong>Gleichmäßig bis Endmonat aufteilen</strong></div></label>
-                    </div>
-                    <div class="input-group full" id="zielEndMonthGroup" style="display:none;"><label>Endmonat</label><input type="month" id="zielEndMonthInput" value="2027-12"></div>
-                    <div class="input-group full">
-                        <label class="checkbox-container"><input type="checkbox" id="zielAutoUrlaubCheckbox" onchange="toggleAutoUrlaubFields()"><div><strong>✨ Urlaubs-Planer generieren</strong></div></label>
-                    </div>
-                    <div class="input-group" id="zielStartDateGroup" style="display:none;"><label>Start</label><input type="date" id="zielStartDateInput"></div>
-                    <div class="input-group" id="zielEndDateGroup" style="display:none;"><label>Ende</label><input type="date" id="zielEndDateInput"></div>
-                </div>
-                <button class="btn-add" onclick="saveGoal()">Unterkonto / Ziel Hinzufügen ➕</button>
-            </div>
-
-            <div class="card" style="background:var(--accent-green-soft); border:1.5px solid var(--accent-green);">
-                <div class="card-title" style="color:var(--accent-green);"><span>🔄 Geld zwischen Zielen verschieben</span></div>
-                <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:8px;">Verschiebe hier variabel Guthaben zwischen all deinen Zielen.</div>
-                <div class="grid">
-                    <div class="input-group"><label>Von Ziel (Quelle)</label><select id="subKontosourceSelect"></select></div>
-                    <div class="input-group"><label>Zu Ziel (Empfänger)</label><select id="subKontoTargetSelect"></select></div>
-                    <div class="input-group"><label>Betrag (€)</label><input type="number" id="subKontoTransferAmount" placeholder="200.00"></div>
-                    <div class="input-group"><label>Ab Monat</label><input type="month" id="subKontoTransferMonth"></div>
-                </div>
-                <button class="btn-secondary" style="width:100%; margin-top:8px; background:var(--accent-green); color:#fff; font-weight:bold;" onclick="executeSubKontoTransferPlan()">Dauerhaft in Planung übertragen 🚀</button>
-            </div>
-
-            <div class="card">
-                <div class="card-title">📋 Meine Sparziele</div>
-                <div class="goals-grid" id="goalsList"></div>
-            </div>
-        </div>
-
-        <!-- TAB 5: RECHNER -->
-        <div id="rechner-view" class="view-section">
-            <div class="card" style="border: 1px solid var(--accent);">
-                <div class="card-title" style="color:var(--accent);"><span>🧮 Rechner (Tastatur-Support aktiv ⌨️)</span></div>
-                <div class="calc-display" id="calcDisplay">0</div>
-                <div class="calc-grid">
-                    <button class="calc-btn ac" onclick="calcClear()">AC</button><button class="calc-btn op" onclick="calcAppend('%')">%</button><button class="calc-btn op" onclick="calcAppend('/')">÷</button><button class="calc-btn op" onclick="calcBack()">⌫</button>
-                    <button class="calc-btn" onclick="calcAppend('7')">7</button><button class="calc-btn" onclick="calcAppend('8')">8</button><button class="calc-btn" onclick="calcAppend('9')">9</button><button class="calc-btn op" onclick="calcAppend('*')">×</button>
-                    <button class="calc-btn" onclick="calcAppend('4')">4</button><button class="calc-btn" onclick="calcAppend('5')">5</button><button class="calc-btn" onclick="calcAppend('6')">6</button><button class="calc-btn op" onclick="calcAppend('-')">-</button>
-                    <button class="calc-btn" onclick="calcAppend('1')">1</button><button class="calc-btn" onclick="calcAppend('2')">2</button><button class="calc-btn" onclick="calcAppend('3')">3</button><button class="calc-btn op" onclick="calcAppend('+')">+</button>
-                    <button class="calc-btn" onclick="calcAppend('0')" style="grid-column: span 2;">0</button><button class="calc-btn" onclick="calcAppend('.')">.</button><button class="calc-btn eq" onclick="calcResult()">=</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- TAB 6: MALLE LIVE LINEUP -->
-        <div id="lineup-view" class="view-section">
-            <div class="card" style="background: var(--accent-orange-soft); border: 2px solid var(--accent-orange);">
-                <div class="card-title" style="color: var(--accent-orange); margin-bottom: 6px;">
-                    <span><span class="live-pulse"></span>HEUTE LIVE AUF MALLE</span>
-                    <span id="lineupTodayDateLabel" style="font-size:0.75rem; background:var(--card-bg); color:var(--text-main); padding:3px 8px; border-radius:8px; border:1px solid var(--border);">-</span>
-                </div>
-                <div class="history-list" id="lineupTodayList"></div>
-            </div>
-
-            <!-- KI-SCANNER MIT GEMINI API-KEY & AUTO-RETRY -->
-            <div class="card" style="border: 1.5px solid var(--accent);">
-                <div class="card-title" style="color: var(--accent);">
-                    <span>📸 Flyer & Storys scannen</span>
-                    <span id="geminiScannerBadge" class="badge badge-dauer">Offline-OCR ⚙️</span>
+                    <span id="geminiScannerBadge" class="badge badge-dauer">Gemini KI ✨</span>
                 </div>
 
                 <!-- GEMINI API-KEY EINGABE -->
@@ -926,23 +690,6 @@
                     Lade Instagram-Storys (z. B. Bierkönig / Megapark) oder Wochenpläne hoch – inklusive automatischer Bildkomprimierung & Auto-Retry:
                 </div>
                 
-                <div class="grid" style="margin-bottom: 8px;">
-                    <div class="input-group" style="margin-bottom:0;">
-                        <label>Standard-Datum (Fallback)</label>
-                        <input type="date" id="ocrDefaultDate">
-                    </div>
-                    <div class="input-group" style="margin-bottom:0;">
-                        <label>Standard-Location (Fallback)</label>
-                        <select id="ocrDefaultLocation">
-                            <option value="Bierkönig">🍺 Bierkönig</option>
-                            <option value="Megapark">🌴 Megapark</option>
-                            <option value="Oberbayern">🍻 Oberbayern</option>
-                            <option value="MK Arena">🏰 MK Arena</option>
-                            <option value="Bamboleo">🎶 Bamboleo</option>
-                            <option value="Sonstige">📍 Sonstige Location</option>
-                        </select>
-                    </div>
-                </div>
                 <div class="ocr-dropzone" onclick="document.getElementById('lineupScreenshotInput').click()">
                     <div style="font-size: 1.5rem; margin-bottom: 4px;">📲🖼️</div>
                     <strong style="color: var(--accent); font-size: 0.85rem;">Flyer / Story auswählen oder hochladen</strong>
@@ -1588,19 +1335,141 @@
         }
 
         // ==========================================
-        // DIREKTER OFFLINE-OCR SCANNER (OHNE KI-SCHNITTSTELLE)
+        // GEMINI KI-SCANNER MIT KOMPRIMIERUNG, TIMEOUT & AUTO-RETRY
         // ==========================================
-        function saveGeminiApiKey() {}
+        function saveGeminiApiKey() {
+            const inp = document.getElementById('geminiApiKeyInput');
+            if (!inp) return;
+            geminiApiKey = inp.value.trim();
+            localStorage.setItem('finanz_gemini_api_key', geminiApiKey);
+            updateGeminiKeyUI();
+            saveLocally();
+            alert(geminiApiKey ? '✅ Gemini API-Key gespeichert! Deine App nutzt ab sofort die KI-Bilderkennung.' : 'API-Key entfernt.');
+        }
+
         function updateGeminiKeyUI() {
+            const inp = document.getElementById('geminiApiKeyInput');
+            const status = document.getElementById('geminiKeyStatusBadge');
             const badge = document.getElementById('geminiScannerBadge');
+            if (inp) inp.value = geminiApiKey;
+            if (status) {
+                if (geminiApiKey) {
+                    status.innerText = 'Aktiv ✅';
+                    status.style.color = 'var(--accent-green)';
+                } else {
+                    status.innerText = 'Nicht hinterlegt';
+                    status.style.color = 'var(--text-sub)';
+                }
+            }
             if (badge) {
-                badge.innerText = 'Offline-OCR Aktiv ⚙️';
-                badge.className = 'badge badge-booked';
+                badge.innerText = geminiApiKey ? 'Gemini KI Aktiv ✨' : 'Offline-OCR ⚙️';
+                badge.className = geminiApiKey ? 'badge badge-booked' : 'badge badge-dauer';
             }
-            const dInp = document.getElementById('ocrDefaultDate');
-            if (dInp && !dInp.value) {
-                dInp.value = new Date().toISOString().slice(0, 10);
+        }
+
+        async function fileToBase64Pure(file) {
+            const compressedDataUrl = await compressImage(file, 900, 0.75);
+            const base64 = compressedDataUrl.split(',')[1];
+            return { base64, mimeType: 'image/jpeg' };
+        }
+
+        async function callGeminiWithRetry(apiKey, payload, onStatusUpdate) {
+            const models = [
+                "gemini-2.5-flash",
+                "gemini-2.5-pro",
+                "gemini-2.0-flash"
+            ];
+
+            let lastError = null;
+
+            for (let i = 0; i < models.length; i++) {
+                const model = models[i];
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 18000);
+
+                try {
+                    if (onStatusUpdate) {
+                        onStatusUpdate(i === 0
+                            ? `✨ Sende Bild an ${model}...`
+                            : `🔄 Neuer Versuch mit ${model} (${i + 1}/${models.length})...`
+                        );
+                    }
+
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+
+                    if (response.status === 503 || response.status === 429 || response.status === 404) {
+                        const errText = await response.text();
+                        lastError = `Server ausgelastet (${response.status})`;
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        continue;
+                    }
+
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(`Gemini API Fehler (${response.status}): ${errText}`);
+                    }
+
+                    return await response.json();
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    const msg = err.name === 'AbortError' ? 'Zeitüberschreitung' : err.message;
+                    lastError = msg;
+                    if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("Zeitüberschreitung") || msg.includes("503") || msg.includes("429")) {
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        continue;
+                    }
+                    throw err;
+                }
             }
+
+            throw new Error(`Verbindung fehlgeschlagen (${lastError}). Falls aktiv, bitte VPN kurz deaktivieren!`);
+        }
+
+        async function analyzeFlyerWithGemini(file, onStatusUpdate) {
+            const { base64, mimeType } = await fileToBase64Pure(file);
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const tomorrowDate = new Date();
+            tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+            const tomorrowStr = tomorrowDate.toISOString().slice(0, 10);
+
+            const prompt = `Du bist ein präziser Event-Parser für Mallorca/Ballermann Party-Lineups (Bierkönig, Megapark, Oberbayern, MK Arena, Bamboleo).
+Analysiere das hochgeladene Bild (Instagram-Story, Tages- oder Wochenposter) und extrahiere ALLE Auftritte.
+Heutiges Datum: ${todayStr}, Morgen: ${tomorrowStr}.
+Regeln:
+- Wenn "HEUTE" oder "HEUTE LIVE" steht, nutze ${todayStr}.
+- Wenn "MORGEN" steht, nutze ${tomorrowStr}.
+- Wenn nur Tag/Monat ohne Jahr steht, ergänze das passende Jahr (2026 oder 2027).
+- Erkenne die Location aus Logos, Wasserzeichen, Instagram-Handles (@bierkoenigmallorca -> Bierkönig, @megapark_mallorca -> Megapark) oder Text. Erlaubte Werte für location: "Bierkönig", "Megapark", "Oberbayern", "MK Arena", "Bamboleo", "Sonstige".
+- Uhrzeit immer im 24h-Format "HH:MM" (z.B. "22:00", "00:30"). Falls keine Uhrzeit sichtbar ist, "22:00".
+- Antworte AUSSCHLIESSLICH mit gültigem JSON ohne Markdown-Formatierung in exakt dieser Struktur:
+{"lineupEvents":[{"location":"Bierkönig","date":"YYYY-MM-DD","time":"HH:MM","artist":"Künstlername","note":"","isFav":false}]}`;
+
+            const requestPayload = {
+                contents: [{
+                    parts: [
+                        { text: prompt },
+                        { inlineData: { mimeType: mimeType, data: base64 } }
+                    ]
+                }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    temperature: 0.1
+                }
+            };
+
+            const data = await callGeminiWithRetry(geminiApiKey, requestPayload, onStatusUpdate);
+            const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+            const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+            const parsed = JSON.parse(cleaned);
+            return Array.isArray(parsed) ? parsed : (parsed.lineupEvents || []);
         }
 
         function mergeLineupEventsDeduplicated(incomingEvents) {
@@ -1691,34 +1560,40 @@
             const progressPct = document.getElementById('ocrProgressPct');
             const progressBar = document.getElementById('ocrProgressBar');
 
-            const fallbackDate = document.getElementById('ocrDefaultDate')?.value || new Date().toISOString().slice(0, 10);
-            const fallbackLocation = document.getElementById('ocrDefaultLocation')?.value || 'Bierkönig';
-
             statusBox.style.display = 'block';
             let totalAdded = 0;
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                progressPct.innerText = '10%';
-                progressBar.style.width = '10%';
+                progressPct.innerText = '25%';
+                progressBar.style.width = '25%';
 
                 try {
-                    const compressedFile = await compressImage(file, 1400, 0.85);
-                    statusText.innerText = `⚙️ Offline-OCR scannt Flyer ${i + 1} von ${files.length}...`;
-                    const result = await Tesseract.recognize(compressedFile, 'deu+eng', {
-                        logger: m => {
-                            if (m.status === 'recognizing text') {
-                                const pct = Math.round(m.progress * 100);
-                                progressPct.innerText = pct + '%';
-                                progressBar.style.width = pct + '%';
+                    if (geminiApiKey) {
+                        statusText.innerText = `✨ Komprimiere & analysiere Bild ${i + 1} von ${files.length}...`;
+                        progressPct.innerText = '55%';
+                        progressBar.style.width = '55%';
+                        const aiEvents = await analyzeFlyerWithGemini(file, (msg) => {
+                            statusText.innerText = msg;
+                        });
+                        totalAdded += mergeLineupEventsDeduplicated(aiEvents);
+                        progressPct.innerText = '100%';
+                        progressBar.style.width = '100%';
+                    } else {
+                        statusText.innerText = `⚙️ Offline-OCR scannt Flyer ${i + 1} von ${files.length}...`;
+                        const result = await Tesseract.recognize(file, 'deu+eng', {
+                            logger: m => {
+                                if (m.status === 'recognizing text') {
+                                    const pct = Math.round(m.progress * 100);
+                                    progressPct.innerText = pct + '%';
+                                    progressBar.style.width = pct + '%';
+                                }
                             }
-                        }
-                    });
-                    const text = result.data.text || '';
-                    const parsedEvents = parseMultiColumnFlyer(text, fallbackDate, fallbackLocation);
-                    totalAdded += mergeLineupEventsDeduplicated(parsedEvents);
-                    progressPct.innerText = '100%';
-                    progressBar.style.width = '100%';
+                        });
+                        const text = result.data.text || '';
+                        const parsedEvents = parseMultiColumnFlyer(text);
+                        totalAdded += mergeLineupEventsDeduplicated(parsedEvents);
+                    }
                 } catch (err) {
                     statusText.innerText = '❌ Fehler: ' + err.message;
                     alert('Scan-Fehler: ' + err.message);
@@ -1731,19 +1606,19 @@
             event.target.value = '';
         }
 
-        function parseMultiColumnFlyer(rawText, fallbackDate = null, fallbackLocation = "Bierkönig") {
+        function parseMultiColumnFlyer(rawText) {
             const cleanRaw = rawText.replace(/wifi|lte|5g|vpn|vodafone|o2|telekom|33%|100%|20:47|20:30|20:20/gi, '');
             const lines = cleanRaw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
             
-            let currentLoc = fallbackLocation || "Bierkönig";
+            let currentLoc = "Bierkönig";
             let events = [];
-            let currentDate = fallbackDate || new Date().toISOString().slice(0, 10);
+            let currentDate = new Date().toISOString().slice(0, 10);
 
             const dateMatch = cleanRaw.match(/\b(0?[1-9]|[12]\d|3[01])[\.\/](0?[1-9]|1[0-2])[\.\/]?(20\d{2})?\b/);
             if (dateMatch) {
                 const day = dateMatch[1].padStart(2, '0');
                 const month = dateMatch[2].padStart(2, '0');
-                const year = dateMatch[3] || (fallbackDate ? fallbackDate.slice(0, 4) : "2027");
+                const year = dateMatch[3] || "2027";
                 currentDate = `${year}-${month}-${day}`;
             }
 
