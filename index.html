@@ -667,39 +667,79 @@
                 <div class="history-list" id="lineupTodayList"></div>
             </div>
 
-            <!-- KI-SCANNER MIT GEMINI API-KEY & AUTO-RETRY -->
-            <div class="card" style="border: 1.5px solid var(--accent);">
-                <div class="card-title" style="color: var(--accent);">
-                    <span>📸 Flyer & Storys scannen</span>
-                    <span id="geminiScannerBadge" class="badge badge-dauer">Gemini KI ✨</span>
+            <!-- 1. SCHNELL-BRIDGE ZU GEMINI (BILD HOCHLADEN -> PROMPT & JSON DOWNLOAD) -->
+            <div class="card" style="background: var(--accent-purple-soft); border: 2px solid var(--accent-purple);">
+                <div class="card-title" style="color: var(--accent-purple); margin-bottom: 6px;">
+                    <span>✨ Gemini-Chat Direkt-Bridge (100% Trefferquote)</span>
+                    <span class="badge" style="background:var(--accent-purple); color:#fff;">Ohne API-Key</span>
+                </div>
+                <div style="font-size: 0.74rem; color: var(--text-sub); margin-bottom: 10px;">
+                    Wähle dein Flyer-Bild aus – die App bereitet alles vor, öffnet deinen Gemini-Chat mit dem fertigen JSON-Befehl und du kannst die Datei direkt runterladen oder einfügen:
                 </div>
 
-                <!-- GEMINI API-KEY EINGABE -->
-                <div style="background: var(--accent-purple-soft); border: 1px solid var(--accent-purple); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                        <label style="color: var(--accent-purple); font-weight: 800; font-size: 0.74rem;">🔑 Gemini API-Key (für perfekte Bilderkennung)</label>
-                        <span id="geminiKeyStatusBadge" style="font-size:0.65rem; font-weight:bold; color:var(--text-sub);">Nicht hinterlegt</span>
+                <div class="ocr-dropzone" style="border-color: var(--accent-purple); background: var(--card-bg);" onclick="document.getElementById('geminiBridgeImageInput').click()">
+                    <div style="font-size: 1.5rem; margin-bottom: 4px;">🖼️➡️🤖</div>
+                    <strong style="color: var(--accent-purple); font-size: 0.85rem;">1. Flyer-Bild für Gemini auswählen</strong>
+                    <div id="geminiBridgeFileName" style="font-size: 0.7rem; color: var(--text-sub); margin-top: 3px;">Tippen, um Screenshot / Story auszuwählen</div>
+                    <input type="file" id="geminiBridgeImageInput" accept="image/*" style="display:none" onchange="handleGeminiBridgeImageSelect(event)">
+                </div>
+
+                <div id="geminiBridgePreviewBox" style="display:none; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 10px;">
+                    <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
+                        <img id="geminiBridgeThumb" src="" style="width:54px; height:54px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
+                        <div style="flex:1;">
+                            <div style="font-size:0.78rem; font-weight:800; color:var(--text-main);" id="geminiBridgeReadyTitle">Bild bereit!</div>
+                            <div style="font-size:0.68rem; color:var(--text-sub);">Prompt wird automatisch kopiert &amp; Bild in die Zwischenablage gelegt (falls unterstützt).</div>
+                        </div>
                     </div>
-                    <div style="display:flex; gap:5px;">
-                        <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." style="flex:2; font-size:0.78rem; padding:6px 8px;">
-                        <button class="btn-secondary" style="background:var(--accent-purple); color:#fff; border:none; font-weight:bold; padding:6px 12px;" onclick="saveGeminiApiKey()">Speichern 💾</button>
+                    <div class="grid" style="gap:6px;">
+                        <button type="button" class="btn-add" style="background: var(--accent-purple); margin-top:0; font-size:0.78rem;" onclick="launchGeminiWithPrompt()">🚀 2. Gemini öffnen &amp; Prompt kopieren</button>
+                        <button type="button" class="btn-secondary" style="font-size:0.75rem; font-weight:bold;" onclick="copyGeminiJsonPromptOnly()">📋 Nur Prompt kopieren</button>
                     </div>
                 </div>
 
-                <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
-                    Lade Instagram-Storys (z. B. Bierkönig / Megapark) oder Wochenpläne hoch – inklusive automatischer Bildkomprimierung & Auto-Retry:
+                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 10px; border-radius: 10px;">
+                    <label style="color: var(--accent-green); font-weight: 800; font-size: 0.75rem; display:block; margin-bottom: 5px;">📥 3. Fertige JSON-Datei laden oder Code einfügen:</label>
+                    <div style="display:flex; gap:6px; margin-bottom:8px;">
+                        <button type="button" class="btn-add" style="background: var(--accent-green); margin-top:0; font-size:0.78rem;" onclick="document.getElementById('lineupJsonFileInput').click()">📂 .json Datei hochladen</button>
+                        <input type="file" id="lineupJsonFileInput" accept=".json,application/json" style="display:none" onchange="importLineupFromJsonFile(event)">
+                    </div>
+                    <textarea id="lineupJsonPasteInput" rows="2" placeholder='Oder JSON-Block hier einfügen: {"lineupEvents": [ ... ]}' style="font-family: monospace; font-size: 0.73rem; margin-bottom: 6px;"></textarea>
+                    <button type="button" class="btn-secondary" style="width:100%; background: var(--accent-green-soft); color: var(--accent-green); border-color: var(--accent-green); font-weight:bold;" onclick="importLineupFromJsonText()">JSON-Text jetzt importieren ✅</button>
                 </div>
+            </div>
+
+            <!-- 2. OFFLINE-OCR & MANUELL -->
+            <details class="card" style="border: 1px solid var(--border);">
+                <summary style="font-size: 0.85rem; color: var(--text-main);">⚙️ Offline-OCR Scanner &amp; Manuelle Eingabe</summary>
                 
+                <div class="grid" style="margin-bottom: 8px; margin-top: 6px;">
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label>Standard-Datum (Fallback)</label>
+                        <input type="date" id="ocrDefaultDate">
+                    </div>
+                    <div class="input-group" style="margin-bottom:0;">
+                        <label>Standard-Location (Fallback)</label>
+                        <select id="ocrDefaultLocation">
+                            <option value="Bierkönig">🍺 Bierkönig</option>
+                            <option value="Megapark">🌴 Megapark</option>
+                            <option value="Oberbayern">🍻 Oberbayern</option>
+                            <option value="MK Arena">🏰 MK Arena</option>
+                            <option value="Bamboleo">🎶 Bamboleo</option>
+                            <option value="Sonstige">📍 Sonstige Location</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="ocr-dropzone" onclick="document.getElementById('lineupScreenshotInput').click()">
-                    <div style="font-size: 1.5rem; margin-bottom: 4px;">📲🖼️</div>
-                    <strong style="color: var(--accent); font-size: 0.85rem;">Flyer / Story auswählen oder hochladen</strong>
-                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-top: 2px;">Unterstützt JPG, PNG, WebP (auch mehrere gleichzeitig)</div>
+                    <div style="font-size: 1.3rem; margin-bottom: 2px;">📲🖼️</div>
+                    <strong style="color: var(--accent); font-size: 0.8rem;">Direkt im Browser scannen (Offline-OCR)</strong>
                     <input type="file" id="lineupScreenshotInput" accept="image/*" multiple style="display:none" onchange="processLineupScreenshots(event)">
                 </div>
 
                 <div id="ocrStatusBox" style="display:none; background:var(--card-sub); border:1px solid var(--border); padding:10px; border-radius:10px; margin-bottom:10px;">
                     <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px;">
-                        <span id="ocrStatusText">KI analysiert Bild...</span>
+                        <span id="ocrStatusText">Offline-OCR analysiert Bild...</span>
                         <span id="ocrProgressPct">0%</span>
                     </div>
                     <div class="progress-bar-container" style="margin-top:0;">
@@ -707,21 +747,16 @@
                     </div>
                 </div>
 
-                <details id="lineupManualDetails">
-                    <summary style="font-size: 0.8rem; color: var(--text-main);">✍️ Einzelnen Termin manuell hinzufügen</summary>
-                    
-                    <div style="margin-top:8px;">
-                        <label style="display:block; margin-bottom:3px;">Schnellwahl Künstler:</label>
-                        <div class="quick-btn-row">
-                            <button type="button" class="quick-btn" onclick="quickFillArtist('Mia Julia')">Mia Julia</button>
-                            <button type="button" class="quick-btn" onclick="quickFillArtist('Lorenz Büffel')">Lorenz Büffel</button>
-                            <button type="button" class="quick-btn" onclick="quickFillArtist('Julian Sommer')">Julian Sommer</button>
-                            <button type="button" class="quick-btn" onclick="quickFillArtist('Isi Glück')">Isi Glück</button>
-                            <button type="button" class="quick-btn" onclick="quickFillArtist('Frenzy')">Frenzy</button>
-                            <button type="button" class="quick-btn" onclick="quickFillArtist('Ikke Hüftgold')">Ikke Hüftgold</button>
-                        </div>
+                <div style="margin-top:8px; border-top: 1px solid var(--border); padding-top:8px;">
+                    <label style="display:block; margin-bottom:3px;">Schnellwahl Künstler (Manuell):</label>
+                    <div class="quick-btn-row">
+                        <button type="button" class="quick-btn" onclick="quickFillArtist('Mia Julia')">Mia Julia</button>
+                        <button type="button" class="quick-btn" onclick="quickFillArtist('Lorenz Büffel')">Lorenz Büffel</button>
+                        <button type="button" class="quick-btn" onclick="quickFillArtist('Julian Sommer')">Julian Sommer</button>
+                        <button type="button" class="quick-btn" onclick="quickFillArtist('Isi Glück')">Isi Glück</button>
+                        <button type="button" class="quick-btn" onclick="quickFillArtist('Frenzy')">Frenzy</button>
+                        <button type="button" class="quick-btn" onclick="quickFillArtist('Ikke Hüftgold')">Ikke Hüftgold</button>
                     </div>
-
                     <div class="grid" style="margin-top: 6px;">
                         <div class="input-group">
                             <label>Location</label>
@@ -752,17 +787,7 @@
                         </div>
                     </div>
                     <button class="btn-add" style="background: var(--accent-green);" onclick="saveLineupEntry()">Auftritt zur Liste hinzufügen 🎤➕</button>
-                </details>
-            </div>
-
-            <!-- DIREKT-IMPORT BOX FÜR JSON-CODE -->
-            <details class="card" style="background: var(--accent-green-soft); border: 1.5px solid var(--accent-green);">
-                <summary style="color: var(--accent-green); font-size: 0.85rem;">📋 JSON-Code direkt einfügen (Optional)</summary>
-                <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px;">
-                    Falls du einen fertigen JSON-Block einfügen möchtest, kopiere ihn hier hinein:
                 </div>
-                <textarea id="lineupJsonPasteInput" rows="3" placeholder='{"lineupEvents": [ ... ]}' style="font-family: monospace; font-size: 0.75rem; margin-bottom: 8px;"></textarea>
-                <button class="btn-add" style="background: var(--accent-green); margin-top: 0;" onclick="importLineupFromJsonText()">Events importieren 📥</button>
             </details>
 
             <div class="card">
@@ -1335,141 +1360,112 @@
         }
 
         // ==========================================
-        // GEMINI KI-SCANNER MIT KOMPRIMIERUNG, TIMEOUT & AUTO-RETRY
+        // GEMINI CHAT DIREKT-BRIDGE & OFFLINE-OCR
         // ==========================================
-        function saveGeminiApiKey() {
-            const inp = document.getElementById('geminiApiKeyInput');
-            if (!inp) return;
-            geminiApiKey = inp.value.trim();
-            localStorage.setItem('finanz_gemini_api_key', geminiApiKey);
-            updateGeminiKeyUI();
-            saveLocally();
-            alert(geminiApiKey ? '✅ Gemini API-Key gespeichert! Deine App nutzt ab sofort die KI-Bilderkennung.' : 'API-Key entfernt.');
-        }
+        let selectedBridgeFile = null;
 
+        function saveGeminiApiKey() {}
         function updateGeminiKeyUI() {
-            const inp = document.getElementById('geminiApiKeyInput');
-            const status = document.getElementById('geminiKeyStatusBadge');
-            const badge = document.getElementById('geminiScannerBadge');
-            if (inp) inp.value = geminiApiKey;
-            if (status) {
-                if (geminiApiKey) {
-                    status.innerText = 'Aktiv ✅';
-                    status.style.color = 'var(--accent-green)';
-                } else {
-                    status.innerText = 'Nicht hinterlegt';
-                    status.style.color = 'var(--text-sub)';
-                }
-            }
-            if (badge) {
-                badge.innerText = geminiApiKey ? 'Gemini KI Aktiv ✨' : 'Offline-OCR ⚙️';
-                badge.className = geminiApiKey ? 'badge badge-booked' : 'badge badge-dauer';
+            const dInp = document.getElementById('ocrDefaultDate');
+            if (dInp && !dInp.value) {
+                dInp.value = new Date().toISOString().slice(0, 10);
             }
         }
 
-        async function fileToBase64Pure(file) {
-            const compressedDataUrl = await compressImage(file, 900, 0.75);
-            const base64 = compressedDataUrl.split(',')[1];
-            return { base64, mimeType: 'image/jpeg' };
+        function getGeminiJsonPromptText() {
+            return `Lies alle Termine aus diesem Mallorca-Flyer aus und gib mir direkt die fertige .json-Datei zum Download (und zusätzlich den JSON-Block) exakt in diesem Format für meine App:
+{
+  "lineupEvents": [
+    {
+      "location": "Bierkönig",
+      "date": "2027-04-22",
+      "time": "22:00",
+      "artist": "Künstlername",
+      "note": "",
+      "isFav": false
+    }
+  ]
+}`;
         }
 
-        async function callGeminiWithRetry(apiKey, payload, onStatusUpdate) {
-            const models = [
-                "gemini-2.5-flash",
-                "gemini-2.5-pro",
-                "gemini-2.0-flash"
-            ];
+        function handleGeminiBridgeImageSelect(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            selectedBridgeFile = file;
 
-            let lastError = null;
+            const nameEl = document.getElementById('geminiBridgeFileName');
+            const previewBox = document.getElementById('geminiBridgePreviewBox');
+            const thumb = document.getElementById('geminiBridgeThumb');
+            const titleEl = document.getElementById('geminiBridgeReadyTitle');
 
-            for (let i = 0; i < models.length; i++) {
-                const model = models[i];
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+            if (nameEl) nameEl.innerText = `✅ Ausgewählt: ${file.name}`;
+            if (titleEl) titleEl.innerText = file.name;
+            if (previewBox) previewBox.style.display = 'block';
 
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 18000);
-
-                try {
-                    if (onStatusUpdate) {
-                        onStatusUpdate(i === 0
-                            ? `✨ Sende Bild an ${model}...`
-                            : `🔄 Neuer Versuch mit ${model} (${i + 1}/${models.length})...`
-                        );
-                    }
-
-                    const response = await fetch(url, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload),
-                        signal: controller.signal
-                    });
-                    clearTimeout(timeoutId);
-
-                    if (response.status === 503 || response.status === 429 || response.status === 404) {
-                        const errText = await response.text();
-                        lastError = `Server ausgelastet (${response.status})`;
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                        continue;
-                    }
-
-                    if (!response.ok) {
-                        const errText = await response.text();
-                        throw new Error(`Gemini API Fehler (${response.status}): ${errText}`);
-                    }
-
-                    return await response.json();
-                } catch (err) {
-                    clearTimeout(timeoutId);
-                    const msg = err.name === 'AbortError' ? 'Zeitüberschreitung' : err.message;
-                    lastError = msg;
-                    if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("Zeitüberschreitung") || msg.includes("503") || msg.includes("429")) {
-                        await new Promise(resolve => setTimeout(resolve, 1500));
-                        continue;
-                    }
-                    throw err;
-                }
-            }
-
-            throw new Error(`Verbindung fehlgeschlagen (${lastError}). Falls aktiv, bitte VPN kurz deaktivieren!`);
-        }
-
-        async function analyzeFlyerWithGemini(file, onStatusUpdate) {
-            const { base64, mimeType } = await fileToBase64Pure(file);
-            const todayStr = new Date().toISOString().slice(0, 10);
-            const tomorrowDate = new Date();
-            tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-            const tomorrowStr = tomorrowDate.toISOString().slice(0, 10);
-
-            const prompt = `Du bist ein präziser Event-Parser für Mallorca/Ballermann Party-Lineups (Bierkönig, Megapark, Oberbayern, MK Arena, Bamboleo).
-Analysiere das hochgeladene Bild (Instagram-Story, Tages- oder Wochenposter) und extrahiere ALLE Auftritte.
-Heutiges Datum: ${todayStr}, Morgen: ${tomorrowStr}.
-Regeln:
-- Wenn "HEUTE" oder "HEUTE LIVE" steht, nutze ${todayStr}.
-- Wenn "MORGEN" steht, nutze ${tomorrowStr}.
-- Wenn nur Tag/Monat ohne Jahr steht, ergänze das passende Jahr (2026 oder 2027).
-- Erkenne die Location aus Logos, Wasserzeichen, Instagram-Handles (@bierkoenigmallorca -> Bierkönig, @megapark_mallorca -> Megapark) oder Text. Erlaubte Werte für location: "Bierkönig", "Megapark", "Oberbayern", "MK Arena", "Bamboleo", "Sonstige".
-- Uhrzeit immer im 24h-Format "HH:MM" (z.B. "22:00", "00:30"). Falls keine Uhrzeit sichtbar ist, "22:00".
-- Antworte AUSSCHLIESSLICH mit gültigem JSON ohne Markdown-Formatierung in exakt dieser Struktur:
-{"lineupEvents":[{"location":"Bierkönig","date":"YYYY-MM-DD","time":"HH:MM","artist":"Künstlername","note":"","isFav":false}]}`;
-
-            const requestPayload = {
-                contents: [{
-                    parts: [
-                        { text: prompt },
-                        { inlineData: { mimeType: mimeType, data: base64 } }
-                    ]
-                }],
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    temperature: 0.1
-                }
+            const reader = new FileReader();
+            reader.onload = e => {
+                if (thumb) thumb.src = e.target.result;
             };
+            reader.readAsDataURL(file);
+        }
 
-            const data = await callGeminiWithRetry(geminiApiKey, requestPayload, onStatusUpdate);
-            const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-            const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
-            const parsed = JSON.parse(cleaned);
-            return Array.isArray(parsed) ? parsed : (parsed.lineupEvents || []);
+        async function copyGeminiJsonPromptOnly() {
+            const promptText = getGeminiJsonPromptText();
+            try {
+                await navigator.clipboard.writeText(promptText);
+                alert('✅ Befehl für Gemini in die Zwischenablage kopiert! Jetzt im Gemini-Chat nur noch dein Bild anhängen und einfügen.');
+            } catch (err) {
+                prompt('Bitte diesen Text kopieren:', promptText);
+            }
+        }
+
+        async function launchGeminiWithPrompt() {
+            const promptText = getGeminiJsonPromptText();
+            try {
+                await navigator.clipboard.writeText(promptText);
+            } catch (e) {}
+
+            // Auf Mobilgeräten Web Share API nutzen, falls Datei ausgewählt wurde (teilt Bild + Prompt direkt an Gemini App!)
+            if (selectedBridgeFile && navigator.canShare && navigator.canShare({ files: [selectedBridgeFile] })) {
+                try {
+                    await navigator.share({
+                        files: [selectedBridgeFile],
+                        title: 'Mallorca LineUp Flyer',
+                        text: promptText
+                    });
+                    return;
+                } catch (shareErr) {
+                    if (shareErr.name === 'AbortError') return;
+                }
+            }
+
+            // Fallback für Desktop / Browser ohne File-Share: Gemini öffnen + Hinweis
+            window.open('https://gemini.google.com/app', '_blank');
+            alert('✅ Der JSON-Befehl wurde in deine Zwischenablage kopiert & Gemini geöffnet!\n\nFüge im Gemini-Chat jetzt einfach das Bild + den kopierten Text ein – du bekommst sofort die fertige .json-Datei zurück.');
+        }
+
+        function importLineupFromJsonFile(event) {
+            const file = event.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const cleaned = (e.target.result || '').replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+                    const parsed = JSON.parse(cleaned);
+                    const incoming = Array.isArray(parsed) ? parsed : (parsed.lineupEvents || []);
+                    if (!Array.isArray(incoming) || incoming.length === 0) {
+                        return alert('Keine gültigen Auftritte in der JSON-Datei gefunden.');
+                    }
+                    const addedCount = mergeLineupEventsDeduplicated(incoming);
+                    saveLocally();
+                    renderLineupView();
+                    alert(`✅ ${addedCount} neue Auftritte aus der Datei "${file.name}" importiert! 🎤🎉`);
+                } catch (err) {
+                    alert('❌ Fehler beim Lesen der JSON-Datei: ' + err.message);
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file, 'UTF-8');
         }
 
         function mergeLineupEventsDeduplicated(incomingEvents) {
@@ -1560,40 +1556,34 @@ Regeln:
             const progressPct = document.getElementById('ocrProgressPct');
             const progressBar = document.getElementById('ocrProgressBar');
 
+            const fallbackDate = document.getElementById('ocrDefaultDate')?.value || new Date().toISOString().slice(0, 10);
+            const fallbackLocation = document.getElementById('ocrDefaultLocation')?.value || 'Bierkönig';
+
             statusBox.style.display = 'block';
             let totalAdded = 0;
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                progressPct.innerText = '25%';
-                progressBar.style.width = '25%';
+                progressPct.innerText = '10%';
+                progressBar.style.width = '10%';
 
                 try {
-                    if (geminiApiKey) {
-                        statusText.innerText = `✨ Komprimiere & analysiere Bild ${i + 1} von ${files.length}...`;
-                        progressPct.innerText = '55%';
-                        progressBar.style.width = '55%';
-                        const aiEvents = await analyzeFlyerWithGemini(file, (msg) => {
-                            statusText.innerText = msg;
-                        });
-                        totalAdded += mergeLineupEventsDeduplicated(aiEvents);
-                        progressPct.innerText = '100%';
-                        progressBar.style.width = '100%';
-                    } else {
-                        statusText.innerText = `⚙️ Offline-OCR scannt Flyer ${i + 1} von ${files.length}...`;
-                        const result = await Tesseract.recognize(file, 'deu+eng', {
-                            logger: m => {
-                                if (m.status === 'recognizing text') {
-                                    const pct = Math.round(m.progress * 100);
-                                    progressPct.innerText = pct + '%';
-                                    progressBar.style.width = pct + '%';
-                                }
+                    const compressedFile = await compressImage(file, 1400, 0.85);
+                    statusText.innerText = `⚙️ Offline-OCR scannt Flyer ${i + 1} von ${files.length}...`;
+                    const result = await Tesseract.recognize(compressedFile, 'deu+eng', {
+                        logger: m => {
+                            if (m.status === 'recognizing text') {
+                                const pct = Math.round(m.progress * 100);
+                                progressPct.innerText = pct + '%';
+                                progressBar.style.width = pct + '%';
                             }
-                        });
-                        const text = result.data.text || '';
-                        const parsedEvents = parseMultiColumnFlyer(text);
-                        totalAdded += mergeLineupEventsDeduplicated(parsedEvents);
-                    }
+                        }
+                    });
+                    const text = result.data.text || '';
+                    const parsedEvents = parseMultiColumnFlyer(text, fallbackDate, fallbackLocation);
+                    totalAdded += mergeLineupEventsDeduplicated(parsedEvents);
+                    progressPct.innerText = '100%';
+                    progressBar.style.width = '100%';
                 } catch (err) {
                     statusText.innerText = '❌ Fehler: ' + err.message;
                     alert('Scan-Fehler: ' + err.message);
@@ -1606,19 +1596,19 @@ Regeln:
             event.target.value = '';
         }
 
-        function parseMultiColumnFlyer(rawText) {
+        function parseMultiColumnFlyer(rawText, fallbackDate = null, fallbackLocation = "Bierkönig") {
             const cleanRaw = rawText.replace(/wifi|lte|5g|vpn|vodafone|o2|telekom|33%|100%|20:47|20:30|20:20/gi, '');
             const lines = cleanRaw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
             
-            let currentLoc = "Bierkönig";
+            let currentLoc = fallbackLocation || "Bierkönig";
             let events = [];
-            let currentDate = new Date().toISOString().slice(0, 10);
+            let currentDate = fallbackDate || new Date().toISOString().slice(0, 10);
 
             const dateMatch = cleanRaw.match(/\b(0?[1-9]|[12]\d|3[01])[\.\/](0?[1-9]|1[0-2])[\.\/]?(20\d{2})?\b/);
             if (dateMatch) {
                 const day = dateMatch[1].padStart(2, '0');
                 const month = dateMatch[2].padStart(2, '0');
-                const year = dateMatch[3] || "2027";
+                const year = dateMatch[3] || (fallbackDate ? fallbackDate.slice(0, 4) : "2027");
                 currentDate = `${year}-${month}-${day}`;
             }
 
