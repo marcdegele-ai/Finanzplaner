@@ -132,7 +132,7 @@
         
         .quick-btn-row { display: flex; gap: 5px; margin-bottom: 6px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
         .quick-btn-row::-webkit-scrollbar { display: none; }
-        .quick-btn { flex: 1; min-width: 65px; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; font-size: 0.73rem; font-weight: bold; cursor: pointer; text-align: center; white-space: nowrap; transition: transform 0.1s ease; }
+        .quick-btn { flex: 1; min-width: 0; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--border); border-radius: 8px; padding: 6px 4px; font-size: 0.70rem; font-weight: bold; cursor: pointer; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: transform 0.1s ease; }
         .quick-btn:active { transform: scale(0.96); }
         .quick-btn.current-anchor { background: var(--accent-green-soft); color: var(--accent-green); border-color: var(--accent-green); font-weight: 800; }
         .quick-btn.selected-month { background: var(--accent); color: #ffffff; border-color: var(--accent); }
@@ -421,16 +421,6 @@
                 <div class="card-title">🔮 Vorschau (3 Monate)</div>
                 <div class="history-list" id="nextThreeList"></div>
             </div>
-
-            <div class="card" style="background: var(--card-sub); border: 1px solid var(--border);">
-                <div class="card-title"><span>⚡ Schnell-Aktionen</span></div>
-                <div class="grid" style="gap: 6px;">
-                    <button type="button" class="btn-secondary" style="padding: 8px; font-weight: bold;" onclick="switchTab('haushalt-view', document.querySelector('[data-view=haushalt-view]'))">🏠 Haushaltsbuch öffnen</button>
-                    <button type="button" class="btn-secondary" style="padding: 8px; font-weight: bold;" onclick="switchTab('dok-view', document.querySelector('[data-view=dok-view]'))">📂 Abrechnungen &amp; Dokumente</button>
-                    <button type="button" class="btn-secondary" style="padding: 8px; font-weight: bold;" onclick="switchTab('jahres-view', document.querySelector('[data-view=jahres-view]'))">📈 Jahres-Check</button>
-                    <button type="button" class="btn-secondary" style="padding: 8px; font-weight: bold;" onclick="openCloudModal()">☁️ Cloud-Sync prüfen</button>
-                </div>
-            </div>
         </div>
 
         <!-- TAB 2: HAUSHALTSBUCH -->
@@ -551,11 +541,6 @@
                         </select>
                     </div>
                 </div>
-                <div style="display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
-                    <button type="button" class="quick-btn" id="hhFilterAllBtn" onclick="setHhTypeFilter('all')">Alle</button>
-                    <button type="button" class="quick-btn" id="hhFilterExpBtn" onclick="setHhTypeFilter('expense')">🔴 Nur Ausgaben</button>
-                    <button type="button" class="quick-btn" id="hhFilterIncBtn" onclick="setHhTypeFilter('income')">🟢 Nur Einnahmen</button>
-                </div>
                 <div class="history-list" id="HHList"></div>
             </div>
         </div>
@@ -610,7 +595,7 @@
                         </select>
                     </div>
                     <div class="input-group"><label>Geplanter Event-Betrag (€)</label><input type="number" id="zielPlannedEventAmount" placeholder="0" oninput="autoCalculateMonthlyRate()"></div>
-                    <div class="input-group full"><label>Event-Datum (tagegenau, optional)</label><input type="date" id="zielPlannedEventDate" onchange="autoCalculateMonthlyRate()"></div>
+                    <div class="input-group full"><label>Event-Monat (optional)</label><input type="month" id="zielPlannedEventMonth" onchange="autoCalculateMonthlyRate()"></div>
                     <div class="input-group full"><label>Start-Guthaben (€)</label><input type="number" id="zielStart" value="0" oninput="autoCalculateMonthlyRate()"></div>
                     <div class="input-group full">
                         <label>Typ / Zuordnung</label>
@@ -627,10 +612,9 @@
                         <label class="checkbox-container"><input type="checkbox" id="zielCapAtTargetCheckbox" checked><div><strong>Auto-Stopp bei Erreichen</strong></div></label>
                     </div>
                     <div class="input-group full">
-                        <label class="checkbox-container"><input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()"><div><strong>Gleichmäßig bis Zieldatum (tagegenau) aufteilen</strong></div></label>
+                        <label class="checkbox-container"><input type="checkbox" id="zielAutoDivideCheckbox" onchange="toggleAutoDivideFields()"><div><strong>Gleichmäßig bis Endmonat aufteilen</strong></div></label>
                     </div>
-                    <div class="input-group" id="zielEndDateExactGroup" style="display:none;"><label>Zieldatum (tagegenau)</label><input type="date" id="zielExactEndDateInput" onchange="syncExactEndDateToMonth()"></div>
-                    <div class="input-group" id="zielEndMonthGroup" style="display:none;"><label>Endmonat (automatisch / alternativ)</label><input type="month" id="zielEndMonthInput" value="2027-12" onchange="autoCalculateMonthlyRate()"></div>
+                    <div class="input-group full" id="zielEndMonthGroup" style="display:none;"><label>Endmonat</label><input type="month" id="zielEndMonthInput" value="2027-12"></div>
                     <div class="input-group full">
                         <label class="checkbox-container"><input type="checkbox" id="zielAutoUrlaubCheckbox" onchange="toggleAutoUrlaubFields()"><div><strong>✨ Urlaubs-Planer generieren</strong></div></label>
                     </div>
@@ -683,82 +667,39 @@
                 <div class="history-list" id="lineupTodayList"></div>
             </div>
 
-            <!-- 1. SCHNELL-BRIDGE ZU GEMINI (BILD HOCHLADEN -> PROMPT & JSON DOWNLOAD) -->
-            <div class="card" style="background: var(--accent-purple-soft); border: 2px solid var(--accent-purple);">
-                <div class="card-title" style="color: var(--accent-purple); margin-bottom: 6px;">
-                    <span>✨ Gemini-Chat Direkt-Bridge (100% Trefferquote)</span>
-                    <span class="badge" style="background:var(--accent-purple); color:#fff;">Ohne API-Key</span>
-                </div>
-                <div style="font-size: 0.74rem; color: var(--text-sub); margin-bottom: 10px;">
-                    Wähle dein Flyer-Bild aus – die App bereitet alles vor, öffnet deinen Gemini-Chat mit dem fertigen JSON-Befehl und du kannst die Datei direkt runterladen oder einfügen:
+            <!-- KI-SCANNER MIT GEMINI API-KEY & AUTO-RETRY -->
+            <div class="card" style="border: 1.5px solid var(--accent);">
+                <div class="card-title" style="color: var(--accent);">
+                    <span>📸 Flyer & Storys scannen</span>
+                    <span id="geminiScannerBadge" class="badge badge-dauer">Gemini KI ✨</span>
                 </div>
 
-                <div class="ocr-dropzone" style="border-color: var(--accent-purple); background: var(--card-bg);" onclick="document.getElementById('geminiBridgeImageInput').click()">
-                    <div style="font-size: 1.5rem; margin-bottom: 4px;">🖼️➡️🤖</div>
-                    <strong style="color: var(--accent-purple); font-size: 0.85rem;">1. Flyer-Bild für Gemini auswählen</strong>
-                    <div id="geminiBridgeFileName" style="font-size: 0.7rem; color: var(--text-sub); margin-top: 3px;">Tippen, um Screenshot / Story auszuwählen</div>
-                    <input type="file" id="geminiBridgeImageInput" accept="image/*" style="display:none" onchange="handleGeminiBridgeImageSelect(event)">
-                </div>
-
-                <div id="geminiBridgePreviewBox" style="display:none; background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 10px;">
-                    <div style="display:flex; gap:10px; align-items:center; margin-bottom:8px;">
-                        <img id="geminiBridgeThumb" src="" style="width:54px; height:54px; object-fit:cover; border-radius:8px; border:1px solid var(--border);">
-                        <div style="flex:1;">
-                            <div style="font-size:0.78rem; font-weight:800; color:var(--text-main);" id="geminiBridgeReadyTitle">Bild bereit!</div>
-                            <div style="font-size:0.68rem; color:var(--text-sub);">Prompt wird automatisch kopiert &amp; Bild in die Zwischenablage gelegt (falls unterstützt).</div>
-                        </div>
+                <!-- GEMINI API-KEY EINGABE -->
+                <div style="background: var(--accent-purple-soft); border: 1px solid var(--accent-purple); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                        <label style="color: var(--accent-purple); font-weight: 800; font-size: 0.74rem;">🔑 Gemini API-Key (für perfekte Bilderkennung)</label>
+                        <span id="geminiKeyStatusBadge" style="font-size:0.65rem; font-weight:bold; color:var(--text-sub);">Nicht hinterlegt</span>
                     </div>
-                    <div class="grid" style="gap:6px;">
-                        <button type="button" class="btn-add" style="background: var(--accent-purple); margin-top:0; font-size:0.78rem;" onclick="launchGeminiWithPrompt()">🚀 2. Gemini öffnen &amp; Prompt kopieren</button>
-                        <button type="button" class="btn-secondary" style="font-size:0.75rem; font-weight:bold;" onclick="copyGeminiJsonPromptOnly()">📋 Nur Prompt kopieren</button>
+                    <div style="display:flex; gap:5px;">
+                        <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." style="flex:2; font-size:0.78rem; padding:6px 8px;">
+                        <button class="btn-secondary" style="background:var(--accent-purple); color:#fff; border:none; font-weight:bold; padding:6px 12px;" onclick="saveGeminiApiKey()">Speichern 💾</button>
                     </div>
                 </div>
 
-                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 10px; border-radius: 10px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px; gap:6px; flex-wrap:wrap;">
-                        <label style="color: var(--accent-green); font-weight: 800; font-size: 0.75rem;">📥 3. Fertige JSON-Datei laden, exportieren oder einfügen:</label>
-                        <button type="button" class="btn-secondary" style="padding: 3px 8px; font-size: 0.68rem;" onclick="downloadCurrentLineupJson()">⬇️ Aktuelles LineUp als .json</button>
-                    </div>
-                    <div style="display:flex; gap:6px; margin-bottom:8px;">
-                        <button type="button" class="btn-add" style="background: var(--accent-green); margin-top:0; font-size:0.78rem;" onclick="document.getElementById('lineupJsonFileInput').click()">📂 .json Datei hochladen</button>
-                        <input type="file" id="lineupJsonFileInput" accept=".json,application/json" style="display:none" onchange="importLineupFromJsonFile(event)">
-                    </div>
-                    <textarea id="lineupJsonPasteInput" rows="2" placeholder='Oder JSON-Block hier einfügen: {"lineupEvents": [ ... ]}' style="font-family: monospace; font-size: 0.73rem; margin-bottom: 6px;"></textarea>
-                    <button type="button" class="btn-secondary" style="width:100%; background: var(--accent-green-soft); color: var(--accent-green); border-color: var(--accent-green); font-weight:bold;" onclick="importLineupFromJsonText()">JSON-Text jetzt importieren ✅</button>
+                <div style="font-size: 0.73rem; color: var(--text-sub); margin-bottom: 10px;">
+                    Lade Instagram-Storys (z. B. Bierkönig / Megapark) oder Wochenpläne hoch – inklusive automatischer Bildkomprimierung & Auto-Retry:
                 </div>
-            </div>
-
-            <!-- 2. OFFLINE-OCR & MANUELL -->
-            <details class="card" style="border: 1px solid var(--border);">
-                <summary style="font-size: 0.85rem; color: var(--text-main);">⚙️ Offline-OCR Scanner &amp; Manuelle Eingabe</summary>
                 
-                <div class="grid" style="margin-bottom: 8px; margin-top: 6px;">
-                    <div class="input-group" style="margin-bottom:0;">
-                        <label>Standard-Datum (Fallback)</label>
-                        <input type="date" id="ocrDefaultDate">
-                    </div>
-                    <div class="input-group" style="margin-bottom:0;">
-                        <label>Standard-Location (Fallback)</label>
-                        <select id="ocrDefaultLocation">
-                            <option value="Bierkönig">🍺 Bierkönig</option>
-                            <option value="Megapark">🌴 Megapark</option>
-                            <option value="Oberbayern">🍻 Oberbayern</option>
-                            <option value="MK Arena">🏰 MK Arena</option>
-                            <option value="Bamboleo">🎶 Bamboleo</option>
-                            <option value="Sonstige">📍 Sonstige Location</option>
-                        </select>
-                    </div>
-                </div>
-
                 <div class="ocr-dropzone" onclick="document.getElementById('lineupScreenshotInput').click()">
-                    <div style="font-size: 1.3rem; margin-bottom: 2px;">📲🖼️</div>
-                    <strong style="color: var(--accent); font-size: 0.8rem;">Direkt im Browser scannen (Offline-OCR)</strong>
+                    <div style="font-size: 1.5rem; margin-bottom: 4px;">📲🖼️</div>
+                    <strong style="color: var(--accent); font-size: 0.85rem;">Flyer / Story auswählen oder hochladen</strong>
+                    <div style="font-size: 0.68rem; color: var(--text-sub); margin-top: 2px;">Unterstützt JPG, PNG, WebP (auch mehrere gleichzeitig)</div>
                     <input type="file" id="lineupScreenshotInput" accept="image/*" multiple style="display:none" onchange="processLineupScreenshots(event)">
                 </div>
 
                 <div id="ocrStatusBox" style="display:none; background:var(--card-sub); border:1px solid var(--border); padding:10px; border-radius:10px; margin-bottom:10px;">
                     <div style="display:flex; justify-content:space-between; font-size:0.75rem; font-weight:bold; color:var(--accent); margin-bottom:4px;">
-                        <span id="ocrStatusText">Offline-OCR analysiert Bild...</span>
+                        <span id="ocrStatusText">KI analysiert Bild...</span>
                         <span id="ocrProgressPct">0%</span>
                     </div>
                     <div class="progress-bar-container" style="margin-top:0;">
@@ -766,16 +707,21 @@
                     </div>
                 </div>
 
-                <div style="margin-top:8px; border-top: 1px solid var(--border); padding-top:8px;">
-                    <label style="display:block; margin-bottom:3px;">Schnellwahl Künstler (Manuell):</label>
-                    <div class="quick-btn-row">
-                        <button type="button" class="quick-btn" onclick="quickFillArtist('Mia Julia')">Mia Julia</button>
-                        <button type="button" class="quick-btn" onclick="quickFillArtist('Lorenz Büffel')">Lorenz Büffel</button>
-                        <button type="button" class="quick-btn" onclick="quickFillArtist('Julian Sommer')">Julian Sommer</button>
-                        <button type="button" class="quick-btn" onclick="quickFillArtist('Isi Glück')">Isi Glück</button>
-                        <button type="button" class="quick-btn" onclick="quickFillArtist('Frenzy')">Frenzy</button>
-                        <button type="button" class="quick-btn" onclick="quickFillArtist('Ikke Hüftgold')">Ikke Hüftgold</button>
+                <details id="lineupManualDetails">
+                    <summary style="font-size: 0.8rem; color: var(--text-main);">✍️ Einzelnen Termin manuell hinzufügen</summary>
+                    
+                    <div style="margin-top:8px;">
+                        <label style="display:block; margin-bottom:3px;">Schnellwahl Künstler:</label>
+                        <div class="quick-btn-row">
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Mia Julia')">Mia Julia</button>
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Lorenz Büffel')">Lorenz Büffel</button>
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Julian Sommer')">Julian Sommer</button>
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Isi Glück')">Isi Glück</button>
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Frenzy')">Frenzy</button>
+                            <button type="button" class="quick-btn" onclick="quickFillArtist('Ikke Hüftgold')">Ikke Hüftgold</button>
+                        </div>
                     </div>
+
                     <div class="grid" style="margin-top: 6px;">
                         <div class="input-group">
                             <label>Location</label>
@@ -806,7 +752,17 @@
                         </div>
                     </div>
                     <button class="btn-add" style="background: var(--accent-green);" onclick="saveLineupEntry()">Auftritt zur Liste hinzufügen 🎤➕</button>
+                </details>
+            </div>
+
+            <!-- DIREKT-IMPORT BOX FÜR JSON-CODE -->
+            <details class="card" style="background: var(--accent-green-soft); border: 1.5px solid var(--accent-green);">
+                <summary style="color: var(--accent-green); font-size: 0.85rem;">📋 JSON-Code direkt einfügen (Optional)</summary>
+                <div style="font-size: 0.72rem; color: var(--text-sub); margin-bottom: 8px;">
+                    Falls du einen fertigen JSON-Block einfügen möchtest, kopiere ihn hier hinein:
                 </div>
+                <textarea id="lineupJsonPasteInput" rows="3" placeholder='{"lineupEvents": [ ... ]}' style="font-family: monospace; font-size: 0.75rem; margin-bottom: 8px;"></textarea>
+                <button class="btn-add" style="background: var(--accent-green); margin-top: 0;" onclick="importLineupFromJsonText()">Events importieren 📥</button>
             </details>
 
             <div class="card">
@@ -965,15 +921,6 @@
                     <span>🤝 Außergerichtliche Schuldenbereinigung</span>
                     <span class="badge badge-booked" style="font-size:0.75rem;">Aktiv ✅</span>
                 </div>
-
-                <!-- STICHTAG / MONAT WÄHLEN -->
-                <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 8px 10px; border-radius: 10px; margin-bottom: 12px;">
-                    <label style="color: var(--accent-purple); font-weight: 800; font-size: 0.74rem; display:block; margin-bottom:4px;">📅 Stand / Vorschau für Monat wählen:</label>
-                    <div style="display:flex; gap:6px; align-items:center;">
-                        <input type="month" id="debtMonthInput" min="2024-06" max="2030-12" onchange="renderSchuldenView()" style="flex:2; font-weight:bold; color:var(--accent-purple);">
-                        <button type="button" class="btn-secondary" style="flex:1; background:var(--accent-purple); color:#fff; border:none; padding:8px; font-weight:bold;" onclick="resetDebtMonthToNow()">📍 Heute</button>
-                    </div>
-                </div>
                 
                 <div style="margin-bottom: 12px;">
                     <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:bold; margin-bottom:4px;">
@@ -1016,7 +963,7 @@
                         </div>
                         <div style="text-align:right;">
                             <span style="font-size:0.7rem; color:var(--text-sub);">Monatliche Gesamtrate</span>
-                            <div id="debtActiveRateDisplay" class="sensitive-val" style="font-size:1rem; font-weight:bold;">453,95 € / Mo.</div>
+                            <div class="sensitive-val" style="font-size:1rem; font-weight:bold;">453,95 € / Mo.</div>
                         </div>
                     </div>
                 </div>
@@ -1057,10 +1004,7 @@
             <div class="card-title" id="modalTitle">Ziel-Details</div>
             <div class="input-group" style="margin-bottom: 6px;"><label>Zielbetrag (€) (0 = Endlos):</label><input type="number" id="modalTargetInput" oninput="updateLiveModalProjection()"></div>
             <div class="input-group" style="margin-bottom: 6px;"><label>Dauerauftrag (€/Mo):</label><input type="number" id="modalFixedMonthlyInput" oninput="updateLiveModalProjection()"></div>
-            <div class="grid" style="gap: 6px; margin-bottom: 6px;">
-                <div class="input-group" style="margin-bottom: 0;"><label>Zieldatum (tagegenau):</label><input type="date" id="modalExactEndDateInput" onchange="syncModalExactDateToMonth()"></div>
-                <div class="input-group" style="margin-bottom: 0;"><label>End-Monat:</label><input type="month" id="modalEndMonthInput" onchange="updateLiveModalProjection()"></div>
-            </div>
+            <div class="input-group" style="margin-bottom: 6px;"><label>End-Monat:</label><input type="month" id="modalEndMonthInput" onchange="updateLiveModalProjection()"></div>
             <div class="input-group" style="margin-bottom: 6px;"><label>Stand (Aktuell / Geplant):</label><span><strong id="modalCurrentInputDisplay">0</strong> / <span id="modalPlannedStandDisplay">0</span></span></div>
             <div class="input-group" style="margin-bottom: 6px;"><input type="number" id="modalCurrentInput" style="display:none;"></div>
             
@@ -1103,26 +1047,88 @@
                             <option value="in">🟢 Geplante Einnahme (+ €)</option>
                         </select>
                     </div>
-                    <div class="input-group" style="margin-bottom:0;"><label style="font-size:0.68rem;">Datum (tagegenau)</label><input type="date" id="plannedEventDateInput" style="font-size:0.78rem; padding:5px;"></div>
+                    <div class="input-group" style="margin-bottom:0;"><label style="font-size:0.68rem;">Datum</label><input type="date" id="plannedEventDateInput" style="font-size:0.78rem; padding:5px;"></div>
                     <div class="input-group" style="margin-bottom:0;"><label style="font-size:0.68rem;">Betrag (€)</label><input type="number" id="plannedEventAmountInput" placeholder="z.B. 150" style="font-size:0.78rem; padding:5px;"></div>
                     <div class="input-group full" style="margin-bottom:0;"><label style="font-size:0.68rem;">Anlass / Notiz</label><input type="text" id="plannedEventNoteInput" placeholder="z.B. Geburtstag Sarah / Steuerrückzahlung" style="font-size:0.78rem; padding:5px;"></div>
                 </div>
                 <button type="button" class="btn-secondary" style="background:var(--accent-orange); color:#fff; border:none; width:100%; font-weight:bold;" onclick="addPlannedEventToCurrentGoal()">Geplanten Betrag tagegenau vormerken 📅➕</button>
                 <div id="plannedEventsListInModal" class="history-list" style="margin-top:8px;"></div>
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:6px;">
-                <span style="font-size:0.75rem; font-weight:800; color:var(--accent);">📈 Hochrechnung im Sparbuch</span>
-                <div style="display:flex; gap:4px;">
-                    <button type="button" class="quick-btn" id="projModeMonthBtn" onclick="setGoalProjectionMode('month')">Monate</button>
-                    <button type="button" class="quick-btn" id="projModeDayBtn" onclick="setGoalProjectionMode('day')">Tagegenau</button>
-                </div>
-            </div>
+            <div style="font-size:0.75rem; font-weight:800; color:var(--accent); margin-bottom:6px;">📈 Hochrechnung im Sparbuch</div>
             <div class="history-list" id="modalHistoryList"></div>
             <button class="btn-add" onclick="closeModal()" style="background: var(--tab-bg); color: var(--text-main); margin-top: 8px;">Schließen</button>
         </div>
     </div>
 
     <div id="receiptModal" class="modal"><div class="modal-content" style="text-align:center;"><div class="card-title">Beleg</div><img id="receiptModalImg" src="" style="max-width:100%; border-radius:8px; margin-bottom:8px;"><button class="btn-add" onclick="closeReceiptModal()">Schließen</button></div></div>
+
+    <div id="editLineupModal" class="modal">
+        <div class="modal-content">
+            <div class="card-title"><span>✏️ Auftritt bearbeiten</span></div>
+            <input type="hidden" id="editLineupId">
+            <div class="grid">
+                <div class="input-group">
+                    <label>Location</label>
+                    <select id="editLineupLocation">
+                        <option value="Bierkönig">🍺 Bierkönig</option>
+                        <option value="Megapark">🌴 Megapark</option>
+                        <option value="Oberbayern">🍻 Oberbayern</option>
+                        <option value="MK Arena">🏰 MK Arena</option>
+                        <option value="Bamboleo">🎶 Bamboleo</option>
+                        <option value="Sonstige">📍 Sonstige Location</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Datum (Tag ändern)</label>
+                    <input type="date" id="editLineupDate">
+                </div>
+                <div class="input-group">
+                    <label>Uhrzeit (Nacht-Logik 🌙)</label>
+                    <input type="time" id="editLineupTime">
+                </div>
+                <div class="input-group">
+                    <label>Künstler / Act</label>
+                    <input type="text" id="editLineupArtist" onkeydown="if(event.key==='Enter') saveEditedLineupEntry()">
+                </div>
+                <div class="input-group full">
+                    <label>Notiz / Bühne (optional)</label>
+                    <input type="text" id="editLineupNote" placeholder="z.B. New Arena, Mainstage, Closing..." onkeydown="if(event.key==='Enter') saveEditedLineupEntry()">
+                </div>
+            </div>
+            <button class="btn-add" style="background: var(--accent-green); margin-top: 10px;" onclick="saveEditedLineupEntry()">Änderungen speichern 💾</button>
+            <button class="btn-secondary" style="width:100%; margin-top: 6px; padding: 8px;" onclick="closeEditLineupModal()">Abbrechen</button>
+        </div>
+    </div>
+
+    <div id="editPlannedEventModal" class="modal" style="z-index: 110;">
+        <div class="modal-content">
+            <div class="card-title"><span>✏️ Geplanten Betrag bearbeiten</span></div>
+            <input type="hidden" id="editPlannedEventId">
+            <div class="grid">
+                <div class="input-group full">
+                    <label>Art der Buchung</label>
+                    <select id="editPlannedEventType" style="font-weight:bold;">
+                        <option value="out">🔴 Geplante Ausgabe (- €)</option>
+                        <option value="in">🟢 Geplante Einnahme (+ €)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Datum (Tag ändern)</label>
+                    <input type="date" id="editPlannedEventDate">
+                </div>
+                <div class="input-group">
+                    <label>Betrag (€)</label>
+                    <input type="number" id="editPlannedEventAmount" step="0.01" onkeydown="if(event.key==='Enter') saveEditedPlannedEvent()">
+                </div>
+                <div class="input-group full">
+                    <label>Anlass / Notiz</label>
+                    <input type="text" id="editPlannedEventNote" onkeydown="if(event.key==='Enter') saveEditedPlannedEvent()">
+                </div>
+            </div>
+            <button class="btn-add" style="background: var(--accent-green); margin-top: 10px;" onclick="saveEditedPlannedEvent()">Änderungen speichern 💾</button>
+            <button class="btn-secondary" style="width:100%; margin-top: 6px; padding: 8px;" onclick="closeEditPlannedEventModal()">Abbrechen</button>
+        </div>
+    </div>
 
     <script>
         const creditorsData = [
@@ -1281,10 +1287,8 @@
             const hhDate = document.getElementById('HHDate');
             const subMonthInput = document.getElementById('subKontoTransferMonth');
             const lineupDateInput = document.getElementById('lineupDateInput');
-            const debtMonthInput = document.getElementById('debtMonthInput');
 
             if(mInput) mInput.value = startAnchor;
-            if(debtMonthInput) debtMonthInput.value = new Date().toISOString().slice(0, 7);
             if(hhInput) hhInput.value = startAnchor;
             if(hhDate) hhDate.valueAsDate = new Date();
             if(subMonthInput) subMonthInput.value = startAnchor;
@@ -1310,7 +1314,6 @@
             updateCalendarBudgetDisplay();
             renderLineupView();
             updateStorageQuotaDisplay();
-            setHhTypeFilter('all');
         });
 
         function updateStorageQuotaDisplay() {
@@ -1389,142 +1392,141 @@
         }
 
         // ==========================================
-        // GEMINI CHAT DIREKT-BRIDGE & OFFLINE-OCR
+        // GEMINI KI-SCANNER MIT KOMPRIMIERUNG, TIMEOUT & AUTO-RETRY
         // ==========================================
-        let selectedBridgeFile = null;
-
-        function saveGeminiApiKey() {}
-        function updateGeminiKeyUI() {
-            const dInp = document.getElementById('ocrDefaultDate');
-            if (dInp && !dInp.value) {
-                dInp.value = new Date().toISOString().slice(0, 10);
-            }
-        }
-
-        function getGeminiJsonPromptText() {
-            return `Lies alle Termine aus diesem Mallorca-Flyer aus und gib mir direkt die fertige .json-Datei zum Download (und zusätzlich den JSON-Block) exakt in diesem Format für meine App:
-{
-  "lineupEvents": [
-    {
-      "location": "Bierkönig",
-      "date": "2027-04-22",
-      "time": "22:00",
-      "artist": "Künstlername",
-      "note": "",
-      "isFav": false
-    }
-  ]
-}`;
-        }
-
-        function handleGeminiBridgeImageSelect(event) {
-            const file = event.target.files?.[0];
-            if (!file) return;
-            selectedBridgeFile = file;
-
-            const nameEl = document.getElementById('geminiBridgeFileName');
-            const previewBox = document.getElementById('geminiBridgePreviewBox');
-            const thumb = document.getElementById('geminiBridgeThumb');
-            const titleEl = document.getElementById('geminiBridgeReadyTitle');
-
-            if (nameEl) nameEl.innerText = `✅ Ausgewählt: ${file.name}`;
-            if (titleEl) titleEl.innerText = file.name;
-            if (previewBox) previewBox.style.display = 'block';
-
-            const reader = new FileReader();
-            reader.onload = e => {
-                if (thumb) thumb.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        async function copyGeminiJsonPromptOnly() {
-            const promptText = getGeminiJsonPromptText();
-            try {
-                await navigator.clipboard.writeText(promptText);
-                alert('✅ Befehl für Gemini in die Zwischenablage kopiert! Jetzt im Gemini-Chat nur noch dein Bild anhängen und einfügen.');
-            } catch (err) {
-                prompt('Bitte diesen Text kopieren:', promptText);
-            }
-        }
-
-        async function launchGeminiWithPrompt() {
-            const promptText = getGeminiJsonPromptText();
-            try {
-                await navigator.clipboard.writeText(promptText);
-            } catch (e) {}
-
-            // Auf Mobilgeräten Web Share API nutzen, falls Datei ausgewählt wurde (teilt Bild + Prompt direkt an Gemini App!)
-            if (selectedBridgeFile && navigator.canShare && navigator.canShare({ files: [selectedBridgeFile] })) {
-                try {
-                    await navigator.share({
-                        files: [selectedBridgeFile],
-                        title: 'Mallorca LineUp Flyer',
-                        text: promptText
-                    });
-                    return;
-                } catch (shareErr) {
-                    if (shareErr.name === 'AbortError') return;
-                }
-            }
-
-            // Fallback für Desktop / Browser ohne File-Share: Gemini öffnen + Hinweis
-            window.open('https://gemini.google.com/app', '_blank');
-            alert('✅ Der JSON-Befehl wurde in deine Zwischenablage kopiert & Gemini geöffnet!\n\nFüge im Gemini-Chat jetzt einfach das Bild + den kopierten Text ein – du bekommst sofort die fertige .json-Datei zurück.');
-        }
-
-        function downloadCurrentLineupJson() {
-            const payload = JSON.stringify({ lineupEvents }, null, 2);
-            const blob = new Blob([payload], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Mallorca_LineUp_${new Date().toISOString().slice(0, 10)}.json`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-        }
-
-        function editLineupEntry(id) {
-            const ev = lineupEvents.find(e => e.id === id);
-            if (!ev) return;
-            const newArtist = prompt('Künstler / Act anpassen:', ev.artist);
-            if (newArtist === null) return;
-            const newTime = prompt('Uhrzeit (HH:MM) anpassen:', ev.time || '22:00');
-            if (newTime === null) return;
-            const newNote = prompt('Notiz / Bühne anpassen:', ev.note || '');
-            if (newNote === null) return;
-
-            ev.artist = newArtist.trim() || ev.artist;
-            ev.time = newTime.trim() || ev.time;
-            ev.note = newNote.trim();
+        function saveGeminiApiKey() {
+            const inp = document.getElementById('geminiApiKeyInput');
+            if (!inp) return;
+            geminiApiKey = inp.value.trim();
+            localStorage.setItem('finanz_gemini_api_key', geminiApiKey);
+            updateGeminiKeyUI();
             saveLocally();
-            renderLineupView();
+            alert(geminiApiKey ? '✅ Gemini API-Key gespeichert! Deine App nutzt ab sofort die KI-Bilderkennung.' : 'API-Key entfernt.');
         }
 
-        function importLineupFromJsonFile(event) {
-            const file = event.target.files?.[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                try {
-                    const cleaned = (e.target.result || '').replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
-                    const parsed = JSON.parse(cleaned);
-                    const incoming = Array.isArray(parsed) ? parsed : (parsed.lineupEvents || []);
-                    if (!Array.isArray(incoming) || incoming.length === 0) {
-                        return alert('Keine gültigen Auftritte in der JSON-Datei gefunden.');
-                    }
-                    const addedCount = mergeLineupEventsDeduplicated(incoming);
-                    saveLocally();
-                    renderLineupView();
-                    alert(`✅ ${addedCount} neue Auftritte aus der Datei "${file.name}" importiert! 🎤🎉`);
-                } catch (err) {
-                    alert('❌ Fehler beim Lesen der JSON-Datei: ' + err.message);
+        function updateGeminiKeyUI() {
+            const inp = document.getElementById('geminiApiKeyInput');
+            const status = document.getElementById('geminiKeyStatusBadge');
+            const badge = document.getElementById('geminiScannerBadge');
+            if (inp) inp.value = geminiApiKey;
+            if (status) {
+                if (geminiApiKey) {
+                    status.innerText = 'Aktiv ✅';
+                    status.style.color = 'var(--accent-green)';
+                } else {
+                    status.innerText = 'Nicht hinterlegt';
+                    status.style.color = 'var(--text-sub)';
                 }
-                event.target.value = '';
+            }
+            if (badge) {
+                badge.innerText = geminiApiKey ? 'Gemini KI Aktiv ✨' : 'Offline-OCR ⚙️';
+                badge.className = geminiApiKey ? 'badge badge-booked' : 'badge badge-dauer';
+            }
+        }
+
+        async function fileToBase64Pure(file) {
+            const compressedDataUrl = await compressImage(file, 900, 0.75);
+            const base64 = compressedDataUrl.split(',')[1];
+            return { base64, mimeType: 'image/jpeg' };
+        }
+
+        async function callGeminiWithRetry(apiKey, payload, onStatusUpdate) {
+            const models = [
+                "gemini-2.5-flash",
+                "gemini-2.5-pro",
+                "gemini-2.0-flash"
+            ];
+
+            let lastError = null;
+
+            for (let i = 0; i < models.length; i++) {
+                const model = models[i];
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 18000);
+
+                try {
+                    if (onStatusUpdate) {
+                        onStatusUpdate(i === 0
+                            ? `✨ Sende Bild an ${model}...`
+                            : `🔄 Neuer Versuch mit ${model} (${i + 1}/${models.length})...`
+                        );
+                    }
+
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+
+                    if (response.status === 503 || response.status === 429 || response.status === 404) {
+                        const errText = await response.text();
+                        lastError = `Server ausgelastet (${response.status})`;
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        continue;
+                    }
+
+                    if (!response.ok) {
+                        const errText = await response.text();
+                        throw new Error(`Gemini API Fehler (${response.status}): ${errText}`);
+                    }
+
+                    return await response.json();
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    const msg = err.name === 'AbortError' ? 'Zeitüberschreitung' : err.message;
+                    lastError = msg;
+                    if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("Zeitüberschreitung") || msg.includes("503") || msg.includes("429")) {
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        continue;
+                    }
+                    throw err;
+                }
+            }
+
+            throw new Error(`Verbindung fehlgeschlagen (${lastError}). Falls aktiv, bitte VPN kurz deaktivieren!`);
+        }
+
+        async function analyzeFlyerWithGemini(file, onStatusUpdate) {
+            const { base64, mimeType } = await fileToBase64Pure(file);
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const tomorrowDate = new Date();
+            tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+            const tomorrowStr = tomorrowDate.toISOString().slice(0, 10);
+
+            const prompt = `Du bist ein präziser Event-Parser für Mallorca/Ballermann Party-Lineups (Bierkönig, Megapark, Oberbayern, MK Arena, Bamboleo).
+Analysiere das hochgeladene Bild (Instagram-Story, Tages- oder Wochenposter) und extrahiere ALLE Auftritte.
+Heutiges Datum: ${todayStr}, Morgen: ${tomorrowStr}.
+Regeln:
+- Wenn "HEUTE" oder "HEUTE LIVE" steht, nutze ${todayStr}.
+- Wenn "MORGEN" steht, nutze ${tomorrowStr}.
+- Wenn nur Tag/Monat ohne Jahr steht, ergänze das passende Jahr (2026 oder 2027).
+- Erkenne die Location aus Logos, Wasserzeichen, Instagram-Handles (@bierkoenigmallorca -> Bierkönig, @megapark_mallorca -> Megapark) oder Text. Erlaubte Werte für location: "Bierkönig", "Megapark", "Oberbayern", "MK Arena", "Bamboleo", "Sonstige".
+- Uhrzeit immer im 24h-Format "HH:MM" (z.B. "22:00", "00:30"). Falls keine Uhrzeit sichtbar ist, "22:00".
+- Antworte AUSSCHLIESSLICH mit gültigem JSON ohne Markdown-Formatierung in exakt dieser Struktur:
+{"lineupEvents":[{"location":"Bierkönig","date":"YYYY-MM-DD","time":"HH:MM","artist":"Künstlername","note":"","isFav":false}]}`;
+
+            const requestPayload = {
+                contents: [{
+                    parts: [
+                        { text: prompt },
+                        { inlineData: { mimeType: mimeType, data: base64 } }
+                    ]
+                }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    temperature: 0.1
+                }
             };
-            reader.readAsText(file, 'UTF-8');
+
+            const data = await callGeminiWithRetry(geminiApiKey, requestPayload, onStatusUpdate);
+            const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+            const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+            const parsed = JSON.parse(cleaned);
+            return Array.isArray(parsed) ? parsed : (parsed.lineupEvents || []);
         }
 
         function mergeLineupEventsDeduplicated(incomingEvents) {
@@ -1615,34 +1617,40 @@
             const progressPct = document.getElementById('ocrProgressPct');
             const progressBar = document.getElementById('ocrProgressBar');
 
-            const fallbackDate = document.getElementById('ocrDefaultDate')?.value || new Date().toISOString().slice(0, 10);
-            const fallbackLocation = document.getElementById('ocrDefaultLocation')?.value || 'Bierkönig';
-
             statusBox.style.display = 'block';
             let totalAdded = 0;
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                progressPct.innerText = '10%';
-                progressBar.style.width = '10%';
+                progressPct.innerText = '25%';
+                progressBar.style.width = '25%';
 
                 try {
-                    const compressedFile = await compressImage(file, 1400, 0.85);
-                    statusText.innerText = `⚙️ Offline-OCR scannt Flyer ${i + 1} von ${files.length}...`;
-                    const result = await Tesseract.recognize(compressedFile, 'deu+eng', {
-                        logger: m => {
-                            if (m.status === 'recognizing text') {
-                                const pct = Math.round(m.progress * 100);
-                                progressPct.innerText = pct + '%';
-                                progressBar.style.width = pct + '%';
+                    if (geminiApiKey) {
+                        statusText.innerText = `✨ Komprimiere & analysiere Bild ${i + 1} von ${files.length}...`;
+                        progressPct.innerText = '55%';
+                        progressBar.style.width = '55%';
+                        const aiEvents = await analyzeFlyerWithGemini(file, (msg) => {
+                            statusText.innerText = msg;
+                        });
+                        totalAdded += mergeLineupEventsDeduplicated(aiEvents);
+                        progressPct.innerText = '100%';
+                        progressBar.style.width = '100%';
+                    } else {
+                        statusText.innerText = `⚙️ Offline-OCR scannt Flyer ${i + 1} von ${files.length}...`;
+                        const result = await Tesseract.recognize(file, 'deu+eng', {
+                            logger: m => {
+                                if (m.status === 'recognizing text') {
+                                    const pct = Math.round(m.progress * 100);
+                                    progressPct.innerText = pct + '%';
+                                    progressBar.style.width = pct + '%';
+                                }
                             }
-                        }
-                    });
-                    const text = result.data.text || '';
-                    const parsedEvents = parseMultiColumnFlyer(text, fallbackDate, fallbackLocation);
-                    totalAdded += mergeLineupEventsDeduplicated(parsedEvents);
-                    progressPct.innerText = '100%';
-                    progressBar.style.width = '100%';
+                        });
+                        const text = result.data.text || '';
+                        const parsedEvents = parseMultiColumnFlyer(text);
+                        totalAdded += mergeLineupEventsDeduplicated(parsedEvents);
+                    }
                 } catch (err) {
                     statusText.innerText = '❌ Fehler: ' + err.message;
                     alert('Scan-Fehler: ' + err.message);
@@ -1655,19 +1663,19 @@
             event.target.value = '';
         }
 
-        function parseMultiColumnFlyer(rawText, fallbackDate = null, fallbackLocation = "Bierkönig") {
+        function parseMultiColumnFlyer(rawText) {
             const cleanRaw = rawText.replace(/wifi|lte|5g|vpn|vodafone|o2|telekom|33%|100%|20:47|20:30|20:20/gi, '');
             const lines = cleanRaw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
             
-            let currentLoc = fallbackLocation || "Bierkönig";
+            let currentLoc = "Bierkönig";
             let events = [];
-            let currentDate = fallbackDate || new Date().toISOString().slice(0, 10);
+            let currentDate = new Date().toISOString().slice(0, 10);
 
             const dateMatch = cleanRaw.match(/\b(0?[1-9]|[12]\d|3[01])[\.\/](0?[1-9]|1[0-2])[\.\/]?(20\d{2})?\b/);
             if (dateMatch) {
                 const day = dateMatch[1].padStart(2, '0');
                 const month = dateMatch[2].padStart(2, '0');
-                const year = dateMatch[3] || (fallbackDate ? fallbackDate.slice(0, 4) : "2027");
+                const year = dateMatch[3] || "2027";
                 currentDate = `${year}-${month}-${day}`;
             }
 
@@ -1725,6 +1733,46 @@
             document.getElementById('lineupNoteInput').value = '';
             document.getElementById('ocrStatusBox').style.display = 'none';
 
+            saveLocally();
+            renderLineupView();
+        }
+
+        function openEditLineupModal(id) {
+            const ev = lineupEvents.find(e => e.id === id);
+            if (!ev) return;
+            document.getElementById('editLineupId').value = ev.id;
+            const locSel = document.getElementById('editLineupLocation');
+            if (!Array.from(locSel.options).some(o => o.value === ev.location)) {
+                locSel.add(new Option(ev.location, ev.location));
+            }
+            locSel.value = ev.location || 'Bierkönig';
+            document.getElementById('editLineupDate').value = ev.date || '';
+            document.getElementById('editLineupTime').value = ev.time || '22:00';
+            document.getElementById('editLineupArtist').value = ev.artist || '';
+            document.getElementById('editLineupNote').value = ev.note || '';
+            document.getElementById('editLineupModal').classList.add('active');
+        }
+
+        function closeEditLineupModal() {
+            document.getElementById('editLineupModal').classList.remove('active');
+        }
+
+        function saveEditedLineupEntry() {
+            const id = parseFloat(document.getElementById('editLineupId').value);
+            const ev = lineupEvents.find(e => e.id === id);
+            if (!ev) return;
+
+            const newDate = document.getElementById('editLineupDate').value;
+            const newArtist = document.getElementById('editLineupArtist').value.trim();
+            if (!newDate || !newArtist) return alert('Bitte Datum und Künstler angeben!');
+
+            ev.location = document.getElementById('editLineupLocation').value;
+            ev.date = newDate;
+            ev.time = document.getElementById('editLineupTime').value || '22:00';
+            ev.artist = newArtist;
+            ev.note = document.getElementById('editLineupNote').value.trim();
+
+            closeEditLineupModal();
             saveLocally();
             renderLineupView();
         }
@@ -1810,7 +1858,10 @@
                                     ${ev.note ? `<span style="margin-left:4px; font-weight:600;">(${ev.note})</span>` : ''}
                                 </div>
                             </div>
-                            <div style="display:flex; gap:8px; align-items:center;"><span style="cursor:pointer; color:var(--accent); font-size:0.88rem;" onclick="editLineupEntry(${ev.id})" title="Bearbeiten">✏️</span><span style="cursor:pointer; color:var(--accent-red); font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})" title="Löschen">🗑️</span></div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="cursor:pointer; font-size:0.9rem;" title="Bearbeiten" onclick="openEditLineupModal(${ev.id})">✏️</span>
+                                <span style="cursor:pointer; color:var(--accent-red); font-size:0.9rem;" title="Löschen" onclick="deleteLineupEntry(${ev.id})">🗑️</span>
+                            </div>
                         </div>
                     `;
                 });
@@ -1843,7 +1894,10 @@
                                     ${ev.note ? `<span style="margin-left:4px;">• ${ev.note}</span>` : ''}
                                 </div>
                             </div>
-                            <div style="display:flex; gap:8px; align-items:center;"><span style="cursor:pointer; color:var(--accent); font-size:0.88rem;" onclick="editLineupEntry(${ev.id})" title="Bearbeiten">✏️</span><span style="cursor:pointer; color:var(--accent-red); font-size:0.9rem;" onclick="deleteLineupEntry(${ev.id})" title="Löschen">🗑️</span></div>
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <span style="cursor:pointer; font-size:0.9rem;" title="Bearbeiten" onclick="openEditLineupModal(${ev.id})">✏️</span>
+                                <span style="cursor:pointer; color:var(--accent-red); font-size:0.9rem;" title="Löschen" onclick="deleteLineupEntry(${ev.id})">🗑️</span>
+                            </div>
                         </div>
                     `;
                 });
@@ -2029,6 +2083,16 @@
         // ==========================================
         // SCHNELLAUSWAHL MIT DAUERHAFTEM "AKTUELL"-BUTTON
         // ==========================================
+        function formatQuickMonthLabel(mKey) {
+            const [year, month] = mKey.split('-');
+            const names = {
+                '01': 'Jan', '02': 'Feb', '03': 'Mär', '04': 'Apr',
+                '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Aug',
+                '09': 'Sep', '10': 'Okt', '11': 'Nov', '12': 'Dez'
+            };
+            return `${names[month] || month} ${year.slice(2)}`;
+        }
+
         function renderQuickMonthButtons() {
             const row = document.getElementById('quickMonthRow');
             if (!row) return;
@@ -2040,7 +2104,8 @@
             const homeBtn = document.createElement('button');
             homeBtn.type = 'button';
             homeBtn.className = 'quick-btn current-anchor' + (selectedMonth === anchorMonth ? ' selected-month' : '');
-            homeBtn.innerText = `📍 Aktuell (${anchorMonth})`;
+            homeBtn.innerText = `📍 ${formatQuickMonthLabel(anchorMonth)}`;
+            homeBtn.title = `Aktuell (${anchorMonth})`;
             homeBtn.onclick = () => syncMonthInput(anchorMonth);
             row.appendChild(homeBtn);
 
@@ -2051,28 +2116,19 @@
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'quick-btn' + (selectedMonth === mKey ? ' selected-month' : '');
-                btn.innerText = mKey;
+                btn.innerText = formatQuickMonthLabel(mKey);
+                btn.title = mKey;
                 btn.onclick = () => syncMonthInput(mKey);
                 row.appendChild(btn);
             }
         }
 
-        function resetDebtMonthToNow() {
-            const inp = document.getElementById('debtMonthInput');
-            if (inp) inp.value = new Date().toISOString().slice(0, 7);
-            renderSchuldenView();
-        }
-
         function renderSchuldenView() {
-            const nowStr = new Date().toISOString().slice(0, 7);
-            const inp = document.getElementById('debtMonthInput');
-            const selectedMonth = (inp && inp.value) ? inp.value : nowStr;
-            if (inp && !inp.value) inp.value = selectedMonth;
+            const now = new Date();
+            const curY = now.getFullYear();
+            const curM = now.getMonth() + 1;
 
-            const [curY, curM] = selectedMonth.split('-').map(Number);
-            const isCurrentRealMonth = (selectedMonth === nowStr);
-
-            let totalComp = 0, totalPaid = 0, activeMonthlyRateSum = 0;
+            let totalComp = 0, totalPaid = 0;
             const tbody = document.getElementById('debtCreditorsTableBody');
             if(!tbody) return;
             tbody.innerHTML = '';
@@ -2080,26 +2136,18 @@
             creditorsData.forEach(c => {
                 totalComp += c.total;
                 const [sY, sM] = c.start.split('-').map(Number);
-                const diffFromStart = (curY - sY) * 12 + (curM - sM) + 1;
-                let monthsPassed = Math.min(c.months, Math.max(0, diffFromStart));
+                let monthsPassed = Math.min(c.months, Math.max(0, (curY - sY) * 12 + (curM - sM) + 1));
                 const calcRemaining = Math.max(0, c.total - (monthsPassed * c.rate));
-                
-                const useOverride = isCurrentRealMonth && (debtOverrides[c.id] !== undefined);
-                const remaining = useOverride ? debtOverrides[c.id] : calcRemaining;
+                const remaining = debtOverrides[c.id] !== undefined ? debtOverrides[c.id] : calcRemaining;
                 totalPaid += Math.max(0, c.total - remaining);
 
-                const isFinished = remaining <= 0.01;
-                if (!isFinished && diffFromStart >= 1) {
-                    activeMonthlyRateSum += c.rate;
-                }
-
                 tbody.innerHTML += `
-                    <tr style="${isFinished ? 'opacity: 0.6; background: var(--accent-green-soft);' : ''}">
+                    <tr>
                         <td><strong>${c.id}</strong></td>
-                        <td>${c.name} ${isFinished ? '<span class="badge badge-booked">Erledigt ✅</span>' : ''}<br><span style="font-size:0.65rem; color:var(--text-sub);">${c.bank} (${c.months} Mo.)</span></td>
-                        <td><strong class="sensitive-val">${isFinished ? '0,00 €' : c.rate.toFixed(2) + ' €'}</strong></td>
+                        <td>${c.name}<br><span style="font-size:0.65rem; color:var(--text-sub);">${c.bank}</span></td>
+                        <td><strong class="sensitive-val">${c.rate.toFixed(2)} €</strong></td>
                         <td class="sensitive-val">${c.total.toFixed(2)} €</td>
-                        <td><input type="number" class="debt-input" value="${remaining.toFixed(2)}" step="0.01" ${!isCurrentRealMonth ? 'title="Manuelle Korrektur nur im aktuellen Monat"' : ''} onchange="updateDebtOverride(${c.id}, this.value)"></td>
+                        <td><input type="number" class="debt-input" value="${remaining.toFixed(2)}" step="0.01" onchange="updateDebtOverride(${c.id}, this.value)"></td>
                     </tr>
                 `;
             });
@@ -2111,11 +2159,6 @@
             document.getElementById('debtProgressBar').style.width = pct.toFixed(1) + '%';
             document.getElementById('debtPaidTotal').innerText = totalPaid.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
             document.getElementById('debtRemainingTotal').innerText = remainingTotal.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
-            
-            const rateDisplay = document.getElementById('debtActiveRateDisplay');
-            if (rateDisplay) {
-                rateDisplay.innerText = activeMonthlyRateSum.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' € / Mo.';
-            }
         }
 
         function updateDebtOverride(id, val) {
@@ -2143,188 +2186,17 @@
         }
 
         function toggleAutoDivideFields() {
-            const show = document.getElementById('zielAutoDivideCheckbox').checked;
-            document.getElementById('zielEndDateExactGroup').style.display = show ? 'flex' : 'none';
-            document.getElementById('zielEndMonthGroup').style.display = show ? 'flex' : 'none';
-            if (show && !document.getElementById('zielExactEndDateInput').value) {
-                const mVal = document.getElementById('zielEndMonthInput').value || '2027-12';
-                const [y, m] = mVal.split('-').map(Number);
-                const lastD = new Date(y, m, 0).getDate();
-                document.getElementById('zielExactEndDateInput').value = `${mVal}-${String(lastD).padStart(2, '0')}`;
-            }
+            document.getElementById('zielEndMonthGroup').style.display = document.getElementById('zielAutoDivideCheckbox').checked ? 'block' : 'none';
             autoCalculateMonthlyRate();
-        }
-
-        function syncExactEndDateToMonth() {
-            const dVal = document.getElementById('zielExactEndDateInput').value;
-            if (dVal && dVal.length >= 7) {
-                document.getElementById('zielEndMonthInput').value = dVal.slice(0, 7);
-            }
-            autoCalculateMonthlyRate();
-        }
-
-        function syncModalExactDateToMonth() {
-            const dVal = document.getElementById('modalExactEndDateInput').value;
-            if (dVal && dVal.length >= 7) {
-                document.getElementById('modalEndMonthInput').value = dVal.slice(0, 7);
-            }
-            updateLiveModalProjection();
-        }
-
-        let goalProjectionMode = 'month';
-        function setGoalProjectionMode(mode) {
-            goalProjectionMode = mode;
-            const mBtn = document.getElementById('projModeMonthBtn');
-            const dBtn = document.getElementById('projModeDayBtn');
-            if (mBtn) mBtn.classList.toggle('selected-month', mode === 'month');
-            if (dBtn) dBtn.classList.toggle('selected-month', mode === 'day');
-            updateLiveModalProjection();
-        }
-
-        function normalizeEventDateStr(pe) {
-            if (!pe) return '';
-            if (pe.date && /^\d{4}-\d{2}-\d{2}$/.test(pe.date)) return pe.date;
-            const raw = pe.date || pe.month || '';
-            if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
-            if (/^\d{4}-\d{2}$/.test(raw)) return raw + '-01';
-            return raw;
-        }
-
-        function normalizeEventMonthStr(pe) {
-            const d = normalizeEventDateStr(pe);
-            return d ? d.slice(0, 7) : '';
-        }
-
-        function buildDayByDayGoalTimeline(goal, overrideFixedRate = null, overrideEndDate = null) {
-            const baseMonth = getSelectedMonthKey();
-            const todayStr = new Date().toISOString().slice(0, 10);
-            let startDay = todayStr.slice(0, 7) === baseMonth ? todayStr : (baseMonth + '-01');
-            if (goal.startDate && /^\d{4}-\d{2}-\d{2}$/.test(goal.startDate) && goal.startDate > startDay) {
-                startDay = goal.startDate;
-            }
-
-            let endLimitStr = overrideEndDate !== null ? (overrideEndDate || null) : (goal.endDate ? goal.endDate : null);
-            let exactEndLimitDay = goal.exactTargetDate || null;
-            const modalExactInp = document.getElementById('modalExactEndDateInput');
-            if (currentModalGoalId === goal.id && modalExactInp) {
-                exactEndLimitDay = modalExactInp.value || null;
-            }
-            const u = urlaubeList.find(item => item.goalId === goal.id);
-            if (u && u.endDate) {
-                endLimitStr = u.endDate.slice(0, 7);
-                exactEndLimitDay = u.endDate;
-            }
-
-            const startYear = parseInt(startDay.slice(0, 4), 10) || 2026;
-            const endDay = `${startYear + 1}-12-31`;
-
-            let running = goal.id === 'kassette'
-                ? parseFloat(goal.manualCurrent || 0)
-                : parseFloat(goal.manualOffset || goal.manualCurrent || 0);
-
-            // Vorherige geplante Events bis zum Starttag einrechnen
-            (goal.plannedEvents || []).forEach(pe => {
-                const evDate = normalizeEventDateStr(pe);
-                if (evDate && evDate < startDay) {
-                    const amt = parseFloat(pe.amount) || 0;
-                    running += (pe.type === 'in' ? amt : -amt);
-                }
-            });
-
-            const fixedRate = overrideFixedRate !== null
-                ? (parseFloat(overrideFixedRate) || 0)
-                : (parseFloat(String(goal.fixedMonthly ?? 0).replace(',', '.')) || 0);
-
-            const rows = [];
-            let curDate = new Date(startDay + 'T12:00:00');
-            const lastDate = new Date(endDay + 'T12:00:00');
-            let dayCount = 0;
-
-            while (curDate <= lastDate && dayCount < 735) {
-                const iso = curDate.toISOString().slice(0, 10);
-                const mKey = iso.slice(0, 7);
-                const item = getMonthDataOrFallback(mKey);
-                const calc = calculateValuesFor(item, mKey);
-                const isTerminated = exactEndLimitDay
-                    ? (iso > exactEndLimitDay)
-                    : !!(endLimitStr && mKey >= endLimitStr);
-
-                let monthSavingsAdd = 0;
-                if (!isTerminated) {
-                    if (goal.id === 'notfall') monthSavingsAdd = calc.notfallSparen;
-                    else if (goal.type === 'giro_puffer') monthSavingsAdd = calc.giroPuffer;
-                    else if (goal.id === 'kassette') monthSavingsAdd = calc.bargeldSparen;
-                    else if (goal.id !== 'freizeit') {
-                        let extra = 0;
-                        (item.extraTransfers || []).forEach(tr => { if (tr.targetId === goal.id) extra += parseFloat(tr.amount) || 0; });
-                        monthSavingsAdd = extra > 0 ? extra : fixedRate;
-                    }
-                    if (calc.sparkontoSplitTargetId === goal.id) {
-                        monthSavingsAdd += calc.sparkontoSplitSparen;
-                    }
-                }
-
-                // Tägliche anteilige Sparrate (Monatssparrate / Tage des Monats) am Ende jedes Tages
-                const [yNum, mNum] = mKey.split('-').map(Number);
-                const daysInMonth = new Date(yNum, mNum, 0).getDate();
-                const dailySaving = monthSavingsAdd / daysInMonth;
-
-                // Tagegenaue geplante Events an diesem genauen Datum
-                const dayEvents = (goal.plannedEvents || []).filter(pe => normalizeEventDateStr(pe) === iso);
-                const dayIn = dayEvents.filter(pe => pe.type === 'in').reduce((s, pe) => s + (parseFloat(pe.amount) || 0), 0);
-                const dayOut = dayEvents.filter(pe => (pe.type || 'out') === 'out').reduce((s, pe) => s + (parseFloat(pe.amount) || 0), 0);
-
-                running = running + dailySaving + dayIn - dayOut;
-
-                if (dayEvents.length > 0 || iso === startDay || iso === exactEndLimitDay || iso.endsWith('-01') || iso === endDay) {
-                    rows.push({
-                        date: iso,
-                        month: mKey,
-                        dailySaving,
-                        dayIn,
-                        dayInNotes: dayEvents.filter(pe => pe.type === 'in').map(pe => pe.note || 'Einnahme').join(', '),
-                        dayOut,
-                        dayOutNotes: dayEvents.filter(pe => (pe.type || 'out') === 'out').map(pe => pe.note || 'Ausgabe').join(', '),
-                        hasEvent: dayEvents.length > 0,
-                        totalSoFar: running
-                    });
-                }
-
-                curDate.setDate(curDate.getDate() + 1);
-                dayCount++;
-            }
-
-            return rows;
         }
 
         function autoCalculateMonthlyRate() {
             const target = parseFloat(document.getElementById('zielBetrag').value) || 0;
             const startVal = parseFloat(document.getElementById('zielStart').value) || 0;
-            const evType = document.getElementById('zielPlannedEventType')?.value || 'out';
-            const evAmt = parseFloat(document.getElementById('zielPlannedEventAmount')?.value) || 0;
-            const evDelta = evType === 'in' ? evAmt : -evAmt;
-            const remaining = Math.max(0, target - startVal - evDelta);
-
-            let exactEndDate = document.getElementById('zielAutoUrlaubCheckbox').checked ? document.getElementById('zielEndDateInput').value : "";
-            if (!exactEndDate && document.getElementById('zielAutoDivideCheckbox').checked) {
-                exactEndDate = document.getElementById('zielExactEndDateInput')?.value || "";
-            }
-            let endMonthStr = exactEndDate ? exactEndDate.slice(0, 7) : "";
-            if (!endMonthStr && document.getElementById('zielAutoDivideCheckbox').checked) {
-                endMonthStr = document.getElementById('zielEndMonthInput').value;
-            }
-
-            if (target > 0 && exactEndDate && /^\d{4}-\d{2}-\d{2}$/.test(exactEndDate)) {
-                const selM = getSelectedMonthKey();
-                const nowIso = new Date().toISOString().slice(0, 10);
-                const startIso = nowIso.startsWith(selM) ? nowIso : (selM + '-01');
-                const d1 = new Date(startIso + 'T12:00:00');
-                const d2 = new Date(exactEndDate + 'T12:00:00');
-                const diffDays = Math.max(1, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)) + 1);
-                const dailyNeeded = remaining / diffDays;
-                const monthlyEquiv = dailyNeeded * 30.4375;
-                document.getElementById('zielFixedMonthly').value = monthlyEquiv.toFixed(2);
-            } else if (target > 0 && endMonthStr) {
+            const remaining = Math.max(0, target - startVal);
+            let endMonthStr = document.getElementById('zielAutoUrlaubCheckbox').checked ? document.getElementById('zielEndDateInput').value?.slice(0, 7) : "";
+            if (!endMonthStr && document.getElementById('zielAutoDivideCheckbox').checked) endMonthStr = document.getElementById('zielEndMonthInput').value;
+            if (target > 0 && endMonthStr) {
                 const [sY, sM] = getSelectedMonthKey().split('-').map(Number);
                 const [eY, eM] = endMonthStr.split('-').map(Number);
                 let diffMonths = Math.max(1, (eY - sY) * 12 + (eM - sM) + 1);
@@ -2486,7 +2358,6 @@
                 bargeldEinnahme: numOrDefault(document.getElementById('bargeldEinnahmeInput').value, 0),
                 items: JSON.parse(JSON.stringify(currentMonthItems)),
                 pausedItems: JSON.parse(JSON.stringify(currentMonthPausedItems)),
-                deletedItems: JSON.parse(JSON.stringify(currentMonthDeletedItems)),
                 bargeld: numOrDefault(document.getElementById('bargeldInput').value, 0),
                 taschengeld: numOrDefault(document.getElementById('taschengeldInput').value, 200),
                 giroPuffer: numOrDefault(document.getElementById('giroPufferInput').value, 40),
@@ -2621,13 +2492,7 @@
 
             if (entries[m]) {
                 let items = entries[m].items || [];
-                let deleted = entries[m].deletedItems || [];
-                inherited.forEach(inh => {
-                    const normName = inh.name.trim().toLowerCase();
-                    if (!items.some(i => i.name.trim().toLowerCase() === normName) && !deleted.includes(normName)) {
-                        items.push(JSON.parse(JSON.stringify(inh)));
-                    }
-                });
+                inherited.forEach(inh => { if (!items.some(i => i.name.trim().toLowerCase() === inh.name.trim().toLowerCase())) items.push(JSON.parse(JSON.stringify(inh))); });
                 if (m >= "2029-07") items = items.filter(i => !i.name.toLowerCase().includes("schulden"));
 
                 entries[m].items = items;
@@ -2665,7 +2530,6 @@
             document.getElementById('monthNotesInput').value = item.notes || '';
             currentMonthItems = JSON.parse(JSON.stringify(item.items || []));
             currentMonthPausedItems = JSON.parse(JSON.stringify(item.pausedItems || []));
-            currentMonthDeletedItems = JSON.parse(JSON.stringify(item.deletedItems || []));
             updateTotalFixFromItems(); liveCalc(); renderNextThree(m); renderHistory(); renderHaushaltView(); renderJahresView(); populateManualDistributeDropdown();
             updateCalendarBudgetDisplay();
         }
@@ -2731,16 +2595,6 @@
 
         function deleteHaushaltItem(id) { if(confirm('Löschen?')) { haushaltItems = haushaltItems.filter(i => i.id !== id); saveLocally(); renderHaushaltView(); renderJahresView(); updateCalendarBudgetDisplay(); } }
 
-        let hhTypeFilter = 'all';
-        function setHhTypeFilter(mode) {
-            hhTypeFilter = mode;
-            ['all', 'expense', 'income'].forEach(m => {
-                const btn = document.getElementById('hhFilter' + (m === 'all' ? 'All' : (m === 'expense' ? 'Exp' : 'Inc')) + 'Btn');
-                if (btn) btn.classList.toggle('selected-month', m === mode);
-            });
-            renderHaushaltView();
-        }
-
         function renderHaushaltView() {
             const m = getSelectedMonthKey(); document.getElementById('HHMonthDisplay').innerText = m; document.getElementById('hhMonthInput').value = m;
             const list = document.getElementById('HHList'); list.innerHTML = ''; let totalSpent = 0, totalIncome = 0, plannedExpense = 0, catTotals = {};
@@ -2755,7 +2609,6 @@
             (haushaltItems || []).filter(i => i.date?.startsWith(m)).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(item => {
                 const isInc = item.type === 'income', amt = parseFloat(item.amount || 0);
                 if (isInc) totalIncome += amt; else { totalSpent += amt; catTotals[item.category] = (catTotals[item.category] || 0) + amt; }
-                if (hhTypeFilter !== 'all' && (item.type || 'expense') !== hhTypeFilter) return;
                 if (searchVal && !item.name.toLowerCase().includes(searchVal)) return;
                 if (filterCat && item.category !== filterCat) return;
 
@@ -2820,42 +2673,14 @@
         function addExpenseItem() {
             const name = document.getElementById('expName').value.trim(), amount = parseFloat(document.getElementById('expAmount').value), type = document.getElementById('expType').value, endDate = document.getElementById('expEndDate').value;
             if(!name || isNaN(amount) || amount <= 0) return alert('Name und Betrag eingeben!');
-            const normName = name.toLowerCase();
-            currentMonthDeletedItems = currentMonthDeletedItems.filter(n => n !== normName);
-            Object.keys(entries).forEach(k => {
-                if (k >= getSelectedMonthKey() && entries[k]?.deletedItems) {
-                    entries[k].deletedItems = entries[k].deletedItems.filter(n => n !== normName);
-                }
-            });
             currentMonthItems.push({ name, amount, type, endDate: type === 'dauer' ? endDate : null });
             document.getElementById('expName').value = ''; document.getElementById('expAmount').value = '';
             renderExpenseItemsModal(); autoSaveLive();
         }
 
-        let currentMonthDeletedItems = [];
-
         function deleteExpenseItem(idx) {
-            const removed = currentMonthItems[idx];
-            const m = getSelectedMonthKey();
-            if (removed && removed.type === 'dauer') {
-                const normName = removed.name.trim().toLowerCase();
-                if (!currentMonthDeletedItems.includes(normName)) {
-                    currentMonthDeletedItems.push(normName);
-                }
-                // Auch aus allen zukünftigen Monaten entfernen und dort als gelöscht markieren
-                Object.keys(entries).forEach(k => {
-                    if (k >= m && entries[k]) {
-                        entries[k].items = (entries[k].items || []).filter(i => i.name.trim().toLowerCase() !== normName);
-                        entries[k].deletedItems = entries[k].deletedItems || [];
-                        if (!entries[k].deletedItems.includes(normName)) {
-                            entries[k].deletedItems.push(normName);
-                        }
-                    }
-                });
-            }
             currentMonthItems.splice(idx, 1);
-            renderExpenseItemsModal();
-            autoSaveLive();
+            saveLocally(); renderExpenseItemsModal(); autoSaveLive();
         }
 
         function getTotalGoalDeductionsForMonth(mKey, monthData) {
@@ -3112,7 +2937,7 @@
                 let transferDiff = 0;
                 (transfersList || []).forEach(tr => { if (tr.dateKey === k) { if(tr.fromId === goalId) transferDiff -= tr.amount; if(tr.toId === goalId) transferDiff += tr.amount; } });
 
-                const monthPlannedEvents = (goal.plannedEvents || []).filter(pe => normalizeEventMonthStr(pe) === k);
+                const monthPlannedEvents = (goal.plannedEvents || []).filter(pe => (pe.date ? pe.date.startsWith(k) : pe.month === k));
                 const plannedOutEvents = monthPlannedEvents.filter(pe => (pe.type || 'out') === 'out');
                 const plannedInEvents = monthPlannedEvents.filter(pe => pe.type === 'in');
                 const plannedOutSum = plannedOutEvents.reduce((acc, pe) => acc + (parseFloat(pe.amount) || 0), 0);
@@ -3441,13 +3266,7 @@
                 let reachText = "Endlos-Sparziel ♾️";
                 if (hasTarget) {
                     if (isCompleted) reachText = "Erreicht! 🎉";
-                    else if (g.exactTargetDate && /^\d{4}-\d{2}-\d{2}$/.test(g.exactTargetDate)) {
-                        const fmtTarget = new Date(g.exactTargetDate + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                        const todayIso = new Date().toISOString().slice(0, 10);
-                        const daysLeft = Math.max(1, Math.round((new Date(g.exactTargetDate + 'T12:00:00') - new Date(todayIso + 'T12:00:00')) / (1000 * 60 * 60 * 24)) + 1);
-                        const perDay = Math.max(0, (targetVal - cur) / daysLeft);
-                        reachText = `🎯 ${fmtTarget} (${perDay.toFixed(2)} €/Tag)`;
-                    } else if (g.fixedMonthly > 0) {
+                    else if (g.fixedMonthly > 0) {
                         const monthsNeeded = Math.ceil((targetVal - cur) / g.fixedMonthly);
                         const [curY, curM] = getSelectedMonthKey().split('-').map(Number);
                         let targetMonth = curM + monthsNeeded, targetYear = curY;
@@ -3504,26 +3323,12 @@
 
             const hist = document.getElementById('modalHistoryList');
             hist.innerHTML = '';
-            if (goalProjectionMode === 'day') {
-                const dayRows = buildDayByDayGoalTimeline(g, tempRate, tempEndMonth);
-                dayRows.forEach(dr => {
-                    const fmtDate = new Date(dr.date + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                    const inBadge = dr.dayIn > 0 ? `<div class="history-sub" style="color:var(--accent-green); font-weight:bold;">💰 Einnahme (${dr.dayInNotes}): +${dr.dayIn.toFixed(2)} €</div>` : '';
-                    const outBadge = dr.dayOut > 0 ? `<div class="history-sub" style="color:var(--accent-red); font-weight:bold;">🎂 Ausgabe (${dr.dayOutNotes}): -${dr.dayOut.toFixed(2)} €</div>` : '';
-                    const standColor = dr.totalSoFar < 0 ? 'var(--accent-red)' : 'var(--accent)';
-                    const borderStyle = dr.totalSoFar < 0
-                        ? 'border-color:var(--accent-red); background:var(--accent-red-soft);'
-                        : (dr.hasEvent ? 'border-left:4px solid var(--accent-orange);' : '');
-                    hist.innerHTML += `<div class="history-item" style="${borderStyle}"><div><strong>📅 ${fmtDate}</strong>${inBadge}${outBadge}</div><div style="text-align:right;"><span class="val-highlight">+${dr.dailySaving.toFixed(2)} € / Tag</span><div class="history-sub" style="color:${standColor}; font-weight:800;">Stand am Tag: ${dr.totalSoFar.toFixed(2)} €</div></div></div>`;
-                });
-            } else {
-                data.breakdown.forEach(b => {
-                    const inBadge = b.plannedIn > 0 ? `<div class="history-sub" style="color:var(--accent-green); font-weight:bold;">💰 Geplante Einnahme (${b.plannedInNotes}): +${b.plannedIn.toFixed(2)} €</div>` : '';
-                    const outBadge = b.plannedOut > 0 ? `<div class="history-sub" style="color:var(--accent-red); font-weight:bold;">🎂 Geplante Ausgabe (${b.plannedOutNotes}): -${b.plannedOut.toFixed(2)} €</div>` : '';
-                    const standColor = b.totalSoFar < 0 ? 'var(--accent-red)' : 'var(--accent)';
-                    hist.innerHTML += `<div class="history-item" style="${b.totalSoFar < 0 ? 'border-color:var(--accent-red); background:var(--accent-red-soft);' : ''}"><div><strong>${b.month}</strong>${inBadge}${outBadge}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Sparrate)</span><div class="history-sub" style="color:${standColor}; font-weight:800;">Hochrechnung: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
-                });
-            }
+            data.breakdown.forEach(b => {
+                const inBadge = b.plannedIn > 0 ? `<div class="history-sub" style="color:var(--accent-green); font-weight:bold;">💰 Geplante Einnahme (${b.plannedInNotes}): +${b.plannedIn.toFixed(2)} €</div>` : '';
+                const outBadge = b.plannedOut > 0 ? `<div class="history-sub" style="color:var(--accent-red); font-weight:bold;">🎂 Geplante Ausgabe (${b.plannedOutNotes}): -${b.plannedOut.toFixed(2)} €</div>` : '';
+                const standColor = b.totalSoFar < 0 ? 'var(--accent-red)' : 'var(--accent)';
+                hist.innerHTML += `<div class="history-item" style="${b.totalSoFar < 0 ? 'border-color:var(--accent-red); background:var(--accent-red-soft);' : ''}"><div><strong>${b.month}</strong>${inBadge}${outBadge}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Sparrate)</span><div class="history-sub" style="color:${standColor}; font-weight:800;">Hochrechnung: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
+            });
         }
 
         function openModal(gid) {
@@ -3531,8 +3336,7 @@
             document.getElementById('modalTitle').innerText = g.name;
             document.getElementById('modalTargetInput').value = g.target || '';
             document.getElementById('modalFixedMonthlyInput').value = g.fixedMonthly || '';
-            document.getElementById('modalExactEndDateInput').value = g.exactTargetDate || '';
-            document.getElementById('modalEndMonthInput').value = g.endDate || (g.exactTargetDate ? g.exactTargetDate.slice(0, 7) : '');
+            document.getElementById('modalEndMonthInput').value = g.endDate || '';
             
             const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey());
             document.getElementById('modalCurrentInputDisplay').innerText = cur.toFixed(2) + ' €';
@@ -3543,13 +3347,9 @@
             goals.forEach(x => { if(x.id !== gid) { sel.add(new Option(x.name, x.id)); stornoSel.add(new Option(x.name, x.id)); } });
 
             const evDateInp = document.getElementById('plannedEventDateInput');
-            if (evDateInp && !evDateInp.value) {
-                const selM = getSelectedMonthKey();
-                const nowIso = new Date().toISOString().slice(0, 10);
-                evDateInp.value = nowIso.startsWith(selM) ? nowIso : (selM + '-15');
-            }
-            setGoalProjectionMode(goalProjectionMode);
+            if (evDateInp && !evDateInp.value) evDateInp.value = getSelectedMonthKey() + '-01';
             renderPlannedEventsInModal(g);
+            updateLiveModalProjection();
             document.getElementById('goalModal').classList.add('active');
         }
         function closeModal() { document.getElementById('goalModal').classList.remove('active'); }
@@ -3557,8 +3357,7 @@
             const g = goals.find(x => x.id === currentModalGoalId); if(!g) return;
             g.target = parseFloat(document.getElementById('modalTargetInput').value) || 0;
             g.fixedMonthly = parseFloat(document.getElementById('modalFixedMonthlyInput').value) || 0;
-            g.exactTargetDate = document.getElementById('modalExactEndDateInput').value || null;
-            g.endDate = document.getElementById('modalEndMonthInput').value || (g.exactTargetDate ? g.exactTargetDate.slice(0, 7) : null);
+            g.endDate = document.getElementById('modalEndMonthInput').value || null;
             const cur = parseFloat(document.getElementById('modalCurrentInput').value);
             if(['notfall','freizeit'].includes(g.id) || g.type === 'notfall_sub' || g.type === 'giro_puffer') g.manualOffset = cur; else g.manualCurrent = cur;
             saveLocally(); renderGoals(); renderHistory(); closeModal();
@@ -3599,22 +3398,27 @@
             const id = 'goal_' + Date.now(), type = document.getElementById('zielTypeSelect').value;
             const evType = document.getElementById('zielPlannedEventType')?.value || 'out';
             const evAmt = parseFloat(document.getElementById('zielPlannedEventAmount')?.value) || 0;
-            const evDate = document.getElementById('zielPlannedEventDate')?.value || '';
-            const plannedEvents = (evAmt > 0 && evDate) ? [{ id: Date.now() + Math.random(), type: evType, date: evDate, month: evDate.slice(0, 7), amount: evAmt, note: evType === 'in' ? 'Geplante Einnahme' : 'Geplante Ausgabe' }] : [];
+            const evMon = document.getElementById('zielPlannedEventMonth')?.value || '';
+            const plannedEvents = (evAmt > 0 && evMon) ? [{ id: Date.now() + Math.random(), type: evType, month: evMon, amount: evAmt, note: evType === 'in' ? 'Geplante Einnahme' : 'Geplante Ausgabe' }] : [];
             const startAmt = parseFloat(document.getElementById('zielStart').value)||0;
             const usesOffset = ['notfall','freizeit'].includes(id) || type === 'notfall_sub' || type === 'giro_puffer';
-            const autoDivide = document.getElementById('zielAutoDivideCheckbox').checked;
-            const exactTargetDate = autoDivide ? (document.getElementById('zielExactEndDateInput')?.value || null) : (document.getElementById('zielAutoUrlaubCheckbox').checked ? (document.getElementById('zielEndDateInput')?.value || null) : null);
-            const endDateMonth = autoDivide ? (document.getElementById('zielEndMonthInput').value || (exactTargetDate ? exactTargetDate.slice(0, 7) : null)) : null;
-            goals.push({ id, name, target, type, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), exactTargetDate, endDate: endDateMonth, manualCurrent: usesOffset ? 0 : startAmt, manualOffset: usesOffset ? startAmt : 0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked, plannedEvents });
+            goals.push({ id, name, target, type, fixedMonthly: parseFloat(document.getElementById('zielFixedMonthly').value)||0, startMonth: getSelectedMonthKey(), endDate: document.getElementById('zielAutoDivideCheckbox').checked?document.getElementById('zielEndMonthInput').value:null, manualCurrent: usesOffset ? 0 : startAmt, manualOffset: usesOffset ? startAmt : 0, capAtTarget: document.getElementById('zielCapAtTargetCheckbox').checked, plannedEvents });
             
             if(document.getElementById('zielAutoUrlaubCheckbox').checked) {
                 urlaubeList.push({ goalId: id, startDate: document.getElementById('zielStartDateInput').value, endDate: document.getElementById('zielEndDateInput').value });
                 activeUrlaubGoalId = id;
             }
 
-            saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; if(document.getElementById('zielPlannedEventAmount')) document.getElementById('zielPlannedEventAmount').value = ''; if(document.getElementById('zielPlannedEventDate')) document.getElementById('zielPlannedEventDate').value = ''; if(document.getElementById('zielExactEndDateInput')) document.getElementById('zielExactEndDateInput').value = '';
+            saveLocally(); document.getElementById('zielName').value = ''; document.getElementById('zielBetrag').value = ''; if(document.getElementById('zielPlannedEventAmount')) document.getElementById('zielPlannedEventAmount').value = ''; if(document.getElementById('zielPlannedEventMonth')) document.getElementById('zielPlannedEventMonth').value = '';
             renderGoals(); renderHistory(); checkUrlaubTabVisibility(); updateSubKontoDropdowns(); alert('Sparziel / Unterkonto angelegt! 🎯');
+        }
+
+        function formatPlannedEventDateDE(pe) {
+            const raw = pe.date || (pe.month ? pe.month + '-01' : '');
+            if (!raw) return '-';
+            const parts = raw.split('-');
+            if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+            return raw;
         }
 
         function addPlannedEventToCurrentGoal() {
@@ -3622,15 +3426,63 @@
             const g = goals.find(x => x.id === currentModalGoalId);
             if (!g) return;
             const type = document.getElementById('plannedEventTypeInput')?.value || 'out';
-            const date = document.getElementById('plannedEventDateInput').value;
+            const dateVal = document.getElementById('plannedEventDateInput').value;
             const amount = parseFloat(document.getElementById('plannedEventAmountInput').value);
             const defaultNote = type === 'in' ? 'Geplante Einnahme' : 'Geplante Ausgabe';
             const note = (document.getElementById('plannedEventNoteInput').value || '').trim() || defaultNote;
-            if (!date || isNaN(amount) || amount <= 0) return alert('Bitte ein genaues Datum und einen gültigen Betrag eingeben!');
+            if (!dateVal || isNaN(amount) || amount <= 0) return alert('Bitte Datum und einen gültigen Betrag eingeben!');
             if (!g.plannedEvents) g.plannedEvents = [];
-            g.plannedEvents.push({ id: Date.now() + Math.random(), type, date, month: date.slice(0, 7), amount, note });
+            g.plannedEvents.push({ id: Date.now() + Math.random(), type, date: dateVal, month: dateVal.slice(0, 7), amount, note });
             document.getElementById('plannedEventAmountInput').value = '';
             document.getElementById('plannedEventNoteInput').value = '';
+            saveLocally();
+            renderPlannedEventsInModal(g);
+            updateLiveModalProjection();
+            renderGoals();
+        }
+
+        function openEditPlannedEventModal(eventId) {
+            if (!currentModalGoalId) return;
+            const g = goals.find(x => x.id === currentModalGoalId);
+            if (!g || !g.plannedEvents) return;
+            const pe = g.plannedEvents.find(item => item.id === eventId);
+            if (!pe) return;
+
+            document.getElementById('editPlannedEventId').value = pe.id;
+            document.getElementById('editPlannedEventType').value = pe.type || 'out';
+            document.getElementById('editPlannedEventDate').value = pe.date || (pe.month ? pe.month + '-01' : '');
+            document.getElementById('editPlannedEventAmount').value = parseFloat(pe.amount) || '';
+            document.getElementById('editPlannedEventNote').value = pe.note || '';
+            document.getElementById('editPlannedEventModal').classList.add('active');
+        }
+
+        function closeEditPlannedEventModal() {
+            document.getElementById('editPlannedEventModal').classList.remove('active');
+        }
+
+        function saveEditedPlannedEvent() {
+            if (!currentModalGoalId) return;
+            const g = goals.find(x => x.id === currentModalGoalId);
+            if (!g || !g.plannedEvents) return;
+            const eventId = parseFloat(document.getElementById('editPlannedEventId').value);
+            const pe = g.plannedEvents.find(item => item.id === eventId);
+            if (!pe) return;
+
+            const newDate = document.getElementById('editPlannedEventDate').value;
+            const newAmount = parseFloat(document.getElementById('editPlannedEventAmount').value);
+            const newType = document.getElementById('editPlannedEventType').value || 'out';
+            const defaultNote = newType === 'in' ? 'Geplante Einnahme' : 'Geplante Ausgabe';
+            const newNote = (document.getElementById('editPlannedEventNote').value || '').trim() || defaultNote;
+
+            if (!newDate || isNaN(newAmount) || newAmount <= 0) return alert('Bitte gültiges Datum und einen gültigen Betrag eingeben!');
+
+            pe.type = newType;
+            pe.date = newDate;
+            pe.month = newDate.slice(0, 7);
+            pe.amount = newAmount;
+            pe.note = newNote;
+
+            closeEditPlannedEventModal();
             saveLocally();
             renderPlannedEventsInModal(g);
             updateLiveModalProjection();
@@ -3651,7 +3503,11 @@
         function renderPlannedEventsInModal(goal) {
             const box = document.getElementById('plannedEventsListInModal');
             if (!box) return;
-            const evs = (goal.plannedEvents || []).slice().sort((a, b) => normalizeEventDateStr(a).localeCompare(normalizeEventDateStr(b)));
+            const evs = (goal.plannedEvents || []).slice().sort((a, b) => {
+                const da = a.date || (a.month ? a.month + '-01' : '');
+                const db = b.date || (b.month ? b.month + '-01' : '');
+                return da.localeCompare(db);
+            });
             if (evs.length === 0) {
                 box.innerHTML = `<div style="font-size:0.7rem; color:var(--text-sub);">Noch keine geplanten Ausgaben oder Einnahmen hinterlegt.</div>`;
                 return;
@@ -3661,18 +3517,16 @@
                 const icon = isInc ? '💰' : '🎂';
                 const valClass = isInc ? 'val-highlight' : 'val-red';
                 const sign = isInc ? '+' : '-';
-                const rawDate = normalizeEventDateStr(pe);
-                const labelDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
-                    ? new Date(rawDate + 'T12:00:00').toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-                    : (pe.month || rawDate);
+                const dateDisplay = formatPlannedEventDateDE(pe);
                 return `
                 <div class="history-item" style="padding:6px 10px;">
                     <div>
-                        <div class="history-date" style="font-size:0.78rem;">${icon} ${labelDate} – ${pe.note}</div>
+                        <div class="history-date" style="font-size:0.78rem;">${icon} ${dateDisplay} – ${pe.note}</div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:6px;">
+                    <div style="display:flex; align-items:center; gap:7px;">
                         <strong class="${valClass}" style="font-size:0.78rem;">${sign}${parseFloat(pe.amount).toFixed(2)} €</strong>
-                        <span style="cursor:pointer; color:var(--accent-red); font-size:0.8rem;" onclick="deletePlannedEventFromGoal(${pe.id})">🗑️</span>
+                        <span style="cursor:pointer; font-size:0.85rem;" title="Bearbeiten" onclick="openEditPlannedEventModal(${pe.id})">✏️</span>
+                        <span style="cursor:pointer; color:var(--accent-red); font-size:0.85rem;" title="Löschen" onclick="deletePlannedEventFromGoal(${pe.id})">🗑️</span>
                     </div>
                 </div>
             `}).join('');
