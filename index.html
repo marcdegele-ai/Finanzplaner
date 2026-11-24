@@ -2366,6 +2366,7 @@ Regeln:
                 restSplitTargetId: document.getElementById('restSplitTargetSelect').value || 'sparkonto_main',
                 booked: document.getElementById('gehaltBookedInput').checked,
                 extraTransfers: entries[m]?.extraTransfers || [],
+                deletedItems: entries[m]?.deletedItems || [],
                 notes: document.getElementById('monthNotesInput')?.value || ''
             };
             saveLocally(); liveCalc(); renderHistory();
@@ -2485,13 +2486,26 @@ Regeln:
         function getSelectedMonthKey() { return document.getElementById('monthInput').value || getAnchorCurrentMonthKey(); }
         function getNextMonthKey(k) { const [y, m] = k.split('-').map(Number); return m === 12 ? `${y+1}-01` : `${y}-${String(m+1).padStart(2, '0')}`; }
 
+        function isExpenseDeletedInOrBefore(nameLower, m) {
+            return Object.keys(entries).some(k => k <= m && Array.isArray(entries[k]?.deletedItems) && entries[k].deletedItems.includes(nameLower));
+        }
+
         function getMonthDataOrFallback(m) {
             const prev = Object.keys(entries).sort().reverse().find(k => k < m);
-            let inherited = prev && entries[prev]?.items ? entries[prev].items.filter(i => i.type === 'dauer' && (!i.endDate || m <= i.endDate)) : [];
+            let inherited = prev && entries[prev]?.items ? entries[prev].items.filter(i => {
+                if (i.type !== 'dauer') return false;
+                if (i.endDate && m > i.endDate) return false;
+                if (isExpenseDeletedInOrBefore(i.name.trim().toLowerCase(), m)) return false;
+                return true;
+            }) : [];
             if (m >= "2029-07") inherited = inherited.filter(i => !i.name.toLowerCase().includes("schulden"));
 
             if (entries[m]) {
-                let items = entries[m].items || [];
+                let items = (entries[m].items || []).filter(i => {
+                    if (i.type === 'dauer' && i.endDate && m > i.endDate) return false;
+                    if (isExpenseDeletedInOrBefore(i.name.trim().toLowerCase(), m)) return false;
+                    return true;
+                });
                 inherited.forEach(inh => { if (!items.some(i => i.name.trim().toLowerCase() === inh.name.trim().toLowerCase())) items.push(JSON.parse(JSON.stringify(inh))); });
                 if (m >= "2029-07") items = items.filter(i => !i.name.toLowerCase().includes("schulden"));
 
@@ -2505,7 +2519,7 @@ Regeln:
                 return entries[m];
             }
             return { 
-                gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], 
+                gehalt: 2300, bargeldEinnahme: 0, items: JSON.parse(JSON.stringify(inherited)), pausedItems: [], deletedItems: [],
                 bargeld: 0, taschengeld: 200, giroPuffer: 40, 
                 restSplitMode: prev ? (entries[prev].restSplitMode || 'none') : 'none',
                 restSplitVal: prev ? (entries[prev].restSplitVal || 0) : 0,
@@ -2660,7 +2674,14 @@ Regeln:
             currentMonthItems.forEach((item, idx) => {
                 const isPaused = currentMonthPausedItems.includes(item.name);
                 if(!isPaused) total += parseFloat(item.amount || 0);
-                list.innerHTML += `<div class="history-item"><div><div class="history-date">${item.name} <span class="badge ${item.type==='dauer'?'badge-dauer':'badge-once'}">${item.type}</span> ${item.endDate?`<span class="badge badge-once">bis ${item.endDate}</span>`:''} ${isPaused?'<span class="badge badge-paused">Pausiert</span>':''}</div></div><div style="text-align:right;"><span class="${isPaused?'':'val-red'}" style="${isPaused?'text-decoration:line-through;':''}">-${parseFloat(item.amount).toFixed(2)} €</span> ${item.type==='dauer'?`<span class="action-link" onclick="togglePauseExpense('${item.name}')">${isPaused?'▶️':'⏸️'}</span>`:''} <span style="color:var(--accent-red); cursor:pointer;" onclick="deleteExpenseItem(${idx})">🗑️</span></div></div>`;
+                const endEditHtml = item.type === 'dauer'
+                    ? `<div class="history-sub" style="margin-top:4px; display:flex; align-items:center; gap:5px;">
+                        <span>Läuft bis:</span>
+                        <input type="month" value="${item.endDate || ''}" style="padding:2px 5px; font-size:0.72rem; width:auto;" onchange="setExpenseEndMonth(${idx}, this.value)">
+                        ${item.endDate ? `<span class="action-link" onclick="setExpenseEndMonth(${idx}, '')">♾️</span>` : ''}
+                       </div>`
+                    : '';
+                list.innerHTML += `<div class="history-item"><div><div class="history-date">${item.name} <span class="badge ${item.type==='dauer'?'badge-dauer':'badge-once'}">${item.type}</span> ${item.endDate?`<span class="badge badge-once">bis ${item.endDate}</span>`:''} ${isPaused?'<span class="badge badge-paused">Pausiert</span>':''}</div>${endEditHtml}</div><div style="text-align:right;"><span class="${isPaused?'':'val-red'}" style="${isPaused?'text-decoration:line-through;':''}">-${parseFloat(item.amount).toFixed(2)} €</span> ${item.type==='dauer'?`<span class="action-link" onclick="togglePauseExpense('${item.name}')">${isPaused?'▶️':'⏸️'}</span>`:''} <span style="color:var(--accent-red); cursor:pointer;" title="Ab diesem Monat dauerhaft löschen" onclick="deleteExpenseItem(${idx})">🗑️</span></div></div>`;
             });
             document.getElementById('modalExpTotal').innerText = total.toFixed(2) + ' €';
         }
@@ -2673,14 +2694,58 @@ Regeln:
         function addExpenseItem() {
             const name = document.getElementById('expName').value.trim(), amount = parseFloat(document.getElementById('expAmount').value), type = document.getElementById('expType').value, endDate = document.getElementById('expEndDate').value;
             if(!name || isNaN(amount) || amount <= 0) return alert('Name und Betrag eingeben!');
+            const curM = getSelectedMonthKey();
+            const nameLower = name.toLowerCase();
+            Object.keys(entries).forEach(k => {
+                if (k >= curM && Array.isArray(entries[k]?.deletedItems)) {
+                    entries[k].deletedItems = entries[k].deletedItems.filter(d => d !== nameLower);
+                }
+            });
             currentMonthItems.push({ name, amount, type, endDate: type === 'dauer' ? endDate : null });
             document.getElementById('expName').value = ''; document.getElementById('expAmount').value = '';
             renderExpenseItemsModal(); autoSaveLive();
         }
 
+        function setExpenseEndMonth(idx, newEndMonth) {
+            const item = currentMonthItems[idx];
+            if (!item) return;
+            const curM = getSelectedMonthKey();
+            const nameLower = item.name.trim().toLowerCase();
+            item.endDate = newEndMonth || null;
+            Object.keys(entries).forEach(k => {
+                if (k >= curM && Array.isArray(entries[k]?.items)) {
+                    if (newEndMonth && k > newEndMonth) {
+                        entries[k].items = entries[k].items.filter(i => i.name.trim().toLowerCase() !== nameLower);
+                    } else {
+                        entries[k].items.forEach(i => {
+                            if (i.name.trim().toLowerCase() === nameLower) i.endDate = newEndMonth || null;
+                        });
+                    }
+                }
+            });
+            renderExpenseItemsModal();
+            autoSaveLive();
+        }
+
         function deleteExpenseItem(idx) {
+            const item = currentMonthItems[idx];
+            const curM = getSelectedMonthKey();
+            if (item && item.type === 'dauer') {
+                const nameLower = item.name.trim().toLowerCase();
+                if (!entries[curM]) entries[curM] = getMonthDataOrFallback(curM);
+                if (!Array.isArray(entries[curM].deletedItems)) entries[curM].deletedItems = [];
+                if (!entries[curM].deletedItems.includes(nameLower)) {
+                    entries[curM].deletedItems.push(nameLower);
+                }
+                Object.keys(entries).forEach(k => {
+                    if (k >= curM && Array.isArray(entries[k]?.items)) {
+                        entries[k].items = entries[k].items.filter(i => i.name.trim().toLowerCase() !== nameLower);
+                    }
+                });
+            }
             currentMonthItems.splice(idx, 1);
-            saveLocally(); renderExpenseItemsModal(); autoSaveLive();
+            renderExpenseItemsModal();
+            autoSaveLive();
         }
 
         function getTotalGoalDeductionsForMonth(mKey, monthData) {
