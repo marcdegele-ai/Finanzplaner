@@ -3119,6 +3119,13 @@ Regeln:
                 }
             });
 
+            const notfallGoalObj = goals.find(g => g.id === 'notfall');
+            const notfallProjectionData = getGoalData('notfall');
+            const notfallProjMap = {};
+            (notfallProjectionData.breakdown || []).forEach(b => {
+                notfallProjMap[b.month] = b.totalSoFar;
+            });
+
             let allM = new Set(); let t = base; 
             for(let i=0; i<12; i++) { allM.add(t); t = getNextMonthKey(t); }
             let netWorth = [];
@@ -3131,7 +3138,8 @@ Regeln:
                     else if (subKontenRunning[tr.targetId] !== undefined) subKontenRunning[tr.targetId] += tr.amount;
                 });
 
-                runningNotfall += calc.notfallSparen + extraN; 
+                runningNotfall += calc.notfallSparen + extraN;
+                const notfallHochrechnung = notfallProjMap[k] !== undefined ? notfallProjMap[k] : runningNotfall;
                 runningKassette += calc.bargeldSparen;
 
                 if (calc.sparkontoSplitSparen > 0 && subKontenRunning[calc.sparkontoSplitTargetId] !== undefined) {
@@ -3155,9 +3163,9 @@ Regeln:
 
                 const splitTargetStand = subKontenRunning[calc.sparkontoSplitTargetId] || 0;
                 const total = runningNotfall + runningKassette + Object.values(subKontenRunning).reduce((a,b)=>a+b, 0); 
-                netWorth.push({ month: k, stand: total, notfallStand: runningNotfall, booked: item.booked });
+                netWorth.push({ month: k, stand: total, notfallStand: notfallHochrechnung, booked: item.booked });
                 
-                tableBody.innerHTML += `<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'PLAN 🔮'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</td><td class="sensitive-val">${runningNotfall.toFixed(2)} €</td><td class="sensitive-val">${splitTargetStand.toFixed(2)} €</td><td><strong class="sensitive-val">${total.toFixed(2)} €</strong></td></tr>`;
+                tableBody.innerHTML += `<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'PLAN 🔮'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</td><td class="sensitive-val">${notfallHochrechnung.toFixed(2)} €</td><td class="sensitive-val">${splitTargetStand.toFixed(2)} €</td><td><strong class="sensitive-val">${total.toFixed(2)} €</strong></td></tr>`;
             });
             renderNetWorthChart(netWorth); renderGoals(); updateSubKontoDropdowns();
         }
