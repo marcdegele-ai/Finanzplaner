@@ -564,7 +564,10 @@
             </div>
 
             <div class="card">
-                <div class="card-title">📈 Vermögensverlauf</div>
+                <div class="card-title">
+                    <span>📈 Vermögensverlauf</span>
+                    <span style="font-size:0.68rem; color:var(--text-sub); font-weight:700;">Gesamt vs. 🛡️ Notfall (Reines Restgeld)</span>
+                </div>
                 <div class="chart-container" id="netWorthChartContainer"></div>
             </div>
 
@@ -3152,7 +3155,7 @@ Regeln:
 
                 const splitTargetStand = subKontenRunning[calc.sparkontoSplitTargetId] || 0;
                 const total = runningNotfall + runningKassette + Object.values(subKontenRunning).reduce((a,b)=>a+b, 0); 
-                netWorth.push({ month: k, stand: total, booked: item.booked });
+                netWorth.push({ month: k, stand: total, notfallStand: runningNotfall, booked: item.booked });
                 
                 tableBody.innerHTML += `<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'PLAN 🔮'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</td><td class="sensitive-val">${runningNotfall.toFixed(2)} €</td><td class="sensitive-val">${splitTargetStand.toFixed(2)} €</td><td><strong class="sensitive-val">${total.toFixed(2)} €</strong></td></tr>`;
             });
@@ -3164,7 +3167,34 @@ Regeln:
             const max = Math.max(...data.map(d=>d.stand), 1);
             data.forEach(d => {
                 const pct = (d.stand / max) * 100;
-                container.innerHTML += `<div class="chart-bar-row"><div class="chart-label-line"><span>${d.month} ${d.booked?'✅':'(Geplant)'}</span><span class="val-highlight">${d.stand.toFixed(2)} €</span></div><div class="progress-bar-container"><div class="progress-bar-fill" style="width:${pct}%;"></div></div></div>`;
+                const nfVal = d.notfallStand || 0;
+                const nfPct = (nfVal / max) * 100;
+                container.innerHTML += `
+                <div class="chart-bar-row" style="padding:8px 10px;">
+                    <div style="font-size:0.75rem; font-weight:800; color:var(--text-main); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>${d.month} ${d.booked?'✅':'(Geplant)'}</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                        <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:6px 8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.68rem; margin-bottom:4px;">
+                                <span style="color:var(--text-sub); font-weight:700;">💰 Gesamt</span>
+                                <span class="val-highlight" style="font-size:0.75rem;">${d.stand.toFixed(2)} €</span>
+                            </div>
+                            <div class="progress-bar-container" style="margin-top:0; height:6px;">
+                                <div class="progress-bar-fill" style="width:${pct}%;"></div>
+                            </div>
+                        </div>
+                        <div style="background:var(--card-bg); border:1px solid var(--border); border-radius:8px; padding:6px 8px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.68rem; margin-bottom:4px;">
+                                <span style="color:var(--accent); font-weight:700;">🛡️ Notfallkonto</span>
+                                <span class="sensitive-val" style="font-weight:800; color:var(--accent); font-size:0.75rem;">${nfVal.toFixed(2)} €</span>
+                            </div>
+                            <div class="progress-bar-container" style="margin-top:0; height:6px;">
+                                <div class="progress-bar-fill" style="width:${nfPct}%; background:var(--accent);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
             });
         }
 
