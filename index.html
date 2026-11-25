@@ -245,7 +245,7 @@
                 <h1>📊 Mein Finanzplaner</h1>
                 <button class="btn-secondary" id="darkModeToggleBtn" style="padding:4px 8px; font-size:0.75rem;" onclick="toggleDarkMode()" title="Dark Mode umschalten">🌙</button>
             </div>
-            <div class="app-creator-sub">Ersteller: Marc Degele • Swipe-Navigation aktiv 👈👉</div>
+            <div class="app-creator-sub">Ersteller: Marc Degele • <span id="appVersionBadge" style="background:var(--accent-soft); color:var(--accent); padding:1px 6px; border-radius:6px; font-weight:800;">v6.16</span> • Swipe-Navigation aktiv 👈👉</div>
             <div class="user-bar">
                 <span>👤 Status: <strong style="color:var(--accent-green);">Bereit ✅</strong></span>
                 <span class="cloud-status" onclick="openCloudModal()">⚡ Cloud-Sync</span>
@@ -966,9 +966,35 @@
                         </div>
                         <div style="text-align:right;">
                             <span style="font-size:0.7rem; color:var(--text-sub);">Monatliche Gesamtrate</span>
-                            <div class="sensitive-val" style="font-size:1rem; font-weight:bold;">453,95 € / Mo.</div>
+                            <div id="debtCurrentMonthlyRateDisplay" class="sensitive-val" style="font-size:1rem; font-weight:bold;">453,95 € / Mo.</div>
                         </div>
                     </div>
+                </div>
+
+                <!-- EINMALZAHLUNGS-HOCHRECHNUNG / SIMULATOR -->
+                <div style="background:var(--card-bg); border:1.5px solid var(--accent-green); padding:12px; border-radius:12px; margin-top:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-size:0.8rem; font-weight:800; color:var(--accent-green);">💡 Einmalzahlung simulieren (Was-wäre-wenn?)</span>
+                        <span class="badge badge-booked" style="font-size:0.65rem;">Live-Hochrechnung</span>
+                    </div>
+                    <div style="font-size:0.7rem; color:var(--text-sub); margin-bottom:8px;">
+                        Gib eine einmalige Sondertilgung ein und wähle, ob damit zuerst die kleinsten Gläubiger komplett abgelöst oder die größten Raten/Summen gekürzt werden sollen:
+                    </div>
+                    <div class="grid" style="gap:6px; margin-bottom:8px;">
+                        <div class="input-group" style="margin-bottom:0;">
+                            <label>Einmalzahlung (€)</label>
+                            <input type="number" id="debtOneTimeSimInput" placeholder="z.B. 1000" min="0" step="50" oninput="renderSchuldenView()">
+                        </div>
+                        <div class="input-group" style="margin-bottom:0;">
+                            <label>Verteilungs-Strategie</label>
+                            <select id="debtOneTimeStrategySelect" onchange="renderSchuldenView()">
+                                <option value="smallest">🎯 Kleinste Gläubiger zuerst ablösen (Snowball)</option>
+                                <option value="largest">🏔️ Größte Restschuld zuerst tilgen</option>
+                                <option value="proportional">⚖️ Gleichmäßig anteilig verteilen</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="debtSimResultBox" style="display:none; background:var(--accent-green-soft); border:1px solid var(--accent-green); border-radius:10px; padding:10px; font-size:0.75rem;"></div>
                 </div>
             </div>
 
@@ -1134,6 +1160,7 @@
     </div>
 
     <script>
+        const APP_VERSION = "v6.16";
         const creditorsData = [
             { id: 1, name: "Schulz & Partner", bank: "Hannoversche Volksbank", iban: "DE21 2519 0001 0782 4955 00", ref: "Mandant 27380", start: "2024-07", months: 40, rate: 50.00, total: 1975.41 },
             { id: 2, name: "EOS Deutscher Inkasso-Dienst", bank: "Postbank Giro", iban: "DE14 2001 0020 0387 4392 09", ref: "67772587401", start: "2024-06", months: 60, rate: 18.93, total: 1135.56 },
@@ -1843,13 +1870,12 @@ Regeln:
             });
 
             const todayEvents = sorted.filter(e => e.date === todayStr);
-            todayList.innerHTML = '';
             if (todayEvents.length === 0) {
                 todayList.innerHTML = `<div style="text-align:center; color:var(--text-sub); font-size:0.75rem; padding:8px;">Heute noch keine Auftritte eingetragen. Lade oben einen Flyer hoch! 🍺</div>`;
             } else {
-                todayEvents.forEach(ev => {
+                todayList.innerHTML = todayEvents.map(ev => {
                     const countdownBadge = getLiveCountdownBadge(ev.time, now);
-                    todayList.innerHTML += `
+                    return `
                         <div class="history-item" style="background:var(--card-bg); border-color:var(--accent-orange);">
                             <div>
                                 <div class="history-date">
@@ -1867,10 +1893,9 @@ Regeln:
                             </div>
                         </div>
                     `;
-                });
+                }).join('');
             }
 
-            upcomingList.innerHTML = '';
             const filtered = sorted.filter(ev => {
                 if (favOnly && !ev.isFav) return false;
                 if (filterLoc && ev.location !== filterLoc) return false;
@@ -1881,10 +1906,14 @@ Regeln:
             if (filtered.length === 0) {
                 upcomingList.innerHTML = `<div style="text-align:center; color:var(--text-sub); font-size:0.75rem; padding:10px;">Keine Auftritte gefunden.</div>`;
             } else {
-                filtered.forEach(ev => {
+                const dateLabelCache = {};
+                upcomingList.innerHTML = filtered.map(ev => {
                     const isToday = ev.date === todayStr;
-                    const formattedDate = new Date(ev.date + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
-                    upcomingList.innerHTML += `
+                    if (!dateLabelCache[ev.date]) {
+                        dateLabelCache[ev.date] = new Date(ev.date + 'T12:00:00').toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
+                    }
+                    const formattedDate = dateLabelCache[ev.date];
+                    return `
                         <div class="history-item" style="${isToday ? 'border-left: 4px solid var(--accent-orange); background:var(--accent-orange-soft);' : (ev.isFav ? 'border-left: 4px solid #eab308;' : '')}">
                             <div>
                                 <div class="history-date">
@@ -1903,7 +1932,7 @@ Regeln:
                             </div>
                         </div>
                     `;
-                });
+                }).join('');
             }
         }
 
@@ -2126,15 +2155,26 @@ Regeln:
             }
         }
 
+        function formatDebtEndMonth(curY, curM, monthsLeft) {
+            if (monthsLeft <= 0) return 'Sofort schuldenfrei 🎉';
+            const names = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+            let totalM = (curY * 12 + (curM - 1)) + monthsLeft;
+            let y = Math.floor(totalM / 12);
+            let m = totalM % 12;
+            return `${names[m]} ${y}`;
+        }
+
         function renderSchuldenView() {
             const now = new Date();
             const curY = now.getFullYear();
             const curM = now.getMonth() + 1;
 
-            let totalComp = 0, totalPaid = 0;
+            let totalComp = 0, totalPaid = 0, activeRateSum = 0;
             const tbody = document.getElementById('debtCreditorsTableBody');
             if(!tbody) return;
-            tbody.innerHTML = '';
+
+            let rowsHtml = [];
+            let activeCreditors = [];
 
             creditorsData.forEach(c => {
                 totalComp += c.total;
@@ -2143,8 +2183,16 @@ Regeln:
                 const calcRemaining = Math.max(0, c.total - (monthsPassed * c.rate));
                 const remaining = debtOverrides[c.id] !== undefined ? debtOverrides[c.id] : calcRemaining;
                 totalPaid += Math.max(0, c.total - remaining);
+                if (remaining > 0.01) activeRateSum += c.rate;
 
-                tbody.innerHTML += `
+                activeCreditors.push({
+                    id: c.id,
+                    name: c.name,
+                    rate: c.rate,
+                    remaining: remaining
+                });
+
+                rowsHtml.push(`
                     <tr>
                         <td><strong>${c.id}</strong></td>
                         <td>${c.name}<br><span style="font-size:0.65rem; color:var(--text-sub);">${c.bank}</span></td>
@@ -2152,8 +2200,10 @@ Regeln:
                         <td class="sensitive-val">${c.total.toFixed(2)} €</td>
                         <td><input type="number" class="debt-input" value="${remaining.toFixed(2)}" step="0.01" onchange="updateDebtOverride(${c.id}, this.value)"></td>
                     </tr>
-                `;
+                `);
             });
+
+            tbody.innerHTML = rowsHtml.join('');
 
             const remainingTotal = Math.max(0, totalComp - totalPaid);
             const pct = Math.min(100, (totalPaid / totalComp) * 100);
@@ -2162,17 +2212,105 @@ Regeln:
             document.getElementById('debtProgressBar').style.width = pct.toFixed(1) + '%';
             document.getElementById('debtPaidTotal').innerText = totalPaid.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
             document.getElementById('debtRemainingTotal').innerText = remainingTotal.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+            const rateDisp = document.getElementById('debtCurrentMonthlyRateDisplay');
+            if (rateDisp) rateDisp.innerText = activeRateSum.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' € / Mo.';
+
+            // Einmalzahlungs-Hochrechnung berechnen
+            const simInput = document.getElementById('debtOneTimeSimInput');
+            const simBox = document.getElementById('debtSimResultBox');
+            const strategy = document.getElementById('debtOneTimeStrategySelect')?.value || 'smallest';
+            const oneTimeAmt = parseFloat(simInput?.value) || 0;
+
+            if (simBox) {
+                if (oneTimeAmt <= 0 || remainingTotal <= 0) {
+                    simBox.style.display = 'none';
+                } else {
+                    const effectivePay = Math.min(oneTimeAmt, remainingTotal);
+                    const newRemainingTotal = Math.max(0, remainingTotal - effectivePay);
+                    const newPct = Math.min(100, ((totalPaid + effectivePay) / totalComp) * 100);
+
+                    // Aktuelle maximale Restlaufzeit ohne Einmalzahlung
+                    let baseMaxMonths = 0;
+                    activeCreditors.forEach(ac => {
+                        if (ac.remaining > 0.01 && ac.rate > 0) {
+                            baseMaxMonths = Math.max(baseMaxMonths, Math.ceil(ac.remaining / ac.rate));
+                        }
+                    });
+
+                    // Kopie für Simulation
+                    let simList = activeCreditors.map(ac => ({ ...ac }));
+                    let budgetLeft = effectivePay;
+                    let clearedNames = [];
+
+                    if (strategy === 'smallest') {
+                        simList.sort((a, b) => a.remaining - b.remaining);
+                        for (let item of simList) {
+                            if (item.remaining <= 0.01 || budgetLeft <= 0) continue;
+                            const pay = Math.min(item.remaining, budgetLeft);
+                            item.remaining -= pay;
+                            budgetLeft -= pay;
+                            if (item.remaining <= 0.01) clearedNames.push(item.name);
+                        }
+                    } else if (strategy === 'largest') {
+                        simList.sort((a, b) => b.remaining - a.remaining);
+                        for (let item of simList) {
+                            if (item.remaining <= 0.01 || budgetLeft <= 0) continue;
+                            const pay = Math.min(item.remaining, budgetLeft);
+                            item.remaining -= pay;
+                            budgetLeft -= pay;
+                            if (item.remaining <= 0.01) clearedNames.push(item.name);
+                        }
+                    } else {
+                        for (let item of simList) {
+                            if (item.remaining <= 0.01) continue;
+                            const share = (item.remaining / remainingTotal) * effectivePay;
+                            item.remaining = Math.max(0, item.remaining - share);
+                            if (item.remaining <= 0.01) clearedNames.push(item.name);
+                        }
+                    }
+
+                    let newActiveRate = 0;
+                    let simMaxMonths = 0;
+                    simList.forEach(item => {
+                        if (item.remaining > 0.01) {
+                            newActiveRate += item.rate;
+                            if (item.rate > 0) simMaxMonths = Math.max(simMaxMonths, Math.ceil(item.remaining / item.rate));
+                        }
+                    });
+
+                    const monthlyRateSaved = Math.max(0, activeRateSum - newActiveRate);
+                    const monthsSaved = Math.max(0, baseMaxMonths - simMaxMonths);
+                    const newEndDateLabel = formatDebtEndMonth(curY, curM, simMaxMonths);
+
+                    simBox.style.display = 'block';
+                    simBox.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>Neue Restschuld:</span>
+                            <strong class="sensitive-val" style="color:var(--accent-purple);">${newRemainingTotal.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2})} € (${newPct.toFixed(1)}%)</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>Monatliche Rate danach:</span>
+                            <strong class="sensitive-val" style="color:var(--accent-green);">${newActiveRate.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2})} € / Mo. ${monthlyRateSaved > 0 ? `(-${monthlyRateSaved.toFixed(2)} € Entlastung)` : ''}</strong>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                            <span>Neues Schuldenfrei-Ziel:</span>
+                            <strong style="color:var(--accent-green);">${newEndDateLabel} ${monthsSaved > 0 ? `(${monthsSaved} Mon. früher!)` : ''}</strong>
+                        </div>
+                        ${clearedNames.length > 0 ? `<div style="margin-top:6px; padding-top:6px; border-top:1px dashed var(--accent-green); color:var(--text-main);"><strong>✅ Komplett erledigt (${clearedNames.length}):</strong> ${clearedNames.join(', ')}</div>` : ''}
+                    `;
+                }
+            }
         }
 
         function updateDebtOverride(id, val) {
             const num = parseFloat(val);
             if(!isNaN(num) && num >= 0) debtOverrides[id] = num; else delete debtOverrides[id];
-            saveLocally(); renderSchuldenView();
+            saveLocally('debt'); renderSchuldenView();
         }
 
         function resetDebtOverrides() {
             if(confirm('Möchtest du alle manuellen Schulden-Anpassungen zurücksetzen?')) {
-                debtOverrides = {}; saveLocally(); renderSchuldenView();
+                debtOverrides = {}; saveLocally('debt'); renderSchuldenView();
             }
         }
 
@@ -2243,22 +2381,36 @@ Regeln:
             updateLastUpdateDisplay();
         }
 
-        function saveLocally() {
+        function saveLocally(keys = null) {
             try {
-                localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
-                localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
-                localStorage.setItem('finanz_transfers_local', JSON.stringify(transfersList));
-                localStorage.setItem('finanz_urlaube_local', JSON.stringify(urlaubeList));
-                localStorage.setItem('finanz_active_urlaub_goal_local', activeUrlaubGoalId || '');
-                localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
-                localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
-                localStorage.setItem('finanz_debt_overrides_local', JSON.stringify(debtOverrides));
-                localStorage.setItem('finanz_dsstev_docs_local', JSON.stringify(dsstevDocs));
-                localStorage.setItem('finanz_lineup_local', JSON.stringify(lineupEvents));
-                localStorage.setItem('finanz_gemini_api_key', geminiApiKey);
+                const saveAll = !keys || keys === 'all';
+                const keySet = saveAll ? null : new Set(Array.isArray(keys) ? keys : [keys]);
+                const shouldSave = (k) => saveAll || keySet.has(k);
+
+                if (shouldSave('entries')) localStorage.setItem('finanz_entries_local', JSON.stringify(entries));
+                if (shouldSave('goals')) localStorage.setItem('finanz_goals_local', JSON.stringify(goals));
+                if (shouldSave('transfers')) localStorage.setItem('finanz_transfers_local', JSON.stringify(transfersList));
+                if (shouldSave('urlaube')) {
+                    localStorage.setItem('finanz_urlaube_local', JSON.stringify(urlaubeList));
+                    localStorage.setItem('finanz_active_urlaub_goal_local', activeUrlaubGoalId || '');
+                }
+                if (shouldSave('cash')) localStorage.setItem('finanz_cash_local', JSON.stringify(cashBreakdown));
+                if (shouldSave('haushalt')) localStorage.setItem('finanz_haushalt_local', JSON.stringify(haushaltItems));
+                if (shouldSave('debt')) localStorage.setItem('finanz_debt_overrides_local', JSON.stringify(debtOverrides));
+                if (shouldSave('docs')) {
+                    localStorage.setItem('finanz_dsstev_docs_local', JSON.stringify(dsstevDocs));
+                    updateStorageQuotaDisplay();
+                }
+                if (shouldSave('lineup')) localStorage.setItem('finanz_lineup_local', JSON.stringify(lineupEvents));
+                if (shouldSave('apiKey')) localStorage.setItem('finanz_gemini_api_key', geminiApiKey);
+
+                if (saveAll) updateStorageQuotaDisplay();
                 setTimestampNow();
-                updateStorageQuotaDisplay();
-                if (urlaubeList && urlaubeList.length > 0) renderUrlaubView();
+
+                const urlaubViewEl = document.getElementById('urlaub-view');
+                if (urlaubeList && urlaubeList.length > 0 && urlaubViewEl && urlaubViewEl.classList.contains('active')) {
+                    renderUrlaubView();
+                }
             } catch(e) {
                 alert('⚠️ Hinweis: Browser-Speicher voll! Bitte alte Abrechnungen oder Belege löschen.');
             }
@@ -2280,7 +2432,7 @@ Regeln:
 
         async function syncWithCloudNow(isBackground = false) {
             if (!cloudConfig.url) { if (!isBackground) openCloudModal(); return; }
-            const payload = { entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lineupEvents, geminiApiKey, lastUpdated: new Date().toISOString() };
+            const payload = { appVersion: APP_VERSION, entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lineupEvents, geminiApiKey, lastUpdated: new Date().toISOString() };
             try {
                 let headers = { "Content-Type": "application/json" };
                 if (cloudConfig.key) { 
@@ -2372,11 +2524,11 @@ Regeln:
                 deletedItems: entries[m]?.deletedItems || [],
                 notes: document.getElementById('monthNotesInput')?.value || ''
             };
-            saveLocally(); liveCalc(); renderHistory();
+            saveLocally('entries'); liveCalc(); renderHistory();
         }
 
         function exportBackupJSON() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lineupEvents, geminiApiKey }, null, 2));
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ appVersion: APP_VERSION, entries, goals, transfersList, urlaubeList, activeUrlaubGoalId, cashBreakdown, haushaltItems, debtOverrides, dsstevDocs, lineupEvents, geminiApiKey }, null, 2));
             const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", `Finanzplan_Backup.json`);
             document.body.appendChild(dl); dl.click(); dl.remove();
         }
@@ -2426,7 +2578,7 @@ Regeln:
             haushaltItems.push({ id: Date.now(), name, amount: amt, category: "🛒 Lebensmittel", date: todayStr, type: 'expense', receipt: null });
             document.getElementById('quickAddName').value = '';
             document.getElementById('quickAddAmount').value = '';
-            saveLocally(); renderHaushaltView(); renderJahresView(); updateCalendarBudgetDisplay(); alert('Blitz-Ausgabe verbucht! ⚡');
+            saveLocally('haushalt'); renderHaushaltView(); renderJahresView(); updateCalendarBudgetDisplay(); alert('Blitz-Ausgabe verbucht! ⚡');
         }
 
         function updateHHKategorien() {
@@ -2469,9 +2621,9 @@ Regeln:
             const total = (cashBreakdown.c100 * 100) + (cashBreakdown.c50 * 50) + (cashBreakdown.c20 * 20) + (cashBreakdown.c10 * 10) + (cashBreakdown.c5 * 5) + (cashBreakdown.c2 * 2) + (cashBreakdown.c1 * 1) + (cashBreakdown.c050 * 0.5) + (cashBreakdown.c020 * 0.2);
             document.getElementById('cashTotalBadge').innerText = total.toFixed(2) + ' €';
             let kGoal = goals.find(g => g.id === 'kassette'); if(kGoal) kGoal.manualCurrent = total;
-            if(shouldSave) { saveLocally(); renderHistory(); }
+            if(shouldSave) { saveLocally(['cash', 'goals']); renderHistory(); }
         }
-        function saveCashBoxLocally() { calcCashBox(false); saveLocally(); alert('Gespeichert! 🪙'); renderHistory(); }
+        function saveCashBoxLocally() { calcCashBox(false); saveLocally(['cash', 'goals']); alert('Gespeichert! 🪙'); renderHistory(); }
 
         function switchTab(viewId, btnEl) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
@@ -2565,7 +2717,7 @@ Regeln:
             if(!entries[m].extraTransfers) entries[m].extraTransfers = [];
             entries[m].extraTransfers.push({ id: Date.now(), targetId: gid, targetName: goals.find(x=>x.id===gid)?.name, amount: amt });
             document.getElementById('manualDistributeAmountInput').value = '';
-            saveLocally(); liveCalc(); renderHistory(); renderGoals(); alert('Erfolgreich gebucht! 🎯');
+            saveLocally('entries'); liveCalc(); renderHistory(); renderGoals(); alert('Erfolgreich gebucht! 🎯');
         }
 
         function getActiveDeductionsForGoal(goal, mKey) {
@@ -2610,7 +2762,7 @@ Regeln:
             renderHaushaltView(); renderJahresView(); updateCalendarBudgetDisplay();
         }
 
-        function deleteHaushaltItem(id) { if(confirm('Löschen?')) { haushaltItems = haushaltItems.filter(i => i.id !== id); saveLocally(); renderHaushaltView(); renderJahresView(); updateCalendarBudgetDisplay(); } }
+        function deleteHaushaltItem(id) { if(confirm('Löschen?')) { haushaltItems = haushaltItems.filter(i => i.id !== id); saveLocally('haushalt'); renderHaushaltView(); renderJahresView(); updateCalendarBudgetDisplay(); } }
 
         function renderHaushaltView() {
             const m = getSelectedMonthKey(); document.getElementById('HHMonthDisplay').innerText = m; document.getElementById('hhMonthInput').value = m;
@@ -3107,7 +3259,7 @@ Regeln:
         }
 
         function renderHistory() {
-            const tableBody = document.getElementById('monthSavingsTableBody'); if(!tableBody) return; tableBody.innerHTML = '';
+            const tableBody = document.getElementById('monthSavingsTableBody');
             let base = getSelectedMonthKey();
             let runningNotfall = getSavedAmountForGoalUpTo(goals.find(g => g.id === 'notfall'), base);
             let runningKassette = getSavedAmountForGoalUpTo(goals.find(g => g.id === 'kassette'), base);
@@ -3119,7 +3271,6 @@ Regeln:
                 }
             });
 
-            const notfallGoalObj = goals.find(g => g.id === 'notfall');
             const notfallProjectionData = getGoalData('notfall');
             const notfallProjMap = {};
             (notfallProjectionData.breakdown || []).forEach(b => {
@@ -3129,6 +3280,7 @@ Regeln:
             let allM = new Set(); let t = base; 
             for(let i=0; i<12; i++) { allM.add(t); t = getNextMonthKey(t); }
             let netWorth = [];
+            let rowsHtml = [];
 
             Array.from(allM).sort().forEach(k => {
                 const item = getMonthDataOrFallback(k), calc = calculateValuesFor(item, k);
@@ -3165,19 +3317,20 @@ Regeln:
                 const total = runningNotfall + runningKassette + Object.values(subKontenRunning).reduce((a,b)=>a+b, 0); 
                 netWorth.push({ month: k, stand: total, notfallStand: notfallHochrechnung, booked: item.booked });
                 
-                tableBody.innerHTML += `<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'PLAN 🔮'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</td><td class="sensitive-val">${notfallHochrechnung.toFixed(2)} €</td><td class="sensitive-val">${splitTargetStand.toFixed(2)} €</td><td><strong class="sensitive-val">${total.toFixed(2)} €</strong></td></tr>`;
+                rowsHtml.push(`<tr onclick="syncMonthInput('${k}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);"><td><strong>${k}</strong></td><td>${item.booked?'✅':'PLAN 🔮'}</td><td class="val-highlight">+${calc.gesamtSparen.toFixed(2)} €</td><td class="sensitive-val">${notfallHochrechnung.toFixed(2)} €</td><td class="sensitive-val">${splitTargetStand.toFixed(2)} €</td><td><strong class="sensitive-val">${total.toFixed(2)} €</strong></td></tr>`);
             });
-            renderNetWorthChart(netWorth); renderGoals(); updateSubKontoDropdowns();
+            if (tableBody) tableBody.innerHTML = rowsHtml.join('');
+            renderNetWorthChart(netWorth); renderGoals();
         }
 
         function renderNetWorthChart(data) {
-            const container = document.getElementById('netWorthChartContainer'); if(!container) return; container.innerHTML = '';
+            const container = document.getElementById('netWorthChartContainer'); if(!container) return;
             const max = Math.max(...data.map(d=>d.stand), 1);
-            data.forEach(d => {
+            container.innerHTML = data.map(d => {
                 const pct = (d.stand / max) * 100;
                 const nfVal = d.notfallStand || 0;
                 const nfPct = (nfVal / max) * 100;
-                container.innerHTML += `
+                return `
                 <div class="chart-bar-row" style="padding:8px 10px;">
                     <div style="font-size:0.75rem; font-weight:800; color:var(--text-main); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
                         <span>${d.month} ${d.booked?'✅':'(Geplant)'}</span>
@@ -3203,14 +3356,21 @@ Regeln:
                         </div>
                     </div>
                 </div>`;
-            });
+            }).join('');
         }
 
         function renderJahresView() {
             const yr = document.getElementById('selectYear').value; 
             let einnahmen = 0, geplantEinnahmen = 0, fix = 0, spent = 0, echtIst = 0, echtGeplant = 0;
             const detailsBody = document.getElementById('jahresDetailsTableBody');
-            if (detailsBody) detailsBody.innerHTML = '';
+            let detailsRows = [];
+            const spentByMonth = {};
+            (haushaltItems || []).forEach(hi => {
+                if (hi.date && hi.date.startsWith(yr + '-') && hi.type !== 'income') {
+                    const mk = hi.date.slice(0, 7);
+                    spentByMonth[mk] = (spentByMonth[mk] || 0) + (parseFloat(hi.amount) || 0);
+                }
+            });
 
             for(let m=1; m<=12; m++) {
                 const mk = `${yr}-${String(m).padStart(2,'0')}`;
@@ -3218,8 +3378,7 @@ Regeln:
                 let e = (item.gehalt || 2300) + (item.bargeldEinnahme || 0);
                 geplantEinnahmen += e;
                 
-                let monthSpent = 0;
-                (haushaltItems || []).forEach(hi => { if(hi.date?.startsWith(mk) && hi.type !== 'income') monthSpent += parseFloat(hi.amount || 0); });
+                let monthSpent = spentByMonth[mk] || 0;
                 spent += monthSpent;
                 let monthFix = getTotalFixForMonthData(item);
                 fix += monthFix;
@@ -3229,9 +3388,10 @@ Regeln:
 
                 if (detailsBody) {
                     let mSparquote = e > 0 ? ((calc.gesamtSparen - monthSpent) / e * 100).toFixed(1) : '0.0';
-                    detailsBody.innerHTML += `<tr onclick="syncMonthInput('${mk}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);" style="cursor:pointer;"><td><strong>${mk}</strong> ${item.booked ? '✅' : ''}</td><td class="val-highlight">+${e.toFixed(2)} €</td><td class="val-red">-${monthFix.toFixed(2)} €</td><td class="val-orange">-${monthSpent.toFixed(2)} €</td><td><strong>${mSparquote}%</strong></td></tr>`;
+                    detailsRows.push(`<tr onclick="syncMonthInput('${mk}'); switchTab('aktuel-view', document.querySelectorAll('.tab-btn')[0]);" style="cursor:pointer;"><td><strong>${mk}</strong> ${item.booked ? '✅' : ''}</td><td class="val-highlight">+${e.toFixed(2)} €</td><td class="val-red">-${monthFix.toFixed(2)} €</td><td class="val-orange">-${monthSpent.toFixed(2)} €</td><td><strong>${mSparquote}%</strong></td></tr>`);
                 }
             }
+            if (detailsBody) detailsBody.innerHTML = detailsRows.join('');
 
             document.getElementById('jahrEinnahmen').innerText = einnahmen.toFixed(2) + ' €';
             document.getElementById('jahrGeplantEinnahmen').innerText = geplantEinnahmen.toFixed(2) + ' € (Geplant)';
@@ -3355,57 +3515,60 @@ Regeln:
         }
 
         function renderGoals() {
-            const list = document.getElementById('goalsList'); list.innerHTML = '';
-            goals.forEach((g, idx) => {
-                const cur = getSavedAmountForGoalUpTo(g, getSelectedMonthKey()); 
-                const targetVal = parseFloat(g.target) || 0;
-                const hasTarget = targetVal > 0;
-                const pct = hasTarget ? Math.min(100, (cur / targetVal) * 100) : 0;
-                const isCompleted = hasTarget && pct >= 100;
-                const isSub = g.type === 'notfall_sub';
-                const isGiroPuffer = g.type === 'giro_puffer';
-                const icon = getGoalIcon(g);
+            const list = document.getElementById('goalsList');
+            const selMonth = getSelectedMonthKey();
+            const [curY, curM] = selMonth.split('-').map(Number);
+            if (list) {
+                list.innerHTML = goals.map((g, idx) => {
+                    const cur = getSavedAmountForGoalUpTo(g, selMonth); 
+                    const targetVal = parseFloat(g.target) || 0;
+                    const hasTarget = targetVal > 0;
+                    const pct = hasTarget ? Math.min(100, (cur / targetVal) * 100) : 0;
+                    const isCompleted = hasTarget && pct >= 100;
+                    const isSub = g.type === 'notfall_sub';
+                    const isGiroPuffer = g.type === 'giro_puffer';
+                    const icon = getGoalIcon(g);
 
-                let reachText = "Endlos-Sparziel ♾️";
-                if (hasTarget) {
-                    if (isCompleted) reachText = "Erreicht! 🎉";
-                    else if (g.fixedMonthly > 0) {
-                        const monthsNeeded = Math.ceil((targetVal - cur) / g.fixedMonthly);
-                        const [curY, curM] = getSelectedMonthKey().split('-').map(Number);
-                        let targetMonth = curM + monthsNeeded, targetYear = curY;
-                        while (targetMonth > 12) { targetMonth -= 12; targetYear += 1; }
-                        reachText = `Ziel: ${String(targetMonth).padStart(2,'0')}/${targetYear}`;
+                    let reachText = "Endlos-Sparziel ♾️";
+                    if (hasTarget) {
+                        if (isCompleted) reachText = "Erreicht! 🎉";
+                        else if (g.fixedMonthly > 0) {
+                            const monthsNeeded = Math.ceil((targetVal - cur) / g.fixedMonthly);
+                            let targetMonth = curM + monthsNeeded, targetYear = curY;
+                            while (targetMonth > 12) { targetMonth -= 12; targetYear += 1; }
+                            reachText = `Ziel: ${String(targetMonth).padStart(2,'0')}/${targetYear}`;
+                        }
                     }
-                }
-                
-                list.innerHTML += `
-                    <div class="goal-card-box" style="${isSub ? 'border-left: 4px solid var(--accent-green);' : (isGiroPuffer ? 'border-left: 4px solid var(--accent);' : '')}">
-                        <div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openModal('${g.id}')">
-                                <div>
-                                    <span class="history-date">${icon} ${g.name}</span>
-                                    ${isCompleted ? '<span class="badge" style="background:#fef3c7; color:#d97706;">👑 100%</span>' : ''}
+                    
+                    return `
+                        <div class="goal-card-box" style="${isSub ? 'border-left: 4px solid var(--accent-green);' : (isGiroPuffer ? 'border-left: 4px solid var(--accent);' : '')}">
+                            <div>
+                                <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="openModal('${g.id}')">
+                                    <div>
+                                        <span class="history-date">${icon} ${g.name}</span>
+                                        ${isCompleted ? '<span class="badge" style="background:#fef3c7; color:#d97706;">👑 100%</span>' : ''}
+                                    </div>
+                                    <span style="font-size:0.7rem; color:var(--accent-red); cursor:pointer;" onclick="event.stopPropagation(); deleteGoalDirect(${idx})">🗑️</span>
                                 </div>
-                                <span style="font-size:0.7rem; color:var(--accent-red); cursor:pointer;" onclick="event.stopPropagation(); deleteGoalDirect(${idx})">🗑️</span>
+                                ${(g.plannedEvents && g.plannedEvents.length > 0) ? (() => {
+                                    const netEv = g.plannedEvents.reduce((s,x) => s + ((x.type === 'in' ? 1 : -1) * (parseFloat(x.amount)||0)), 0);
+                                    const sign = netEv >= 0 ? '+' : '';
+                                    return `<div style="margin-top:4px;"><span class="badge" style="background:var(--accent-orange-soft); color:var(--accent-orange);">📅 ${g.plannedEvents.length} geplant (${sign}${netEv.toFixed(0)} €)</span></div>`;
+                                })() : ''}
+                                <div class="history-sub" style="display:flex; justify-content:space-between; margin-top:6px; cursor:pointer;" onclick="openModal('${g.id}')">
+                                    <span>Stand: <strong class="sensitive-val">${cur.toFixed(2)} €</strong> ${hasTarget ? ('/ <span class="sensitive-val">' + targetVal.toFixed(2) + ' €</span>') : ''}</span>
+                                    <strong class="${pct < 0 ? 'val-red' : 'val-highlight'}" style="font-size:0.8rem;">${hasTarget ? pct.toFixed(0) + '%' : '♾️'}</strong>
+                                </div>
+                                ${hasTarget ? `<div class="progress-bar-container" style="cursor:pointer;" onclick="openModal('${g.id}')"><div class="progress-bar-fill" style="width:${Math.max(0, pct)}%;"></div></div>` : ''}
                             </div>
-                            ${(g.plannedEvents && g.plannedEvents.length > 0) ? (() => {
-                                const netEv = g.plannedEvents.reduce((s,x) => s + ((x.type === 'in' ? 1 : -1) * (parseFloat(x.amount)||0)), 0);
-                                const sign = netEv >= 0 ? '+' : '';
-                                return `<div style="margin-top:4px;"><span class="badge" style="background:var(--accent-orange-soft); color:var(--accent-orange);">📅 ${g.plannedEvents.length} geplant (${sign}${netEv.toFixed(0)} €)</span></div>`;
-                            })() : ''}
-                            <div class="history-sub" style="display:flex; justify-content:space-between; margin-top:6px; cursor:pointer;" onclick="openModal('${g.id}')">
-                                <span>Stand: <strong class="sensitive-val">${cur.toFixed(2)} €</strong> ${hasTarget ? ('/ <span class="sensitive-val">' + targetVal.toFixed(2) + ' €</span>') : ''}</span>
-                                <strong class="${pct < 0 ? 'val-red' : 'val-highlight'}" style="font-size:0.8rem;">${hasTarget ? pct.toFixed(0) + '%' : '♾️'}</strong>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:0.68rem; color:var(--text-sub);">
+                                <div style="font-weight:bold; color:var(--accent-green);">${reachText}</div>
+                                <div style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
                             </div>
-                            ${hasTarget ? `<div class="progress-bar-container" style="cursor:pointer;" onclick="openModal('${g.id}')"><div class="progress-bar-fill" style="width:${Math.max(0, pct)}%;"></div></div>` : ''}
                         </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; font-size:0.68rem; color:var(--text-sub);">
-                            <div style="font-weight:bold; color:var(--accent-green);">${reachText}</div>
-                            <div style="cursor:pointer; color:var(--accent); font-weight:600;" onclick="openModal('${g.id}')">Edit ⚙️</div>
-                        </div>
-                    </div>
-                `;
-            });
+                    `;
+                }).join('');
+            }
             populateManualDistributeDropdown();
             populateRestSplitDropdown();
             updateSubKontoDropdowns();
@@ -3425,13 +3588,12 @@ Regeln:
             document.getElementById('modalPlannedStandDisplay').innerText = data.projectedTotal.toFixed(2) + ' €';
 
             const hist = document.getElementById('modalHistoryList');
-            hist.innerHTML = '';
-            data.breakdown.forEach(b => {
+            hist.innerHTML = data.breakdown.map(b => {
                 const inBadge = b.plannedIn > 0 ? `<div class="history-sub" style="color:var(--accent-green); font-weight:bold;">💰 Geplante Einnahme (${b.plannedInNotes}): +${b.plannedIn.toFixed(2)} €</div>` : '';
                 const outBadge = b.plannedOut > 0 ? `<div class="history-sub" style="color:var(--accent-red); font-weight:bold;">🎂 Geplante Ausgabe (${b.plannedOutNotes}): -${b.plannedOut.toFixed(2)} €</div>` : '';
                 const standColor = b.totalSoFar < 0 ? 'var(--accent-red)' : 'var(--accent)';
-                hist.innerHTML += `<div class="history-item" style="${b.totalSoFar < 0 ? 'border-color:var(--accent-red); background:var(--accent-red-soft);' : ''}"><div><strong>${b.month}</strong>${inBadge}${outBadge}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Sparrate)</span><div class="history-sub" style="color:${standColor}; font-weight:800;">Hochrechnung: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
-            });
+                return `<div class="history-item" style="${b.totalSoFar < 0 ? 'border-color:var(--accent-red); background:var(--accent-red-soft);' : ''}"><div><strong>${b.month}</strong>${inBadge}${outBadge}</div><div style="text-align:right;"><span class="val-highlight">+${b.amount.toFixed(2)} € (Sparrate)</span><div class="history-sub" style="color:${standColor}; font-weight:800;">Hochrechnung: ${b.totalSoFar.toFixed(2)} €</div></div></div>`;
+            }).join('');
         }
 
         function openModal(gid) {
