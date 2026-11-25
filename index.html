@@ -978,7 +978,7 @@
                         <span class="badge badge-booked" style="font-size:0.65rem;">Live-Hochrechnung</span>
                     </div>
                     <div style="font-size:0.7rem; color:var(--text-sub); margin-bottom:8px;">
-                        Gib eine einmalige Sondertilgung ein und wähle, ob damit zuerst die kleinsten Gläubiger komplett abgelöst oder die größten Raten/Summen gekürzt werden sollen:
+                        Gib eine einmalige Sondertilgung, den gewünschten Monat und die Strategie ein – bis zum gewählten Monat werden zuerst die regulären Raten abgezogen:
                     </div>
                     <div class="grid" style="gap:6px; margin-bottom:8px;">
                         <div class="input-group" style="margin-bottom:0;">
@@ -986,6 +986,10 @@
                             <input type="number" id="debtOneTimeSimInput" placeholder="z.B. 1000" min="0" step="50" oninput="renderSchuldenView()">
                         </div>
                         <div class="input-group" style="margin-bottom:0;">
+                            <label>Geplanter Monat</label>
+                            <input type="month" id="debtOneTimeMonthInput" value="2026-12" onchange="renderSchuldenView()">
+                        </div>
+                        <div class="input-group full" style="margin-bottom:0;">
                             <label>Verteilungs-Strategie</label>
                             <select id="debtOneTimeStrategySelect" onchange="renderSchuldenView()">
                                 <option value="smallest">🎯 Kleinste Gläubiger zuerst ablösen (Snowball)</option>
@@ -2215,8 +2219,10 @@ Regeln:
             const rateDisp = document.getElementById('debtCurrentMonthlyRateDisplay');
             if (rateDisp) rateDisp.innerText = activeRateSum.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' € / Mo.';
 
-            // Einmalzahlungs-Hochrechnung berechnen
+            // Einmalzahlungs-Hochrechnung berechnen (inkl. Monatsauswahl)
+            const curMonthStr = `${curY}-${String(curM).padStart(2, '0')}`;
             const simInput = document.getElementById('debtOneTimeSimInput');
+            const monthInput = document.getElementById('debtOneTimeMonthInput');
             const simBox = document.getElementById('debtSimResultBox');
             const strategy = document.getElementById('debtOneTimeStrategySelect')?.value || 'smallest';
             const oneTimeAmt = parseFloat(simInput?.value) || 0;
@@ -2225,9 +2231,10 @@ Regeln:
                 if (oneTimeAmt <= 0 || remainingTotal <= 0) {
                     simBox.style.display = 'none';
                 } else {
-                    const effectivePay = Math.min(oneTimeAmt, remainingTotal);
-                    const newRemainingTotal = Math.max(0, remainingTotal - effectivePay);
-                    const newPct = Math.min(100, ((totalPaid + effectivePay) / totalComp) * 100);
+                    if (monthInput && !monthInput.value) monthInput.value = curMonthStr;
+                    const chosenMonthStr = (monthInput?.value && monthInput.value >= curMonthStr) ? monthInput.value : curMonthStr;
+                    const [chY, chM] = chosenMonthStr.split('-').map(Number);
+                    const waitMonths = Math.max(0, (chY - curY) * 12 + (chM - curM));
 
                     // Aktuelle maximale Restlaufzeit ohne Einmalzahlung
                     let baseMaxMonths = 0;
@@ -2237,56 +2244,69 @@ Regeln:
                         }
                     });
 
-                    // Kopie für Simulation
-                    let simList = activeCreditors.map(ac => ({ ...ac }));
+                    // Reguläre Raten bis zum gewählten Monat abziehen
+                    const listAtChosenMonth = activeCreditors.map(ac => ({
+                        ...ac,
+                        remAtMonth: Math.max(0, ac.remaining - (waitMonths * ac.rate))
+                    }));
+
+                    const totalRemAtMonth = listAtChosenMonth.reduce((s, x) => s + x.remAtMonth, 0);
+                    const effectivePay = Math.min(oneTimeAmt, totalRemAtMonth);
+                    const newRemainingAtMonth = Math.max(0, totalRemAtMonth - effectivePay);
+                    const paidUntilChosenMonth = Math.max(0, totalComp - totalRemAtMonth);
+                    const newPctAtMonth = Math.min(100, ((paidUntilChosenMonth + effectivePay) / totalComp) * 100);
+
+                    // Kopie für Simulation ab gewähltem Monat
+                    let simList = listAtChosenMonth.map(ac => ({ ...ac, simRem: ac.remAtMonth }));
                     let budgetLeft = effectivePay;
                     let clearedNames = [];
 
                     if (strategy === 'smallest') {
-                        simList.sort((a, b) => a.remaining - b.remaining);
+                        simList.sort((a, b) => a.simRem - b.simRem);
                         for (let item of simList) {
-                            if (item.remaining <= 0.01 || budgetLeft <= 0) continue;
-                            const pay = Math.min(item.remaining, budgetLeft);
-                            item.remaining -= pay;
+                            if (item.simRem <= 0.01 || budgetLeft <= 0) continue;
+                            const pay = Math.min(item.simRem, budgetLeft);
+                            item.simRem -= pay;
                             budgetLeft -= pay;
-                            if (item.remaining <= 0.01) clearedNames.push(item.name);
+                            if (item.simRem <= 0.01) clearedNames.push(item.name);
                         }
                     } else if (strategy === 'largest') {
-                        simList.sort((a, b) => b.remaining - a.remaining);
+                        simList.sort((a, b) => b.simRem - a.simRem);
                         for (let item of simList) {
-                            if (item.remaining <= 0.01 || budgetLeft <= 0) continue;
-                            const pay = Math.min(item.remaining, budgetLeft);
-                            item.remaining -= pay;
+                            if (item.simRem <= 0.01 || budgetLeft <= 0) continue;
+                            const pay = Math.min(item.simRem, budgetLeft);
+                            item.simRem -= pay;
                             budgetLeft -= pay;
-                            if (item.remaining <= 0.01) clearedNames.push(item.name);
+                            if (item.simRem <= 0.01) clearedNames.push(item.name);
                         }
                     } else {
                         for (let item of simList) {
-                            if (item.remaining <= 0.01) continue;
-                            const share = (item.remaining / remainingTotal) * effectivePay;
-                            item.remaining = Math.max(0, item.remaining - share);
-                            if (item.remaining <= 0.01) clearedNames.push(item.name);
+                            if (item.simRem <= 0.01 || totalRemAtMonth <= 0) continue;
+                            const share = (item.remAtMonth / totalRemAtMonth) * effectivePay;
+                            item.simRem = Math.max(0, item.simRem - share);
+                            if (item.simRem <= 0.01) clearedNames.push(item.name);
                         }
                     }
 
                     let newActiveRate = 0;
-                    let simMaxMonths = 0;
+                    let maxMonthsAfterChosen = 0;
                     simList.forEach(item => {
-                        if (item.remaining > 0.01) {
+                        if (item.simRem > 0.01) {
                             newActiveRate += item.rate;
-                            if (item.rate > 0) simMaxMonths = Math.max(simMaxMonths, Math.ceil(item.remaining / item.rate));
+                            if (item.rate > 0) maxMonthsAfterChosen = Math.max(maxMonthsAfterChosen, Math.ceil(item.simRem / item.rate));
                         }
                     });
 
+                    const totalSimMonthsFromNow = waitMonths + maxMonthsAfterChosen;
                     const monthlyRateSaved = Math.max(0, activeRateSum - newActiveRate);
-                    const monthsSaved = Math.max(0, baseMaxMonths - simMaxMonths);
-                    const newEndDateLabel = formatDebtEndMonth(curY, curM, simMaxMonths);
+                    const monthsSaved = Math.max(0, baseMaxMonths - totalSimMonthsFromNow);
+                    const newEndDateLabel = formatDebtEndMonth(curY, curM, totalSimMonthsFromNow);
 
                     simBox.style.display = 'block';
                     simBox.innerHTML = `
                         <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-                            <span>Neue Restschuld:</span>
-                            <strong class="sensitive-val" style="color:var(--accent-purple);">${newRemainingTotal.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2})} € (${newPct.toFixed(1)}%)</strong>
+                            <span>Restschuld im Monat (${chosenMonthStr}):</span>
+                            <strong class="sensitive-val" style="color:var(--accent-purple);">${newRemainingAtMonth.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2})} € (${newPctAtMonth.toFixed(1)}%)</strong>
                         </div>
                         <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
                             <span>Monatliche Rate danach:</span>
